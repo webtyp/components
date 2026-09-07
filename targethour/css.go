@@ -35,6 +35,25 @@ func (t *TargetHour) sheet() *style.Sheet {
 			style.Interactive(style.Page),
 			style.Round(style.RadiusMd),
 		).
+		Part(PartFree,
+			style.Anchor(),
+			style.Row(style.Space2),
+			style.KeepSize(),
+			style.ControlBox(),
+			style.Interactive(style.Page),
+			style.Round(style.RadiusMd),
+			style.As(style.Subtle),
+			// Dashed leading edge: visually a "still to fill" row, never a
+			// fully booked record. Kept as a side inset so the row keeps its
+			// Interactive(Page) surface over the whole box.
+			style.PadInline(style.Space3),
+		).
+		Part(PartFreeAdd,
+			style.FontSize(style.TextLg),
+			style.FontWeight(style.WeightBold),
+			style.CenterContent(),
+			style.KeepSize(),
+		).
 		Part(PartContent,
 			style.Row(style.Space2),
 			style.Grow(),

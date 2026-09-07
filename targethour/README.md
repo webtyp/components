@@ -31,6 +31,23 @@ th := &targethour.TargetHour{
 th.SetItems(items) // []view.Item — each with LeadMain set to the hour "HH:MM"
 ```
 
+### Free slots (reservable hours)
+
+`FreeSlots []string` (hours `"HH:MM"` with no reservation) renders light, distinct
+rows after the booked ones — visually "available", with a trailing `+`. Tapping
+one calls `OnPickFree(hhmm)`. They are actions, not records: they never
+participate in selection/delete mode. `FreeSlots` nil renders nothing new:
+
+```go
+th := &targethour.TargetHour{
+	Selected:   selected,
+	OnSelect:   onSelect,
+	StatusOf:   statusOf,
+	FreeSlots:  []string{"09:00", "10:30"}, // recomputed from list_availability
+	OnPickFree: func(hhmm string) { /* start booking at hhmm */ },
+}
+```
+
 As a `crudview` list:
 
 ```go

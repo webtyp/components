@@ -26,6 +26,8 @@ const (
 	PartLabel   = widget.Part("label")
 	PartBadge   = widget.Part("badge")
 	PartList    = widget.Part("list")
+	PartFree    = widget.Part("free")
+	PartFreeAdd = widget.Part("free-add")
 )
 
 var (
@@ -36,6 +38,8 @@ var (
 	clsHour     = NameTargetHour.Class(PartHour)
 	clsLabel    = NameTargetHour.Class(PartLabel)
 	clsBadge    = NameTargetHour.Class(PartBadge)
+	clsFree     = NameTargetHour.Class(PartFree)
+	clsFreeAdd  = NameTargetHour.Class(PartFreeAdd)
 )
 
 type Item = view.Item
@@ -45,9 +49,9 @@ type Item = view.Item
 type Status uint8
 
 const (
-	StatusPending Status = iota // no tint
-	StatusConfirmed             // confirmed by reception
-	StatusAttended              // patient already attended
+	StatusPending   Status = iota // no tint
+	StatusConfirmed               // confirmed by reception
+	StatusAttended                // patient already attended
 )
 
 type TargetHour struct {
@@ -61,6 +65,13 @@ type TargetHour struct {
 	// from its own model / view.Item to this typed enum, so the library holds
 	// no localized status strings.
 	StatusOf func(it Item) Status
+
+	// FreeSlots son horas "HH:MM" reservables (sin reserva). Se renderizan como
+	// filas ligeras al final de la lista, visualmente distintas de un Item real
+	// (sin estado, con un "+" y marco punteado). Opcional: nil = ninguna.
+	FreeSlots []string
+	// OnPickFree se invoca al hacer clic en un hueco libre, con su "HH:MM".
+	OnPickFree func(hhmm string)
 
 	items []Item
 	rows  *SignalNodes
@@ -108,9 +119,12 @@ func (t *TargetHour) CheckedIDs() []string {
 func (t *TargetHour) SetItems(items []Item) {
 	t.ensure()
 	t.items = items
-	nodes := make([]*Element, 0, len(items))
+	nodes := make([]*Element, 0, len(items)+len(t.FreeSlots))
 	for _, it := range items {
 		nodes = append(nodes, t.buildRow(it))
+	}
+	for _, hhmm := range t.FreeSlots {
+		nodes = append(nodes, t.buildFreeSlot(hhmm))
 	}
 	t.rows.Set(nodes)
 }
@@ -182,4 +196,30 @@ func (t *TargetHour) buildRow(it Item) *Element {
 
 	row.Child(content)
 	return row
+}
+
+// buildFreeSlot renders one reservable free hour as a light row distinct from
+// a real Item: no selection chrome, no tint — it is an action ("reserve this
+// hour"), not a record. Clicking invokes OnPickFree.
+func (t *TargetHour) buildFreeSlot(hhmm string) *Element {
+	key := "th-free-" + hhmm
+
+	content := Div().Set(clsContent.AsAttr()).
+		Child(Span().Set(clsHour.AsAttr()).Text(hhmm)).
+		Child(Span().Set(clsLabel.AsAttr()).Text("")).
+		Child(Span().Set(clsFreeAdd.AsAttr()).Text("+"))
+
+	return Li().Set(clsFree.AsAttr()).
+		ID(key).
+		Key(key).
+		Attr("data-free", hhmm).
+		On("click", func(Event) {
+			if t.sel.On().Get() {
+				return // selection mode never opens on a free slot
+			}
+			if t.OnPickFree != nil {
+				t.OnPickFree(hhmm)
+			}
+		}).
+		Child(content)
 }

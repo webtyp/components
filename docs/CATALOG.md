@@ -101,6 +101,17 @@ select in the same slot.
 
 ---
 
+## [ScheduleEditor](../scheduleeditor/README.md) — ✅ Slot-ready
+Pure editor for a professional's weekly schedule template (7 rows: Sunday..
+Saturday with enable toggle + 4 hour selects) plus per-date exceptions (closed
+/ special hours / blocked) over a `CalendarSlider`. Times are minutes from
+midnight — the shape `appointment_booking` persists. The host feeds the data
+and translates the callbacks to ops; the component knows nothing of
+`router`/`orm`.
+[Detailed Documentation →](../scheduleeditor/README.md)
+
+---
+
 ## [TargetHour](../targethour/README.md) — ✅ Slot-ready
 Selectable list component for a day's booked slots: each row leads with a prominent hour (`HH:MM`) and carries an optional per-row status tint (`pending` / `confirmed` / `attended`). Same multi-selection mechanics, selection header, and `crudview.ListView` compatibility as `targetlist` and `targetdate`. Pairs with `CalendarSlider` (now `widget.Filterable`) as the crud filter.
 [Detailed Documentation →](../targethour/README.md)

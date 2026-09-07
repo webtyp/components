@@ -1,139 +1,247 @@
 ---
-PLAN: "feat(calendarslider): arrow layout, infinite loop, mobile collapse"
+PLAN: "feat: scheduleeditor component + targethour free-slot rows (demo agenda feature)"
+TAG: v0.7.0
+EXECUTOR: local
 REVIEWER: none
 ---
 
-> This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
+# PLAN — `components` para la feature "Agenda + Reserva" (Etapa A del `DEMO_AGENDA_MASTER_PLAN`)
 
-# PLAN — index for 3 independent CalendarSlider improvements
+Orquestador: `webtyp/docs/DEMO_AGENDA_MASTER_PLAN.md` §4.3, §7 fila A.
+(Copia local: `/home/cesar/Dev/Project/webtyp/docs/DEMO_AGENDA_MASTER_PLAN.md`.)
 
-Three separate requests against `components/calendarslider`, different in
-nature (a layout/CSS fix, a navigation-behavior fix, a new interaction) —
-split into 3 stage files on purpose, so each can be assigned to whatever
-executor its own complexity calls for, and dispatched on its own schedule.
-They do **not** need to run as one sequential pass through this index the
-way a single-topic multi-stage plan would; **pick a stage file, promote it
-to the thing you dispatch (or point your executor straight at it), and
-repeat for the others independently.**
+**Dos partes independientes** en un solo `PLAN.md` (patrón `RESERVATION_VIEW_FIXES`):
 
-| Stage | File | What | Blocked on |
-|---|---|---|---|
-| 1 | [PLAN_STAGE_1_ARROW_HOVER_LAYOUT.md](PLAN_STAGE_1_ARROW_HOVER_LAYOUT.md) | Day grid reclaims the width the ‹ › gutter used to reserve permanently; arrows become a compact row flanking the month name (always visible, any device) and additionally grow into full-height edge overlays on mouse-hover/keyboard-focus only | Nothing — can run first, alone, anytime (it also fixes the month label's now-stale raw-Spanish rendering, see its Stage 1.2, but that fix is safe against either version of `webtyp/date`) |
-| 2 | [PLAN_STAGE_2_INFINITE_LOOP.md](PLAN_STAGE_2_INFINITE_LOOP.md) | The wrap edge (last→first, first→last) jumps instantly instead of smooth-scrolling backwards across every month in between | `webtyp/dom`'s `PLAN.md` (below) must be merged + published + version-bumped in `components/go.mod` first |
-| 3 | [PLAN_STAGE_3_MOBILE_COLLAPSE.md](PLAN_STAGE_3_MOBILE_COLLAPSE.md) | On mobile only, picking a day collapses the calendar to a compact chip ("Monday 18 August 2026" by default); tapping it re-expands | `webtyp/date`'s `PLAN.md` (below) must be merged + published + version-bumped in `components/go.mod` first |
+- **Parte 1** — componente nuevo `scheduleeditor`.
+- **Parte 2** — `targethour` gana filas de "hueco libre" (`FreeSlots`).
 
-## External prerequisites (separate repos, separate plans, already written)
+No hay dependencia entre P1 y P2; se pueden ejecutar en cualquier orden. Ambas
+son necesarias para la demo (P1 para la Etapa D, P2 para la Etapa G).
 
-Two of the three stages need one small, additive capability each from a
-foundational repo `components` depends on. Both are self-contained plans,
-already written, sitting in their own repo:
+> Nota: la skill `components` cargada en algunas sesiones está **desactualizada**
+> (menciona `OnMount()` y `ssr.go`). La autoridad es `components/AGENTS.md` +
+> el código real: contrato = `Render()` + `Init(ctx dom.Ctx)` (sin `OnMount`),
+> CSS en `css.go` y SVG en `svg.go` (ambos `//go:build !wasm`), nunca `ssr.go`.
+> Referencia viva: `components/targethour/` (`targethour.go` + `css.go` + `svg.go`).
 
-- `https://github.com/webtyp/dom/blob/main/docs/PLAN.md` — adds
-  `Reference.ScrollIntoViewInstant()`. Pure addition. Gates Stage 2.
-- `https://github.com/webtyp/date/blob/main/docs/PLAN.md` — adds
-  `WeekdayName` and `ParseDateKey`, **and changes `MonthName`'s existing
-  return values from Spanish to English** — a breaking change to
-  already-shipped behavior, deliberate (see "Translation registration"
-  below for why), not a pure addition like the `dom` one. Gates Stage 3 —
-  and Stage 3's own prerequisite section lists the 3 existing tests this
-  breaks and must fix in the same commit as the version bump.
+---
 
-Dispatch and merge these two first (they have no dependency on each other
-or on any calendarslider stage), then bump `components/go.mod` (`go get -u
-github.com/webtyp/dom@latest github.com/webtyp/date@latest && go mod
-tidy`) before dispatching Stage 2 or Stage 3. Stage 1 needs neither and has
-no reason to wait for them.
+# Parte 1 — `components/scheduleeditor`
 
-## Translation registration — no stage in `components` does this, on purpose
+## Objetivo
 
-`date.MonthName`/`date.WeekdayName` return English — the canonical,
-untranslated form. `calendarslider` (Stages 1 and 3) renders them through
-`lang.Translate(...)` (`webtyp.com/fmt/lang`) but registers **no**
-dictionary itself: *"the library never registers words, so you decide the
-language your users see"* —
-`https://github.com/webtyp/layout/blob/main/docs/DICTIONARY.md`,
-the same rule `layout/crudview` already follows for its own strings
-("Confirm", "Cancel", "Delete", …). With no dictionary registered anywhere
-in the running app, everything renders in English — that is the correct
-default after these 3 stages land, not a bug.
+Componente **puro** (`Render()` + `Init()`, cero `router`/`orm`/módulos de
+dominio) para editar la agenda de un profesional: una **plantilla semanal** de 7
+filas y un **panel de excepciones por fecha**. El host traduce los callbacks a
+ops de `appointment_booking` (Etapa C/D) — el componente no lo sabe.
 
-A real application that wants Spanish (or any of the other 7 languages
-`fmt/lang` supports) registers these 19 words itself, once, the same way
-`layout/docs/DICTIONARY.md` shows for crudview's words:
+Forma de datos = minutos int desde medianoche (forma `appointment_booking`).
+Justificación: master plan §8.
+
+## Ficheros (paquete `scheduleeditor/`, plano)
+
+```
+components/scheduleeditor/
+  scheduleeditor.go        # tipos públicos, ScheduleEditor, Render(), Init()
+  css.go                   # //go:build !wasm  — //go:embed scheduleeditor.css, RenderCSS()
+  scheduleeditor.css
+  svg.go                   # //go:build !wasm  — IconSvg() *sprite.Sprite (patrón targethour/svg.go)
+  scheduleeditor_test.go   # backend (sin build tag)
+  scheduleeditor_ui_wasm_test.go  # //go:build wasm — interacción
+```
+
+## API pública (fijada por el master plan §4.3 — no desviarse)
 
 ```go
-import "webtyp.com/fmt/lang"
+package scheduleeditor
 
-func init() {
-	lang.RegisterWords([]lang.DictEntry{
-		{EN: "January", ES: "Enero"}, {EN: "February", ES: "Febrero"},
-		{EN: "March", ES: "Marzo"}, {EN: "April", ES: "Abril"},
-		{EN: "May", ES: "Mayo"}, {EN: "June", ES: "Junio"},
-		{EN: "July", ES: "Julio"}, {EN: "August", ES: "Agosto"},
-		{EN: "September", ES: "Septiembre"}, {EN: "October", ES: "Octubre"},
-		{EN: "November", ES: "Noviembre"}, {EN: "December", ES: "Diciembre"},
-		{EN: "Sunday", ES: "Domingo"}, {EN: "Monday", ES: "Lunes"},
-		{EN: "Tuesday", ES: "Martes"}, {EN: "Wednesday", ES: "Miércoles"},
-		{EN: "Thursday", ES: "Jueves"}, {EN: "Friday", ES: "Viernes"},
-		{EN: "Saturday", ES: "Sábado"},
-	})
+type WeeklyRow struct {
+    DayOfWeek               int  // 0=Domingo … 6=Sábado
+    Active                  bool
+    WorkStart, WorkFinish   int  // minutos 0..1439
+    BreakStart, BreakFinish int  // 0/0 = sin colación
 }
 
-func main() {
-	lang.OutLang(lang.ES) // or lang.OutLang() to auto-detect
-	// ...
+type Exception struct {
+    ID              string
+    Date            string // "YYYY-MM-DD"
+    Type            string // ExcHoliday | ExcSpecialHours | ExcBlocked
+    StartMin, EndMin int
+    Notes           string
+}
+
+const (
+    ExcHoliday      = "HOLIDAY"
+    ExcSpecialHours = "SPECIAL_HOURS"
+    ExcBlocked      = "BLOCKED"
+)
+
+type ScheduleEditor struct {
+    dom.Element
+    Week              []WeeklyRow      // el host pasa 7 filas (Dom..Sáb) ya ordenadas
+    Exceptions        []Exception
+    Holidays          []string         // fechas feriado nacional "YYYY-MM-DD", solo lectura
+    OnWeeklyChange    func(WeeklyRow)   // fila editada (toggle/entrada/salida/colación)
+    OnExceptionAdd    func(Exception)   // alta desde el panel (ID == "")
+    OnExceptionRemove func(id string)
+}
+
+func (e *ScheduleEditor) Init(ctx dom.Ctx)
+func (e *ScheduleEditor) Render() *dom.Element
+```
+
+## Comportamiento
+
+### Plantilla semanal (`.scheduleeditor__week`)
+
+- 7 filas, una por `WeeklyRow` en `Week` (el host garantiza 7, orden Dom→Sáb).
+  Si `len(Week) != 7`: renderizar las que haya + `dom.Log` de dev-warning, sin
+  panic (regla harness: lo que el compilador no caza cae a warning).
+- Cada fila:
+  - **Toggle activo** — `input[type=checkbox]`. Al cambiar: set `Active`,
+    invocar `OnWeeklyChange(row)`. Fila inactiva: horas atenuadas por CSS
+    (`[data-active="false"]`), pero **editables** (poner horas antes de activar
+    es válido — como el legado "paso 1: elegir horas").
+  - **Entrada / Salida / Colación desde / Colación hasta** — 4 `<select>`.
+    Opciones cada 15 min de 06:00 a 22:00 (rango fijo del componente,
+    documentado en el doc del paquete). Valor mostrado `HH:MM`, valor real
+    minutos int. Colación vacía en ambos ⇒ `BreakStart=BreakFinish=0`.
+  - Al cambiar cualquier select: recalcular la fila, `OnWeeklyChange(row)`.
+- **Validación de dev-warning (no bloqueante; NO llama a `OnWeeklyChange`):**
+  `WorkStart < WorkFinish`; con colación,
+  `WorkStart <= BreakStart < BreakFinish <= WorkFinish`. Fila inválida: marca
+  CSS `var(--color-error)` + `dom.Log`.
+
+### Panel de excepciones (`.scheduleeditor__exceptions`)
+
+Reutiliza `components/calendarslider` (API real, verificada):
+
+```go
+&calendarslider.CalendarSlider{
+    NumMonths:  3,
+    Holidays:   toCalHolidays(e.Holidays),          // []calendarslider.Holiday{Date,Name}
+    Occupation: occupationFromExceptions(e.Exceptions), // []calendarslider.OccupationDay{Date,Percent}
+    Selected:   e.sel,                               // *dom.SignalString
+    OnSelect:   func(date string) { e.sel.Set(date) },
 }
 ```
 
-This registration is **out of scope for all 3 stages above** — it belongs
-to whichever real application embeds `calendarslider` (`app-demo` included,
-if its own demo is meant to keep reading in Spanish once these stages and
-their prerequisites land). None of the 3 stage files add it, and none
-should.
+- `toCalHolidays` mapea `[]string` → `[]calendarslider.Holiday{Date: s, Name: "Feriado"}`.
+- `occupationFromExceptions`: un `OccupationDay{Date, Percent}` por fecha con
+  excepción — `Percent` 100 para HOLIDAY/BLOCKED, 50 para SPECIAL_HOURS. Solo
+  sirve para que `calendarslider` haga el día seleccionable y lo marque
+  (su regla: día con `Occupation` = clicable).
+- Al elegir un día (`e.sel` != "") → formulario inline de alta
+  (`.scheduleeditor__exc-form`, visibilidad por `e.sel != ""` bindeada, sin
+  reconstruir el árbol):
+  - `Date` prellenado con `e.sel.Get()` (solo lectura).
+  - `Type` — 3 radios. Etiquetas visibles: el componente es librería → renderiza
+    la palabra canónica inglesa vía `fmt/lang` `lang.Translate("Closed")` /
+    `"Special hours"` / `"Blocked"` y registra **nada** (el diccionario lo pone
+    la app — `layout/AGENTS.md` "Translatable messages"). Documentar estas 3
+    claves + los 7 nombres de día en el doc del paquete / `README`.
+  - `Type == SPECIAL_HOURS` o `BLOCKED`: dos `<select>` de hora (desde/hasta),
+    mismo rango 06:00–22:00. HOLIDAY los oculta (bind sobre `e.excType`).
+  - `Notes` — `input[type=text]` opcional.
+  - Botón "Agregar" → `OnExceptionAdd(Exception{ID: "", Date, Type, StartMin, EndMin, Notes})`;
+    limpia el form (reset `e.sel` a "").
+- Lista de excepciones vigentes (`.scheduleeditor__exc-list`), orden fecha asc:
+  fecha + etiqueta de tipo + horas si aplica + notas + "Quitar" →
+  `OnExceptionRemove(id)`. Las de `Holidays` van solo-lectura, sin "Quitar",
+  con marca visual distinta.
 
-## The one real ordering constraint: Stages 2 and 3 both touch `Render()`
+### Signals internas (no exportadas)
 
-Stage 1 only touches `buildMonth`'s internals (markup) and `css.go` — it
-cannot conflict with the other two. Stages 2 and 3 both edit
-`CalendarSlider.Render()` in `calendarslider.go` (Stage 2 adds two bool
-params threaded through the per-month loop; Stage 3 wraps the strip and adds
-a sibling). They are logically independent of each other, but dispatching
-both as separate PRs from the same starting commit risks a merge conflict
-in that one function. Finish and merge one (2 or 3, whichever order — no
-preference) before starting the other's PR; do not run them concurrently
-from the same base commit.
+- `sel *dom.SignalString` — fecha elegida ("" = form oculto). Construida en `Init`.
+- `excType *dom.SignalString` — tipo elegido (controla visibilidad de los
+  `<select>` de hora).
+- `Week`/`Exceptions`/`Holidays` de campo son estado **inicial**: el host
+  persiste y remonta con datos frescos (mismo modelo que `targethour`/`crudview`
+  — el componente no es la fuente de verdad). No mantener copia mutable interna
+  más allá del render.
 
-## Verification once all 3 (plus both prerequisites) have landed
+### CSS-first
 
+- Tokens sin fallback: `var(--color-primary)`, `var(--color-error)`,
+  `var(--mag-pri)`, etc. Sin `:root` en el `.css`.
+- Atenuado de fila inactiva y visibilidad del form: CSS + `hidden`/`[data-*]`
+  toggled desde el handler; no reconstruir el árbol.
+
+## Tests P1
+
+`scheduleeditor_test.go` (backend, `RenderHTML()`):
+- `TestWeek_RendersSevenRows` / `TestWeek_InactiveRowMarked` (`data-active="false"`).
+- `TestWeek_HourOptionsRange` — cada `<select>` con opciones 06:00..22:00 c/15m.
+- `TestExceptions_ListSorted` — 3 excepciones desordenadas → render ordenado.
+- `TestExceptions_HolidayReadonly` — fecha en `Holidays` → sin "Quitar".
+- `TestSpecialHoursShowsTimeSelects` / `TestHolidayHidesTimeSelects` (según `excType`).
+- Callbacks (dobles que capturan el último valor): cambio de select en la fila
+  Lunes → `OnWeeklyChange` con `DayOfWeek==1` y minutos correctos; "Agregar" →
+  `OnExceptionAdd` con `ID==""`.
+
+`scheduleeditor_ui_wasm_test.go` (`//go:build wasm`): montar, clic en un día del
+calendario → el form de alta se hace visible; submit → callback.
+
+---
+
+# Parte 2 — `components/targethour` gana `FreeSlots`
+
+## Problema
+
+`targethour.TargetHour` hoy tiene solo `Selected`, `OnSelect`, `StatusOf`
+(`targethour.go:53`). **No** existe `FreeSlots`. La Etapa G necesita mostrar
+huecos horarios reservables (derivados de `list_availability`) como filas
+clicables junto a las reservas existentes.
+
+## Cambio
+
+En `targethour.go`, agregar al struct:
+
+```go
+// FreeSlots son horas "HH:MM" reservables (sin reserva). Se renderizan como
+// filas ligeras al final de la lista, visualmente distintas de un Item real
+// (sin estado, con un "+" o marco punteado). Opcional: nil = ninguna.
+FreeSlots []string
+// OnPickFree se invoca al hacer clic en un hueco libre, con su "HH:MM".
+OnPickFree func(hhmm string)
 ```
-gotest -tinygo
-```
 
-green, from `components/`, plus the manual per-stage checks each stage file
-lists in its own "Acceptance criteria" section (hover-reveal on a real
-desktop browser, wrap-jump feel, mobile collapse/expand) — these are visual/
-interaction checks a test suite cannot fully cover on its own.
+- `Render()` / la construcción de filas: tras las filas de `items`, emitir una
+  fila por cada `FreeSlots[i]` con clase `targethour__free` (o equivalente),
+  `On("click", ...)` → `OnPickFree(hhmm)`.
+- No participan de `listselect` (no son seleccionables para borrar/editar): son
+  acciones de "reservar esta hora".
+- CSS en `targethour/css.go` (`RenderSheet`/`RenderCSS` según el patrón del
+  fichero): estilo `targethour__free` — atenuado, cursor pointer, marca de
+  "disponible". Tokens sin fallback.
+- Retrocompatible: `FreeSlots` nil ⇒ HTML idéntico a hoy.
 
-## Execution log (2026-09-05, single sequential pass: Stage 1 → 2 → 3)
+## Tests P2
 
-- Both external prerequisites were already published at dispatch time:
-  `dom` v0.13.9 ships `ScrollIntoViewInstant`; `date` v0.0.5 ships
-  `WeekdayName`/`ParseDateKey` with English `MonthName`. `components/go.mod`
-  bumped `date` v0.0.2 → v0.0.5 (`go get -u + go mod tidy`) before Stage 3.
-- Stage 1 + prerequisite test fixes: `TestBuildMonthPadsToSixWeeks`
-  ("Febrero 2021" → "February 2021") needed the same English fix as the 3
-  assertions Stage 3's prerequisite lists — the stage file omits it, but the
-  old-Spanish assertion fails identically under `date` v0.0.5.
-- **Deviation from Stage 3 as written:** the stage prescribes
-  `BindState(widget.Open, …)` + `RevealedBy(widget.Open)` for the strip and
-  the collapsed chip. `CalendarSlider.WidgetKind()` is `Grid`, and
-  `widget.Kind.Allows` permits `Grid` only `Selected`/`Current` — the root
-  `conformance_test.go` rejects `Open` on a grid (`gotest` full suite red).
-  Implemented with `widget.Current` instead (both `BindState`s and both
-  `RevealedBy`s); each element's `data-current` stays independent (strip
-  follows `expanded`, chip its negation), same mechanics as specified.
-- Verification: `gotest` (vet ✅ race ✅ tests ✅ wasm ✅) and
-  `gotest -tinygo` green from `components/`; sprite-leak check
-  (`go list -deps ./... | grep webtyp/svg/sprite`) empty. Manual
-  browser checks (hover reveal, wrap-jump feel, mobile collapse/expand)
-  still pending — they need a real viewport, not covered here.
+- `TestFreeSlots_RenderedAfterItems` — 2 items + 3 `FreeSlots` → 5 filas, las 3
+  últimas con la clase `free`.
+- `TestFreeSlots_ClickCallsOnPickFree` (`//go:build wasm`) — clic en un hueco →
+  `OnPickFree` con el "HH:MM" correcto.
+- `TestFreeSlots_NilNoRegression` — `FreeSlots` nil → HTML sin filas `free`.
+
+---
+
+## Criterios de aceptación (ambas partes)
+
+- `gotest ./...` verde en `components`.
+- `GOOS=js GOARCH=wasm go build ./...` OK.
+- `go list -deps ./scheduleeditor/ | grep webtyp/svg/sprite` → vacío (SVG solo en
+  `svg.go` con `//go:build !wasm`).
+- `README.md` de `components` indexa `scheduleeditor`; `docs/CATALOG.md` con su
+  entrada (formato de las existentes); si `docs/ARCHITECTURE.md` lista
+  componentes, incluirlo. `targethour` doc/README menciona `FreeSlots`.
+- `layout/docs/DICTIONARY.md` NO se toca desde aquí (es de `layout`), pero el
+  doc de `scheduleeditor` lista las claves de traducción que introduce, para que
+  la Etapa I las copie ahí.
+
+## Fuera de alcance
+
+- Múltiples bloques por día (master O2) — `WeeklyRow` queda como struct (no 4
+  ints sueltos en la firma del callback) para no cerrar esa puerta.
+- Persistencia / red — es del host (Etapa C/D).
+- Cálculo de feriados o de huecos — el componente los recibe ya calculados.

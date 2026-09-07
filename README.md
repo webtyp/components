@@ -133,8 +133,9 @@ See [Component Catalog](docs/CATALOG.md) for full documentation.
 -   **CountBadge**: Notification bubble on a button's top-end corner.
 -   **DataTable**: Data tables with headers and rows.
 -   **ModalDialog**: Centered modal overlay with backdrop.
+-   **ScheduleEditor**: Weekly schedule template + per-date exceptions (pure editor).
 -   **SelectSearch**: Searchable dropdown with live filtering.
--   **TargetHour**: Booked slot list with hour lead and optional status tint.
+-   **TargetHour**: Booked slot list with hour lead and optional status tint (plus reservable free-slot rows).
 -   **ThemeToggle**: Theme switcher (dark/light).
 
 ## Where components fit

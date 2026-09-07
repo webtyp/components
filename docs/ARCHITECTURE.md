@@ -44,3 +44,17 @@ with `ScrollIntoView` — deliberately **not** `<a href="#cs-m-…">` anchors.
 An anchor mutates `location.hash`, and a hash-routed shell (`platformd`)
 reads that as a route change and blanks the view; a button keeps the slide
 inside the widget.
+
+## `scheduleeditor` — a pure editor that composes another component
+
+`scheduleeditor` is a leaf component that edits a weekly schedule template plus
+per-date exceptions. It is **pure**: it knows nothing of `router`, `orm` or any
+domain module — the host feeds it `Week`/`Exceptions`/`Holidays` (initial state)
+and translates its callbacks to persistence ops. That split keeps it usable by
+any host.
+
+It composes `calendarslider` for the exceptions panel, mapping the component's
+`Holidays []string` → `calendarslider.Holiday` and its `Exceptions` → the
+`Occupation` list that makes a day selectable — the assembled widget consumes
+a sibling leaf, it never re-declares its calendar. See
+[`scheduleeditor/README.md`](../scheduleeditor/README.md).
