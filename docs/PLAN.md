@@ -3,6 +3,8 @@ PLAN: "fix(calendarslider): instance-prefix month/day ids so two calendars on on
 TAG: v0.6.18
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 5533973471740343706
 ---
 
 # PLAN — calendarslider: ids globales colisionan entre instancias
