@@ -173,15 +173,19 @@ func (c *CalendarSlider) occupationPercent(date string) (int, bool) {
 func (c *CalendarSlider) WidgetName() widget.Name { return NameCalendarSlider }
 func (c *CalendarSlider) WidgetKind() widget.Kind { return widget.Grid }
 
+func (c *CalendarSlider) ensureUID() {
+	if c.uid == "" {
+		c.uid = fmt.Sprintf("%s-%d", string(NameCalendarSlider), nextCalendarSliderID())
+	}
+}
+
 func (c *CalendarSlider) Init(_ Ctx) {
+	c.ensureUID()
 	if c.Selected == nil {
 		c.Selected = NewString("")
 	}
 	if c.expanded == nil {
 		c.expanded = NewBool(true)
-	}
-	if c.uid == "" {
-		c.uid = fmt.Sprintf("%s-%d", string(NameCalendarSlider), nextCalendarSliderID())
 	}
 	c.today = time.FormatDate(time.Now())
 }
@@ -222,6 +226,7 @@ func (c *CalendarSlider) startYearMonth() (int, int) {
 // alternativa (sin bucle) obliga a recorrer los N meses en orden para volver
 // al principio.
 func (c *CalendarSlider) Render() *Element {
+	c.ensureUID()
 	n := c.numMonths()
 	sy, sm := c.startYearMonth()
 
@@ -268,6 +273,7 @@ func (c *CalendarSlider) Render() *Element {
 // August 2026"; a host that has registered Spanish sees "Lunes 18 Agosto
 // 2026" with no further code change here.
 func (c *CalendarSlider) buildCollapsed() *Element {
+	c.ensureUID()
 	toggle := Input("checkbox").Set(clsCollapsedToggle.AsAttr()).
 		ID(c.uid+suffixCollapsedToggle).
 		BindAttrBool("checked", c.expanded).
@@ -335,10 +341,11 @@ const weeksPerMonth = 6
 // PartStrip), así que sus flechas son, en la práctica, "las" flechas de
 // navegación mientras esté en pantalla.
 func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, prevWraps, nextWraps bool) *Element {
+	c.ensureUID()
 	key := date.MonthKey(year, month)
 	monthEl := Div().Set(clsMonth.AsAttr()).
 		Key(key).
-		ID("cs-m-" + key)
+		ID(c.uid + "-m-" + key)
 
 	monthEl.Child(c.buildWeekdayRow())
 
@@ -375,16 +382,16 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 		Attr("type", "button").
 		Attr("aria-label", "Mes anterior").
 		Attr("title", "Mes anterior").
-		Attr("data-target", "cs-m-"+prevKey).
+		Attr("data-target", c.uid+"-m-"+prevKey).
 		Text("‹")
-	prev.On("click", func(Event) { slideToMonth(prevKey, prevWraps) })
+	prev.On("click", func(Event) { c.slideToMonth(prevKey, prevWraps) })
 	next := Button().Set(clsNext.AsAttr()).
 		Attr("type", "button").
 		Attr("aria-label", "Mes siguiente").
 		Attr("title", "Mes siguiente").
-		Attr("data-target", "cs-m-"+nextKey).
+		Attr("data-target", c.uid+"-m-"+nextKey).
 		Text("›")
-	next.On("click", func(Event) { slideToMonth(nextKey, nextWraps) })
+	next.On("click", func(Event) { c.slideToMonth(nextKey, nextWraps) })
 
 	monthEl.Child(Div().Set(clsMonthNav.AsAttr()).
 		Child(prev).
@@ -400,8 +407,8 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 // month's ›), where a smooth scroll would visibly travel across every
 // month in between in the wrong apparent direction. Every adjacent-month
 // navigation keeps calling this with instant=false.
-func slideToMonth(key string, instant bool) {
-	ref, ok := Get("cs-m-" + key)
+func (c *CalendarSlider) slideToMonth(key string, instant bool) {
+	ref, ok := Get(c.uid + "-m-" + key)
 	if !ok {
 		return
 	}
@@ -426,6 +433,7 @@ func (c *CalendarSlider) buildDayCells(year, month int) []*Element {
 }
 
 func (c *CalendarSlider) buildDay(year, month, day int) *Element {
+	c.ensureUID()
 	dateStr := date.DateKey(year, month, day)
 	weekday := date.Weekday(year, month, day)
 
@@ -485,7 +493,7 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 
 	li := Li().Set(classes...).
 		Key(dateStr).
-		ID("cs-d-"+dateStr).
+		ID(c.uid + "-d-" + dateStr).
 		Attr("role", "gridcell").
 		Attr("data-date", dateStr).
 		BindState(widget.Selected, isSel).

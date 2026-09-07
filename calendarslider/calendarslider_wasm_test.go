@@ -48,7 +48,7 @@ func TestDayClickSelects(t *testing.T) {
 	c.Init(nil)
 	Render("app", c.Render())
 
-	bookable := query(t, "#cs-d-2026-08-11")
+	bookable := query(t, "#"+c.uid+"-d-2026-08-11")
 	bookable.Call("click")
 	if c.Selected.Get() != "2026-08-11" {
 		t.Errorf("Selected = %q, want 2026-08-11", c.Selected.Get())
@@ -59,7 +59,7 @@ func TestDayClickSelects(t *testing.T) {
 	if gotFilter != "2026-08-11" {
 		t.Errorf("OnFilterChange = %q, want 2026-08-11", gotFilter)
 	}
-	if query(t, "#cs-d-2026-08-11").Call("getAttribute", "data-selected").String() != "true" {
+	if query(t, "#"+c.uid+"-d-2026-08-11").Call("getAttribute", "data-selected").String() != "true" {
 		t.Error("el día seleccionado debería llevar data-selected=true")
 	}
 
@@ -67,7 +67,7 @@ func TestDayClickSelects(t *testing.T) {
 	c.Selected.Set("")
 	got = ""
 	gotFilter = ""
-	query(t, "#cs-d-2026-08-01").Call("click")
+	query(t, "#"+c.uid+"-d-2026-08-01").Call("click")
 	if c.Selected.Get() != "" || got != "" || gotFilter != "" {
 		t.Error("un día no ocupable no debería seleccionarse")
 	}
@@ -81,15 +81,15 @@ func TestAllMonthsAlwaysInDOM(t *testing.T) {
 	c.Init(nil)
 	Render("app", c.Render())
 
-	for _, id := range []string{"#cs-m-2026-08", "#cs-m-2026-09", "#cs-m-2026-10"} {
+	for _, id := range []string{"#" + c.uid + "-m-2026-08", "#" + c.uid + "-m-2026-09", "#" + c.uid + "-m-2026-10"} {
 		if !exists(id) {
 			t.Errorf("%s debería existir en el DOM", id)
 		}
 	}
-	if label := query(t, "#cs-m-2026-08 .calendarslider__month-name").Get("textContent").String(); label != "August 2026" {
+	if label := query(t, "#"+c.uid+"-m-2026-08 .calendarslider__month-name").Get("textContent").String(); label != "August 2026" {
 		t.Fatalf("etiqueta de agosto = %q, want August 2026", label)
 	}
-	if label := query(t, "#cs-m-2026-10 .calendarslider__month-name").Get("textContent").String(); label != "October 2026" {
+	if label := query(t, "#"+c.uid+"-m-2026-10 .calendarslider__month-name").Get("textContent").String(); label != "October 2026" {
 		t.Fatalf("etiqueta de octubre = %q, want October 2026", label)
 	}
 }
@@ -105,12 +105,12 @@ func TestNavButtonsSlideToNeighbor(t *testing.T) {
 	Render("app", c.Render())
 
 	for _, sel := range []string{
-		"#cs-m-2026-08 .calendarslider__prev",
-		"#cs-m-2026-09 .calendarslider__prev",
-		"#cs-m-2026-10 .calendarslider__prev",
-		"#cs-m-2026-08 .calendarslider__next",
-		"#cs-m-2026-09 .calendarslider__next",
-		"#cs-m-2026-10 .calendarslider__next",
+		"#" + c.uid + "-m-2026-08 .calendarslider__prev",
+		"#" + c.uid + "-m-2026-09 .calendarslider__prev",
+		"#" + c.uid + "-m-2026-10 .calendarslider__prev",
+		"#" + c.uid + "-m-2026-08 .calendarslider__next",
+		"#" + c.uid + "-m-2026-09 .calendarslider__next",
+		"#" + c.uid + "-m-2026-10 .calendarslider__next",
 	} {
 		if tag := query(t, sel).Get("tagName").String(); tag != "BUTTON" {
 			t.Errorf("%s debería ser un <button>, tagName = %q", sel, tag)
@@ -120,23 +120,23 @@ func TestNavButtonsSlideToNeighbor(t *testing.T) {
 	// Bucle infinito: agosto (primero) y octubre (último) también tienen
 	// botón hacia el otro extremo — nunca hay que recorrer los N meses en
 	// orden para volver al principio.
-	if !exists("#cs-m-2026-08 .calendarslider__prev") {
+	if !exists("#" + c.uid + "-m-2026-08 .calendarslider__prev") {
 		t.Error("el primer mes debería tener botón 'prev' (envuelve al último)")
 	}
-	if !exists("#cs-m-2026-10 .calendarslider__next") {
+	if !exists("#" + c.uid + "-m-2026-10 .calendarslider__next") {
 		t.Error("el último mes debería tener botón 'next' (envuelve al primero)")
 	}
 
 	// El hash no debe cambiar al navegar: el botón vive dentro del widget y
 	// el slide es ScrollIntoView, nunca un salto de ancla.
 	before := js.Global().Get("location").Get("hash").String()
-	query(t, "#cs-m-2026-08 .calendarslider__next").Call("click")
+	query(t, "#"+c.uid+"-m-2026-08 .calendarslider__next").Call("click")
 	if after := js.Global().Get("location").Get("hash").String(); after != before {
 		t.Errorf("navegar con ‹ › no debería tocar location.hash: antes %q, después %q", before, after)
 	}
 
 	// Ningún mes se desmontó durante la navegación.
-	for _, id := range []string{"#cs-m-2026-08", "#cs-m-2026-09", "#cs-m-2026-10"} {
+	for _, id := range []string{"#" + c.uid + "-m-2026-08", "#" + c.uid + "-m-2026-09", "#" + c.uid + "-m-2026-10"} {
 		if !exists(id) {
 			t.Errorf("%s debería seguir existiendo tras navegar", id)
 		}
@@ -151,7 +151,7 @@ func TestExternalSelectedHighlights(t *testing.T) {
 	Render("app", c.Render())
 
 	c.Selected.Set("2026-08-11")
-	if query(t, "#cs-d-2026-08-11").Call("getAttribute", "data-selected").String() != "true" {
+	if query(t, "#"+c.uid+"-d-2026-08-11").Call("getAttribute", "data-selected").String() != "true" {
 		t.Error("escribir Selected debería pintar data-selected en el DOM")
 	}
 
@@ -162,7 +162,7 @@ func TestExternalSelectedHighlights(t *testing.T) {
 	if after := js.Global().Get("location").Get("hash").String(); after != before {
 		t.Errorf("navegar con ‹ › no debería tocar location.hash: antes %q, después %q", before, after)
 	}
-	if query(t, "#cs-d-2026-08-11").Call("getAttribute", "data-selected").String() != "true" {
+	if query(t, "#"+c.uid+"-d-2026-08-11").Call("getAttribute", "data-selected").String() != "true" {
 		t.Error("la selección debería sobrevivir a la navegación")
 	}
 }
@@ -192,17 +192,17 @@ func TestWrapNavigationJumpsInstantly(t *testing.T) {
 		spy.Release()
 	}()
 
-	query(t, "#cs-m-2026-08 .calendarslider__prev").Call("click")
+	query(t, "#"+c.uid+"-m-2026-08 .calendarslider__prev").Call("click")
 	if lastBehavior != "instant" {
 		t.Errorf("wrap prev (agosto -> octubre) behavior = %q, want instant", lastBehavior)
 	}
 
-	query(t, "#cs-m-2026-08 .calendarslider__next").Call("click")
+	query(t, "#"+c.uid+"-m-2026-08 .calendarslider__next").Call("click")
 	if lastBehavior != "smooth" {
 		t.Errorf("adjacent next (agosto -> septiembre) behavior = %q, want smooth", lastBehavior)
 	}
 
-	query(t, "#cs-m-2026-10 .calendarslider__next").Call("click")
+	query(t, "#"+c.uid+"-m-2026-10 .calendarslider__next").Call("click")
 	if lastBehavior != "instant" {
 		t.Errorf("wrap next (octubre -> agosto) behavior = %q, want instant", lastBehavior)
 	}

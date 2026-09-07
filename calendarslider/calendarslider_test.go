@@ -22,6 +22,7 @@ import (
 // 6 semanas + fila de navegación (prev + etiqueta + next en una sola fila).
 func TestBuildMonthAgosto2026(t *testing.T) {
 	c := &CalendarSlider{today: "2026-08-11"}
+	c.ensureUID()
 	m := c.buildMonth(2026, 8, "2026-07", "2026-09", false, false)
 	if m == nil {
 		t.Fatal("buildMonth returned nil")
@@ -36,10 +37,10 @@ func TestBuildMonthAgosto2026(t *testing.T) {
 	if !Contains(children[7].String(), "August 2026") {
 		t.Errorf("el mes lleva la fila de navegación, con la etiqueta en el medio: debería decir 'August 2026', dice %s", children[7].String())
 	}
-	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='cs-m-2026-07'") {
+	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='"+c.uid+"-m-2026-07'") {
 		t.Errorf("el botón anterior debería llevar data-target a julio, dice %s", children[7].String())
 	}
-	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='cs-m-2026-09'") {
+	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='"+c.uid+"-m-2026-09'") {
 		t.Errorf("el botón siguiente debería llevar data-target a septiembre, dice %s", children[7].String())
 	}
 }
@@ -74,12 +75,12 @@ func TestRenderWrapsAround(t *testing.T) {
 
 	// Agosto (primero) enlaza hacia atrás con octubre (último) — el bucle.
 	augMonth := c.buildMonth(2026, 8, "2026-10", "2026-09", true, false).String()
-	if !Contains(augMonth, "data-target='cs-m-2026-10'") {
+	if !Contains(augMonth, "data-target='"+c.uid+"-m-2026-10'") {
 		t.Errorf("el 'prev' de agosto (primero) debería envolver a octubre (último), dice %s", augMonth)
 	}
 	// Octubre (último) enlaza hacia adelante con agosto (primero) — el bucle.
 	octMonth := c.buildMonth(2026, 10, "2026-09", "2026-08", false, true).String()
-	if !Contains(octMonth, "data-target='cs-m-2026-08'") {
+	if !Contains(octMonth, "data-target='"+c.uid+"-m-2026-08'") {
 		t.Errorf("el 'next' de octubre (último) debería envolver a agosto (primero), dice %s", octMonth)
 	}
 }
@@ -224,7 +225,7 @@ func TestRenderStructure(t *testing.T) {
 	// La tira [agosto, septiembre, octubre] es la esperada — Start es el
 	// primer mes, no el centro; un elemento estático por mes, sin señal ni
 	// reconstrucción.
-	for _, id := range []string{"cs-m-2026-08", "cs-m-2026-09", "cs-m-2026-10"} {
+	for _, id := range []string{c.uid + "-m-2026-08", c.uid + "-m-2026-09", c.uid + "-m-2026-10"} {
 		if !strings.Contains(htmlOut, "id='"+id+"'") {
 			t.Errorf("la tira debería incluir el mes %q, no aparece en:\n%s", id, htmlOut)
 		}
@@ -233,7 +234,7 @@ func TestRenderStructure(t *testing.T) {
 	// Cada mes lleva sus dos enlaces (el bucle infinito se cubre en
 	// TestRenderWrapsAround); agosto (Start) enlaza a septiembre como
 	// siguiente.
-	if !Contains(htmlOut, "data-target='cs-m-2026-09'") {
+	if !Contains(htmlOut, "data-target='"+c.uid+"-m-2026-09'") {
 		t.Error("agosto (Start) debería apuntar a septiembre como mes siguiente")
 	}
 
@@ -310,13 +311,13 @@ func TestNumMonthsClampsToMax(t *testing.T) {
 	c.Init(nil)
 	htmlOut := c.Render().String()
 
-	if got := strings.Count(htmlOut, "id='cs-m-"); got != maxMonths {
+	if got := strings.Count(htmlOut, "id='"+c.uid+"-m-"); got != maxMonths {
 		t.Fatalf("NumMonths=20 debería recortarse a %d meses, la tira tiene %d", maxMonths, got)
 	}
-	if !Contains(htmlOut, "id='cs-m-2026-08'") {
+	if !Contains(htmlOut, "id='"+c.uid+"-m-2026-08'") {
 		t.Error("el primer mes de una tira de 12 empezando en agosto 2026 debería ser agosto 2026 (Start)")
 	}
-	if !Contains(htmlOut, "id='cs-m-2027-07'") {
+	if !Contains(htmlOut, "id='"+c.uid+"-m-2027-07'") {
 		t.Error("el último mes de una tira de 12 empezando en agosto 2026 debería ser julio 2027")
 	}
 }
@@ -326,8 +327,59 @@ func TestNumMonthsDefaultsToThree(t *testing.T) {
 	c := &CalendarSlider{Start: "2026-08"}
 	c.Init(nil)
 	htmlOut := c.Render().String()
-	if got := strings.Count(htmlOut, "id='cs-m-"); got != 3 {
+	if got := strings.Count(htmlOut, "id='"+c.uid+"-m-"); got != 3 {
 		t.Errorf("NumMonths sin especificar debería dar 3 meses, la tira tiene %d", got)
+	}
+}
+
+func TestTwoCalendarSlidersNoIDCollisions(t *testing.T) {
+	c1 := &CalendarSlider{Start: "2026-08", NumMonths: 3}
+	c1.Init(nil)
+	c2 := &CalendarSlider{Start: "2026-08", NumMonths: 3}
+	c2.Init(nil)
+
+	if c1.uid == c2.uid {
+		t.Fatalf("dos instancias deben tener UIDs diferentes, got c1.uid=%q, c2.uid=%q", c1.uid, c2.uid)
+	}
+
+	html1 := c1.Render().String()
+	html2 := c2.Render().String()
+
+	extractIDs := func(htmlStr string) []string {
+		var ids []string
+		rest := htmlStr
+		for {
+			idx := strings.Index(rest, "id='")
+			if idx < 0 {
+				break
+			}
+			rest = rest[idx+4:]
+			end := strings.Index(rest, "'")
+			if end < 0 {
+				break
+			}
+			ids = append(ids, rest[:end])
+			rest = rest[end+1:]
+		}
+		return ids
+	}
+
+	ids1 := extractIDs(html1)
+	ids2 := extractIDs(html2)
+
+	seen := make(map[string]bool)
+	for _, id := range ids1 {
+		if seen[id] {
+			t.Errorf("ID duplicado dentro de la primera instancia: %s", id)
+		}
+		seen[id] = true
+	}
+
+	for _, id := range ids2 {
+		if seen[id] {
+			t.Errorf("ID duplicado entre dos instancias de CalendarSlider: %s", id)
+		}
+		seen[id] = true
 	}
 }
 
