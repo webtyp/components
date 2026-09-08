@@ -106,4 +106,4 @@ The component renders its chrome through
 
 ## Tests
 
-Run tests with `go test ./scheduleeditor/... ./calendarslider/...`.
+Run tests with `gotest ./scheduleeditor/ ./calendarslider/`.

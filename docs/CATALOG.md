@@ -102,12 +102,13 @@ select in the same slot.
 ---
 
 ## [ScheduleEditor](../scheduleeditor/README.md) — ✅ Slot-ready
-Pure editor for a professional's weekly schedule template (7 rows: Sunday..
-Saturday with enable toggle + 4 hour selects) plus per-date exceptions (closed
-/ special hours / blocked) over a `CalendarSlider`. Times are minutes from
-midnight — the shape `appointment_booking` persists. The host feeds the data
-and translates the callbacks to ops; the component knows nothing of
-`router`/`orm`.
+Pure editor for a professional's availability: a weekly **pattern** of time-range
+rows tagged with weekday chips, a bulk **day marker** (concrete dates worked over
+a collapsed `CalendarSlider`), and per-date **exceptions** (closed / special
+hours / blocked) over a second `CalendarSlider`. Hour options are clamped to the
+establishment's `Bounds`. Times are minutes from midnight — the shape
+`appointment_booking` persists. The host feeds the data and translates the
+callbacks to ops; the component knows nothing of `router`/`orm`.
 [Detailed Documentation →](../scheduleeditor/README.md)
 
 ---

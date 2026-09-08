@@ -479,18 +479,71 @@ func TestMultiSelectToggle(t *testing.T) {
 
 	c := &CalendarSlider{
 		today:        "2026-08-11",
+		Holidays:     []Holiday{{Date: "2026-08-15", Name: "Asunción de la Virgen"}},
 		Occupation:   []OccupationDay{{Date: "2026-08-11", Percent: 50}, {Date: "2026-08-12", Percent: 50}},
 		SelectedMany: selMany,
 	}
 	c.Init(nil)
 
-	day11 := c.buildDay(2026, 8, 11)
-	if !strings.Contains(day11.String(), "data-selected='true'") {
+	// Initial derivation: the seeded key is selected, its neighbour is not.
+	if !strings.Contains(c.buildDay(2026, 8, 11).String(), "data-selected='true'") {
 		t.Error("2026-08-11 should be selected initially in multi-select mode")
 	}
-
-	day12 := c.buildDay(2026, 8, 12)
-	if strings.Contains(day12.String(), "data-selected='true'") {
+	if strings.Contains(c.buildDay(2026, 8, 12).String(), "data-selected='true'") {
 		t.Error("2026-08-12 should not be selected initially")
+	}
+
+	// Occupation/Holidays still paint in multi-select mode.
+	if !strings.Contains(c.buildDay(2026, 8, 15).String(), "day-red") {
+		t.Error("a holiday should still paint red with SelectedMany set")
+	}
+	if strings.Contains(c.buildDay(2026, 8, 15).String(), "day-selectable") {
+		t.Error("a holiday must not be selectable in multi-select mode")
+	}
+
+	// Toggle ON: 2026-08-12 joins the set, 2026-08-11 stays.
+	next, on := toggleWord(selMany.Get(), "2026-08-12")
+	if !on {
+		t.Fatal("toggling an unselected date should report it now selected")
+	}
+	selMany.Set(next)
+	if !containsWord(selMany.Get(), "2026-08-11") || !containsWord(selMany.Get(), "2026-08-12") {
+		t.Fatalf("both dates should be in the set after toggle-on, got %q", selMany.Get())
+	}
+	if !strings.Contains(c.buildDay(2026, 8, 12).String(), "data-selected='true'") {
+		t.Error("2026-08-12 should render selected after toggle-on")
+	}
+
+	// Toggle OFF: 2026-08-11 leaves the set, 2026-08-12 stays.
+	next, on = toggleWord(selMany.Get(), "2026-08-11")
+	if on {
+		t.Fatal("toggling a selected date should report it now unselected")
+	}
+	selMany.Set(next)
+	if containsWord(selMany.Get(), "2026-08-11") {
+		t.Errorf("2026-08-11 should be gone after toggle-off, got %q", selMany.Get())
+	}
+	if strings.Contains(c.buildDay(2026, 8, 11).String(), "data-selected='true'") {
+		t.Error("2026-08-11 should not render selected after toggle-off")
+	}
+}
+
+// TestSingleSelectUnchangedBySelectedMany guards the coexistence rule: with
+// SelectedMany nil, selection is derived from Selected exactly as before, so
+// every existing consumer (targethour, reservation, the exceptions panel) is
+// untouched by the multi-select addition.
+func TestSingleSelectUnchangedBySelectedMany(t *testing.T) {
+	c := &CalendarSlider{
+		today:      "2026-08-11",
+		Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 50}, {Date: "2026-08-12", Percent: 50}},
+		Selected:   NewString("2026-08-12"),
+	}
+	c.Init(nil)
+
+	if !strings.Contains(c.buildDay(2026, 8, 12).String(), "data-selected='true'") {
+		t.Error("Selected date should render selected when SelectedMany is nil")
+	}
+	if strings.Contains(c.buildDay(2026, 8, 11).String(), "data-selected='true'") {
+		t.Error("a non-Selected date must not render selected in single-select mode")
 	}
 }

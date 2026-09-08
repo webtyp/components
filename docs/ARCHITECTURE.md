@@ -47,14 +47,20 @@ inside the widget.
 
 ## `scheduleeditor` — a pure editor that composes another component
 
-`scheduleeditor` is a leaf component that edits a weekly schedule template plus
-per-date exceptions. It is **pure**: it knows nothing of `router`, `orm` or any
-domain module — the host feeds it `Week`/`Exceptions`/`Holidays` (initial state)
-and translates its callbacks to persistence ops. That split keeps it usable by
-any host.
+`scheduleeditor` is a leaf component that edits a professional's availability
+through three mechanisms shown at once: a **weekly pattern** (`Pattern
+[]PatternRow` — time ranges tagged with weekday chips), **marked working days**
+(`Marked []MarkedDay` — concrete dates), and **per-date exceptions**
+(`Exceptions []Exception` — closed / special hours / blocked). It is **pure**:
+it knows nothing of `router`, `orm` or any domain module — the host feeds it
+that state plus `Bounds`/`Holidays`/`Closures` and translates its callbacks to
+persistence ops. That split keeps it usable by any host.
 
-It composes `calendarslider` for the exceptions panel, mapping the component's
-`Holidays []string` → `calendarslider.Holiday` and its `Exceptions` → the
-`Occupation` list that makes a day selectable — the assembled widget consumes
-a sibling leaf, it never re-declares its calendar. See
+It composes `calendarslider` **twice** — once collapsed for the bulk day marker
+(multi-select via `SelectedMany`/`OnToggle`) and once for the exceptions panel
+(single-select via `Selected`/`OnSelect`) — mapping the component's
+`Holidays`/`Closures []string` → `calendarslider.Holiday` and its `Marked` /
+`Exceptions` → the `Occupation` list that makes a day selectable. The assembled
+widget consumes a sibling leaf, it never re-declares its calendar; multi-select
+was added to `calendarslider` itself rather than forked here. See
 [`scheduleeditor/README.md`](../scheduleeditor/README.md).

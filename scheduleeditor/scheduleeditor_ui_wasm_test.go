@@ -39,7 +39,10 @@ func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 	se.Init(nil)
 	Render("app", se)
 
-	day := query(t, "[data-date='2026-09-19']")
+	// Two calendars now share the view (the day marker and the exceptions
+	// panel); scope the pick to the exceptions calendar so the click lands on
+	// OnSelect, not the marker's OnToggle.
+	day := query(t, ".scheduleeditor__exceptions [data-date='2026-09-19']")
 	day.Call("click")
 
 	form := query(t, ".scheduleeditor__exc-form")
