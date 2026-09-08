@@ -144,6 +144,7 @@ func (t *TargetDate) buildRow(it Item) *Element {
 
 	row := Li().Set(clsRow.AsAttr()).
 		Key(key).
+		Attr("data-row", key).
 		Attr("role", "option").
 		BindState(widget.Selected, isSel).
 		BindState(widget.Invalid, r.Danger).
