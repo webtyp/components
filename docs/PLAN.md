@@ -1,670 +1,380 @@
 ---
-PLAN: "fix(scheduleeditor): the day is the index, the reveal is real, the grid is legible"
+PLAN: "feat!(scheduleeditor): blocks, pattern-apply-to-days, and a bulk day marker"
 EXECUTOR: jules
 REVIEWER: none
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
 >
-> **Depends on a GATE.** `webtyp.com/widget` must first ship
-> `Kind.Allows(Form, Open) == true` (see
-> [widget/docs/PLAN.md](https://github.com/webtyp/widget/blob/main/docs/PLAN.md)).
-> Bump `webtyp.com/widget` in `go.mod` to that tag **before** Stage 2 — without
-> it, `TestKindAllowsEveryState` in this repo fails. Orchestrator:
-> [webtyp/docs/AGENDA_VIEW_FIXES_MASTER_PLAN.md](https://github.com/webtyp/webtyp/blob/main/docs/AGENDA_VIEW_FIXES_MASTER_PLAN.md).
+> **No cross-repo gate.** `scheduleeditor` is a component: modules depend on
+> it, never the reverse, and this plan imports neither `router`, `orm`,
+> `veltylabs/business_calendar` nor `veltylabs/appointment_booking` (§1 already
+> stated this; this line makes it explicit at the top so it is never mistaken
+> for a dependency). `PatternRow`, `MarkedDay` and `Bounds` (§5) are plain Go
+> types this repo defines; the *host* — `app-demo`'s plan — is what translates
+> them to and from those two modules' ops. This plan can execute **in
+> parallel** with `business_calendar`/`appointment_booking`, not after them.
+> Its only real prerequisite is intra-repo: `calendarslider` gains
+> multi-select first, as Stage 4a of this same plan. Orchestrator:
+> [webtyp/docs/AGENDA_DOMAIN_MASTER_PLAN.md](https://github.com/webtyp/webtyp/blob/main/docs/AGENDA_DOMAIN_MASTER_PLAN.md)
+> (§3-bis explains the same rule for `appointment_booking`, one level down: a
+> generic module never imports a specific one either).
+>
+> The previous `scheduleeditor` plan is closed and rotated to
+> [LAST_PLAN_EXECUTED.md](LAST_PLAN_EXECUTED.md) (published as `v0.6.22`). This
+> plan replaces the editor's interaction model; that one only fixed its bugs.
 
-# Plan — `scheduleeditor` correctness + legibility
+# Plan — `scheduleeditor` v2
 
-Everything here is in **one package**: `scheduleeditor/`. Files touched:
-`scheduleeditor.go`, `css.go`, `README.md`, `scheduleeditor_test.go`,
-`scheduleeditor_ui_wasm_test.go`.
+Everything is in `scheduleeditor/`. The component stays **pure**: it knows
+nothing about `router`, `orm` or `appointment_booking`. The host supplies data
+and translates callbacks.
 
----
+## 1. Why the current editor is the wrong shape
 
-## 1. What is broken (observed in the running demo, not inferred)
+Driven live at `#agenda` (`components v0.6.22`), after the bug-fix round:
 
-`ScheduleEditor` is mounted at `https://localhost:8080/#agenda` by
-`app-demo/modules/agenda`. Driven live at `components v0.6.20`:
+- **7 rows × 4 selects, always.** A professional with one pattern
+  (Mon/Wed/Fri 08:00–14:00) edits **28 controls** to express one fact. The
+  grid's size is fixed by the calendar, not by the schedule.
+- **A break is a column.** `Colación desde` / `Colación hasta` can describe
+  exactly one interruption, so "morning 09–13, afternoon 15–19" is
+  unrepresentable.
+- **No way to work an irregular set of days.** The weekly grid is the only
+  input; a professional who works "some Saturdays" or "the last working day of
+  each month" has nowhere to say it.
+- **The exceptions panel is 899px tall** inside a ~544px viewport, dominated by
+  three stacked months of `calendarslider`. Measured live.
+- **Hours are unbounded.** `hourOptions` hardcodes 06:00–22:00 regardless of
+  what the establishment actually allows.
 
-1. **The day label is taken from data the host can get wrong.** The rows render
-   `Domingo · Lunes · Domingo · Miércoles · Domingo · Viernes · Domingo`. The
-   host built `make([]WeeklyRow, 7)` and filled only the days its op returned;
-   every unfilled row kept `DayOfWeek == 0`, and `buildWeekRow` renders
-   `dayLabel(r.DayOfWeek)`. Worse, `weeklyChange` hands that same lying row to
-   `OnWeeklyChange` and the host persists it — **enabling Tuesday wrote
-   Sunday**, reproduced live.
-2. **`data-open` is written and never styled.** `buildExceptionForm` binds
-   `data-open` on `PartExcForm`, and `css.go` has no reveal rule for it, so the
-   add-form is permanently visible — measured `display: flex` with no day
-   picked. Pressing "Agregar" then hits `addException`'s `if e.sel.Get() == ""
-   { return }`: a **silent no-op**.
-3. **`PartExcHours` is not in the sheet at all.** No `Part(PartExcHours, …)`
-   call exists, so its `data-open` is inert too and the hour selects show for
-   `HOLIDAY`, which has no hour window.
-4. **The weekly grid has no column headers** — four bare `<select>` per row —
-   and `style.Grow()` on `PartDayName` stretches the label to 584px of a 926px
-   row, shoving the controls against the far edge.
-5. **An inactive day looks like a configured one**: `06:00 06:00 06:00 06:00`,
-   selects fully enabled.
-6. **`lang.Translate("Special", "hours")` produces "Especial horas"** —
-   word-by-word translation cannot order a Spanish adjective phrase.
-7. **13 tap targets under 44×44px** (`browser_audit_mobile`): the 7 day toggles
-   and 3 type radios render at 13×13. On a 394px viewport a radio and its label
-   split across a line break.
-8. **An empty exception list renders nothing** — no empty state.
+## 2. What it becomes
 
----
+One view, two mechanisms visible at once (master plan A5) — no mode switch:
 
-## 2. Design gate
+```
+┌─ Plantilla semanal ────────────────────────────────┐
+│  [09:00 ▾] – [13:00 ▾]   [L][M][X][J][V][S][D]  [+]│  ← a pattern row
+│  [15:00 ▾] – [19:00 ▾]   [L][M][X][J][V][S][D]  [×]│  ← another
+└────────────────────────────────────────────────────┘
+┌─ Días marcados ────────────────────────────────────┐
+│  [calendario del horizonte, días clicables]        │
+│  bloque para los días marcados: [09:00▾]–[13:00▾]  │
+└────────────────────────────────────────────────────┘
+```
 
-This plan changes public API. Per skill **api-design**, the five answers:
+A professional with a fixed pattern uses the top and never touches the bottom.
+An irregular one leaves the top empty and marks days below. A mixed one uses
+both. **Nothing is hidden and no mode is chosen.**
 
-### 2.1 Prior art
+## 3. Design gate
 
-The question is: *how does a repeating-row editor tell the caller which row
-changed, without letting the caller misstate it?*
+Breaking change to public API. Per skill **api-design**:
 
-- **React Hook Form `useFieldArray`** (JS). The array index is the identity;
-  `fields[index]` and the change callback both carry `index`. The row object
-  never stores its own position — storing it is a documented anti-pattern
-  because the two desynchronise on insert/remove.
-- **Angular `FormArray`**. `at(index)` is the only accessor; `valueChanges`
-  emits the whole array. Position is structural, never a field.
-- **Rails `fields_for` / `accepts_nested_attributes_for`** (Ruby). The nested
-  record *does* carry an `id`, precisely because rows are unordered database
-  rows with no natural position. The position-as-identity model is chosen only
-  when the collection is fixed-length and positionally meaningful.
+### 3.1 Prior art
 
-A week is exactly that third case inverted: **fixed length 7, and the position
-is the meaning.** Sunday is not "the row whose `day_of_week` happens to be 0",
-it is "the first row". So this ecosystem follows family one — index-as-identity,
-like `useFieldArray` — not because it is novel but because a fixed-length
-positional collection cannot benefit from a redundant position field. The field
-can only ever agree with the index (noise) or disagree with it (the bug).
+- **Cal.com** — a schedule is a list of availability rows, each carrying
+  `days: [1,3,5]` + a time range. One row covers several days; a day may appear
+  in several rows. There is **no break field** — a break is the gap between two
+  rows. Its "Copy times to…" button exists precisely because a per-day grid
+  makes the common case expensive.
+- **Calendly** — "Weekly hours" as rows with day chips, plus "Date overrides"
+  on a calendar. The two live in one screen, exactly as A5 decides.
+- **Google Calendar working hours** — per-day ranges, several per day, no break
+  concept.
 
-### 2.2 The novice-name test
+All three converge on *time-range rows tagged with days*, not *days holding a
+window*. That inversion is what collapses 28 controls into 2–3.
 
-Read aloud, with no context:
+### 3.2 The novice-name test
 
-- `OnWeeklyChange func(dayOfWeek int, row WeeklyRow)` — *"on weekly change, give
-  me the day of week and the row."* `dayOfWeek` is the word
-  `appointment_booking` already uses in `work_calendar_weekly.day_of_week` and
-  the word `date.WeekdayName(int)` takes. No lookup needed.
-- `PartWeekHead` / `PartWeekHeadCell` — *"the week's header, and a cell of it."*
-  Sits beside the existing `PartWeek` / `PartWeekRow` with no new vocabulary.
-- `WeeklyRow{Active, WorkStart, WorkFinish, BreakStart, BreakFinish}` — every
-  remaining field answers *"what does this day look like"*. None answers *"which
-  day is this"*, which is now unaskable.
+- `PatternRow{StartMin, EndMin, Days []int}` — *"this time range, on these
+  days."*
+- `MarkedDay{Date, StartMin, EndMin}` — *"this date, with these hours."*
+- `Bounds{OpenMin, CloseMin}` — *"the earliest and latest the place is open."*
+- `OnPatternChange(rows []PatternRow)` — *"the pattern is now this."*
+- `OnDaysMarked(dates []string, startMin, endMin int)` — *"mark these days with
+  this block."*
 
-### 2.3 The complexity ledger
+### 3.3 Complexity ledger
 
 | Row | Δ |
 |---|---|
-| Concepts the developer must learn | **−1** — "the slice index and the `DayOfWeek` field must agree" stops being a rule anyone must know |
-| Files they must touch to do X | **0** |
-| Lines at the call site | **+1** in `OnWeeklyChange` (one extra parameter), **−7** in the host, which no longer assigns `DayOfWeek` per row |
-| Ways to do the same thing | **−1** — today `Week[2].DayOfWeek` may be `2` or `0` and both compile; after, there is one |
-| Exported surface | **−1 field**, **+2 `widget.Part` constants**, **+1 callback parameter** |
+| Concepts the developer must learn | **−1** — "break" stops being a concept; **+1** — "marked day". Net 0, and the surviving concept is the one that maps to the domain |
+| Controls to express one pattern | **28 → 3** (start, end, day chips) |
+| Ways to express two sessions a day | **0 → 1** |
+| Ways to express an irregular schedule | **0 → 1** |
+| Ways to do the same thing | **−1** — `Week []WeeklyRow` is deleted, not kept beside patterns |
+| Exported surface | **−1 type** (`WeeklyRow`), **+3 types**, **−1 callback**, **+2 callbacks** |
 
-The last row is negative. The surface row is honest: two new parts are added for
-the header, and they are the minimum a labelled grid needs.
+### 3.4 Where it belongs
 
-### 2.4 Where it belongs
+`scheduleeditor` owns "edit a professional's availability". Bounding the hour
+options to what the establishment allows is *rendering the data it was given* —
+`Bounds` arrives as input; the component never fetches it and never validates
+against a service. That stays with the host and the domain module.
 
-`scheduleeditor` owns "edit a weekly schedule template plus per-date
-exceptions". The day-of-week↔index invariant is entirely inside that concern —
-it is not the host's business to maintain, which is precisely why the host got
-it wrong. Enforcing it here is SRP, not scope creep. Nothing moves to another
-package; no new package appears.
+### 3.5 What it deletes
 
-### 2.5 What it deletes
+`WeeklyRow` (and with it `BreakStart`/`BreakFinish`), `OnWeeklyChange`,
+`weekHeadKeys` and the five column headers, `PartWeekHead`/`PartWeekHeadCell`,
+`PartDay`/`PartDayName`/`PartToggle`, and the unbounded `hourOptions` range.
+Nothing is deprecated — the single consumer (`app-demo`) migrates in its plan.
 
-- `WeeklyRow.DayOfWeek` — the field, its zero value, and the class of bug it
-  created.
-- `dayLabel(dow int)`'s reliance on caller-supplied data (it now takes the
-  index).
-- Two dictionary keys downstream (`"Special"`, `"hours"`) — deleted in Stage C,
-  the `app-demo` plan.
-- Nothing is deprecated. `WeeklyRow.DayOfWeek` is removed in this change, and
-  the single consumer (`app-demo/modules/agenda`) is migrated in Stage C. There
-  are **zero** external users: verified with
-  `grep -rln "scheduleeditor" --include=*.go` across the workspace — the hits
-  are this package, `components/conformance_test.go`, and `app-demo`.
+## 4. Use cases
 
----
+CU-02, CU-08, CU-09, CU-10, CU-11, CU-12, CU-14, CU-15, CU-24 from the master
+plan §4. Each gets a test in §9.
 
-## 3. Stage 1 — the day is the index
+## 5. Stage 1 — the new data shape
 
-**File: `scheduleeditor/scheduleeditor.go`**
-
-### 3.1 The type
+**File: `scheduleeditor/scheduleeditor.go`.** Delete `WeeklyRow` entirely. Add:
 
 ```go
-// WeeklyRow is one day of the weekly template. Times are minutes from
-// midnight (0..1439); a break of 0/0 means no break.
+// PatternRow is a time range plus the weekdays it applies to. Several rows may
+// cover the same weekday — "morning 09:00–13:00, afternoon 15:00–19:00" is two
+// rows sharing a day, and the lunch break is the GAP between them.
 //
-// The row does NOT carry its day: its position in ScheduleEditor.Week is the
-// day (index 0 = Sunday … 6 = Saturday). A field would be free to disagree
-// with the position, and did — a host that left it at its zero value made
-// every unconfigured day claim to be Sunday, and persisted it.
-type WeeklyRow struct {
-	Active                  bool
-	WorkStart, WorkFinish   int
-	BreakStart, BreakFinish int
+// There is deliberately no break field: a break that is a field can describe
+// exactly one interruption, and a gap describes any number.
+type PatternRow struct {
+	StartMin, EndMin int   // minutes from midnight
+	Days             []int // 0=Sunday … 6=Saturday
+}
+
+// MarkedDay is a concrete date the professional works, independent of the
+// weekly pattern. It is what lets an irregular schedule exist at all: a
+// professional with no PatternRow and a list of MarkedDay is fully expressed.
+type MarkedDay struct {
+	Date             string // "YYYY-MM-DD"
+	StartMin, EndMin int
+}
+
+// Bounds is the establishment's opening window — the only hours the editor may
+// offer (CU-02). It is INPUT: the component renders within it and never
+// fetches or validates it. Zero value (0,0) means unbounded, for a host that
+// has no institutional calendar.
+type Bounds struct {
+	OpenMin, CloseMin int
 }
 ```
 
-Delete the `DayOfWeek` field. Delete nothing else from the struct.
-
-### 3.2 The callback
-
-On `ScheduleEditor`:
+`ScheduleEditor` becomes:
 
 ```go
-	// OnWeeklyChange fires on every edit of the weekly template (toggle,
-	// entry, exit, break). dayOfWeek is 0=Sunday … 6=Saturday, taken from the
-	// row's position in Week — never from the row.
-	OnWeeklyChange    func(dayOfWeek int, row WeeklyRow)
-	OnExceptionAdd    func(Exception)
-	OnExceptionRemove func(id string)
-```
+type ScheduleEditor struct {
+	Element // value embed — NEVER pointer
 
-### 3.3 The funnel
+	// Pattern is the weekly template. Initial state — the host persists on
+	// each callback and re-mounts with fresh data.
+	Pattern []PatternRow
+	// Marked are the concrete dates worked, sorted ascending.
+	Marked []MarkedDay
+	// Bounds caps every hour control (CU-02). Widening it upstream is what
+	// makes CU-03 visible here with no rebuild.
+	Bounds Bounds
+	// Horizon is how many months the marking calendar shows. 0 → 6.
+	Horizon int
+	// Holidays and Closures are read-only dates the editor paints as
+	// unavailable; picking one is refused by the calendar, not by a message.
+	Holidays []string
+	Closures []string
 
-```go
-func (e *ScheduleEditor) weeklyChange(i int, mutate func(*WeeklyRow)) {
-	if i < 0 || i >= len(e.Week) {
-		Log("scheduleeditor: weekly row index out of range", i)
-		return
-	}
-	r := e.Week[i]
-	mutate(&r)
-	if e.OnWeeklyChange != nil {
-		e.OnWeeklyChange(i, r)
-	}
+	OnPatternChange func(rows []PatternRow)
+	OnDaysMarked    func(dates []string, startMin, endMin int)
+	OnDaysUnmarked  func(dates []string)
+	OnMarkedDayEdit func(day MarkedDay)
 }
 ```
 
-### 3.4 Label and validity read the index
+`Exception`, `OnExceptionAdd` and `OnExceptionRemove` **stay** — blocking a day
+because you fell ill (CU-13) is still an exception, and it is not the same
+gesture as unmarking a working day.
+
+## 6. Stage 2 — bounded hour options (CU-02, CU-03)
+
+Replace the hardcoded 06:00–22:00 range:
 
 ```go
-// dayLabel is the day name for a row's POSITION in Week. The component is a
-// library: it renders webtyp/date's canonical English name (Sunday..Saturday)
-// through lang.Translate — the app registers the dictionary.
-func dayLabel(index int) string {
-	return lang.Translate(date.WeekdayName(index)).String()
-}
+// hourOptions returns the <option> set for an hour select, clamped to the
+// establishment's opening window. Hours outside it are NOT rendered disabled —
+// they are not rendered at all: an option that cannot legally be chosen has no
+// reason to exist in the list (CU-02).
+//
+// Bounds{} (0,0) means the host has no institutional calendar; fall back to
+// the full day, 00:00–23:45.
+func hourOptions(selected int, b Bounds, step int) []*Element
 ```
 
-In `buildWeekRow(i int, r WeeklyRow)`:
-- `Span().Set(clsDayName.AsAttr()).Text(dayLabel(r.DayOfWeek))` →
-  `…Text(dayLabel(i))`.
-- In the invalid-row `Log`, `date.WeekdayName(r.DayOfWeek)` →
-  `date.WeekdayName(i)`.
-- Add `Attr("data-day", fmt.Convert(i).String())` on the row, as a breadcrumb
-  for tests and for the acceptance checks. It is a `data-*` attribute, **not**
-  an id — never compose an id string in `Render()`.
+`step` stays 15. When `Bounds` widens upstream and the host re-mounts, the
+select simply has more options — that is all CU-03 needs at this layer.
 
-### 3.5 `Week` must be exactly 7 rows — loudly
+## 7. Stage 3 — the pattern editor (CU-08, CU-09, CU-12)
 
-`buildWeek` currently iterates whatever it is given. A host that passes 5 rows
-would silently render a 5-day week. Make it loud and correct:
+A pattern row renders as: start select, end select, seven day chips, and a
+remove button. Below the rows, one "add row" button.
+
+**Day chips are `<input type="checkbox">` + `<label>`, never divs.** They must be
+keyboard-reachable and announce their state. Give each chip a `Key(...)` and
+retrieve it with `el.Ref()`; **never compose an id string** — that is the rule
+`DEMO_AGENDA_MASTER_PLAN.md` records under "Fix de ids del arnés".
+
+New parts, replacing the deleted grid parts:
 
 ```go
-// weekDays is the fixed length of the weekly template: Sunday..Saturday.
-const weekDays = 7
-
-func (e *ScheduleEditor) buildWeek() *Element {
-	week := Div().Set(clsWeek.AsAttr()).Attr("role", "grid")
-	week.Child(e.buildWeekHead())
-	if len(e.Week) != weekDays {
-		Log("scheduleeditor: Week must hold exactly 7 rows (Sunday..Saturday), got", len(e.Week))
-	}
-	for i := 0; i < weekDays && i < len(e.Week); i++ {
-		week.Child(e.buildWeekRow(i, e.Week[i]))
-	}
-	return week
-}
+	PartPattern     = widget.Part("pattern")
+	PartPatternRow  = widget.Part("pattern-row")
+	PartDayChips    = widget.Part("day-chips")
+	PartDayChip     = widget.Part("day-chip")
+	PartRowRemove   = widget.Part("row-remove")
+	PartRowAdd      = widget.Part("row-add")
+	PartMarker      = widget.Part("marker")
+	PartMarkerHours = widget.Part("marker-hours")
 ```
 
-`Log` is `dom`'s development diagnostic — loud in dev, gone in a release build.
-It reports and continues; it does not panic and it does not pad the slice with
-guesses. A missing input is never guessed (skill **api-design**, zero technical
-debt).
+A row whose `Days` is empty, or whose `StartMin >= EndMin`, or that overlaps
+another row on a shared day, carries `widget.Invalid` and logs a dev warning —
+**never blocks the edit**, same rule the component already follows.
 
----
+`OnPatternChange` hands back the **whole** row set, not a delta. A whole-set
+replace is what keeps the stored pattern and the rendered pattern from drifting,
+and it matches `SaveDayBlocks`' whole-day replace upstream.
 
-## 4. Stage 2 — the reveal actually reveals
+## 8. Stage 4 — the day marker (CU-10, CU-11, CU-15, CU-24)
 
-**Do not start Stage 2 until `go.mod` points at the `widget` tag from the gate
-plan.** Verify first:
+A `calendarslider` over `Horizon` months (default 6) where **every** day is
+selectable, plus one start/end pair for the common window (A4).
 
-```
-grep -n "webtyp.com/widget" go.mod          # must be the new tag
-```
+- Clicking an unmarked day marks it with the common window → `OnDaysMarked`.
+- Clicking a marked day unmarks it → `OnDaysUnmarked`.
+- A marked day shows its own hours when they differ from the common window;
+  editing them fires `OnMarkedDayEdit` (CU-11).
+- Holidays and closures render unavailable and are not clickable.
 
-### 4.1 `css.go` — add the two missing rules
+**CU-24 — the size problem.** The old panel was 899px because it stacked three
+months. `calendarslider` already has a collapsed mode
+(`calendarslider__collapsed`). Render the marker **collapsed by default**,
+showing the current month, and let the strip scroll horizontally. Read
+`calendarslider`'s API before wiring: `NumMonths`, `Occupation`, `Selected`,
+`OnSelect` and the collapse toggle already exist — do not add a second
+calendar and do not fork it.
 
-**File: `scheduleeditor/css.go`.** In `sheet()`, change the `PartExcForm` rule
-and add a `PartExcHours` rule:
+### 8.1 `calendarslider` must gain multi-selection first — verified
+
+`calendarslider` is **single-select today**. Confirmed in
+`calendarslider/calendarslider.go`: `Selected *SignalString` (line 123), and
+selection is derived as `isSel := DeriveBool(func() bool { return
+c.Selected.Get() == dateStr })` (line 509). One date at a time.
+
+Marking days is inherently multi-select, so **the capability is added to
+`calendarslider`, in this repo, as Stage 4a** — never worked around inside
+`scheduleeditor`. Working around a missing capability in the consumer is the
+fork this ecosystem forbids, and a second calendar would be worse.
 
 ```go
-		Part(PartExcForm,
-			style.RevealedBy(widget.Open),
-			style.Stack(style.Space2),
-			style.As(style.Inset),
-			style.Round(style.RadiusMd),
-			style.Pad(style.Space3),
-		).
-		Part(PartExcHours,
-			style.RevealedBy(widget.Open),
-			style.Row(style.Space2),
-		).
+// SelectedMany holds every selected date key when the calendar is in
+// multi-select mode. nil (the default) keeps the existing single-select
+// behaviour through Selected, so every current consumer is untouched.
+SelectedMany *SignalStrings // nil => single-select via Selected
+
+// OnToggle fires in multi-select mode with the date and its new state.
+OnToggle func(date string, selected bool)
 ```
 
-`widget` is already imported in this file (it is used by
-`When(widget.Invalid, …)`). `PartExcHours` is already declared in
-`scheduleeditor.go` and already carried on the markup — it was simply never
-given a rule.
+Both modes coexist: `SelectedMany == nil` is exactly today's behaviour, so
+`targethour`, `reservation` and the exceptions panel keep working unchanged.
+Check whether `dom` exposes a `SignalStrings`; if it does not, use a
+`*SignalString` carrying a delimited key set rather than adding a signal type —
+and say which you chose in the PR.
 
-### 4.2 The test that closes the loop
+`calendarslider` tests must cover: single-select unchanged, multi-select toggles
+on and off, and `Occupation`/`Holidays` still paint correctly in both modes.
 
-`widget/docs/DESIGN.md` §17 states why this test must exist: the Go half writes
-attributes, the CSS half writes selectors, they live behind different build
-tags, and **nothing** — not the compiler, not `Validate()` — connects them.
-`Sheet.StateAttrs()` returns the list to assert against. That test is missing
-today, which is how this bug shipped.
+## 9. Stage 5 — CSS
 
-**File: `scheduleeditor/scheduleeditor_test.go`** — add:
+**File: `scheduleeditor/css.go`.** Delete the rules for the removed parts. Add
+`PartPattern` (`Stack`), `PartPatternRow` (`Row` + `ControlBox` + `Round`),
+`PartDayChips` (`Row`), `PartDayChip` (`ControlBox` + `Round` + `Interactive`),
+`PartMarker` (`Stack` + `As(Panel)`), `PartMarkerHours` (`Row`).
 
-```go
-// Every state the stylesheet reveals on must actually be written by the
-// markup. The two halves live behind different build tags and nothing checks
-// them: this is the loop widget/docs/DESIGN.md §17 says the consumer closes.
-func TestRevealedStatesAreWrittenByTheMarkup(t *testing.T) {
-	e := &ScheduleEditor{Week: make([]WeeklyRow, 7)}
-	e.Init(nil)
-	html := e.Render().String()
+**One flow primitive per `Part`.** `Row`, `Stack`, `Grid`, `FixedGrid`,
+`Center`, `Split` and `ScrollRow` all assign `rule.flowType` and the last one
+silently wins — that defect shipped twice in the previous round. `Row(gap)`
+already emits `align-items: center`; it never needs `Center()`.
 
-	for _, kv := range e.sheet().StateAttrs() {
-		if !strings.Contains(html, kv.Key()) {
-			t.Errorf("stylesheet reveals on %q but no element writes it:\n%s", kv.Key(), html)
-		}
-	}
-}
-```
+Every interactive element ≥ 44×44 via `ControlBox()`. A day chip is a tap
+target; verify with `browser_audit_mobile`.
 
-Confirm the exact accessor names on `fmt.KeyValue` before writing this — this
-repo's `exceptionTypes()` uses `fmt.KeyValue{Key: …, Value: …}` as struct
-fields, so `kv.Key` may be a field, not a method. Use whichever the type
-actually declares. `e.Init(nil)` matches the existing tests' use of a nil/empty
-`Ctx`; copy the pattern already in this file.
-
----
-
-## 5. Stage 3 — a legible weekly grid
-
-### 5.1 New parts
-
-**File: `scheduleeditor/scheduleeditor.go`** — add to the `Part` const block and
-the `cls…` var block, following the existing style exactly:
-
-```go
-	PartWeekHead     = widget.Part("week-head")
-	PartWeekHeadCell = widget.Part("week-head-cell")
-```
-
-```go
-	clsWeekHead     = NameScheduleEditor.Class(PartWeekHead)
-	clsWeekHeadCell = NameScheduleEditor.Class(PartWeekHeadCell)
-```
-
-### 5.2 The header row
-
-```go
-// weekHeadKeys are the five column labels, in render order. English keys —
-// the app's dictionary translates them (see README, "Translation keys").
-var weekHeadKeys = []string{"Day", "Work start", "Work end", "Break start", "Break end"}
-
-// buildWeekHead is the label row of the weekly grid. Without it the four
-// selects are four unlabelled dropdowns and nothing says which is which.
-func (e *ScheduleEditor) buildWeekHead() *Element {
-	head := Div().Set(clsWeekHead.AsAttr()).Attr("role", "row")
-	for _, k := range weekHeadKeys {
-		head.Child(Span().Set(clsWeekHeadCell.AsAttr()).
-			Attr("role", "columnheader").
-			Text(lang.Translate(k).String()))
-	}
-	return head
-}
-```
-
-### 5.3 Inactive days dim and disable
-
-In `buildWeekRow`, after the four `timePick` children are appended, the selects
-of an inactive day must be non-interactive — a disabled control cannot be
-half-edited into a meaningless state, and it is what makes `06:00 06:00 06:00
-06:00` read as "not configured" instead of "configured at 06:00".
-
-`timePick` gains a `disabled` parameter:
-
-```go
-func timePick(part widget.Part, name string, val int, disabled bool, onChange func(int)) *Element {
-	sel := NewElement("select").
-		Set(NameScheduleEditor.Class(part).AsAttr()).
-		Attr("name", name)
-	if disabled {
-		sel.Attr("disabled", "disabled")
-	}
-	// … options and the change listener, unchanged …
-}
-```
-
-Every `timePick(PartTime, "work-start", r.WorkStart, …)` call in `buildWeekRow`
-passes `!r.Active`. `boundTimePick` (the exception form's two selects) is a
-different function and is **not** changed.
-
-The row already carries `Attr("data-active", mapBool(r.Active))`. Keep it — the
-CSS dims on it.
-
-### 5.4 `css.go` — the grid
-
-Replace the `PartWeek`, `PartWeekRow`, `PartDay`, `PartDayName` and `PartTime`
-rules, and add the two header rules. The rest of `sheet()` is untouched except
-for §4.1.
-
-```go
-		Part(PartWeek,
-			style.Stack(style.Space1),
-		).
-		Part(PartWeekHead,
-			style.FixedGrid(5, style.Space2),
-			style.PadInline(style.Space2),
-			style.FontSize(style.TextSm),
-			style.FontWeight(style.WeightBold),
-			style.As(style.Subtle),
-		).
-		Part(PartWeekHeadCell,
-			style.KeepSize(),
-		).
-		Part(PartWeekRow,
-			style.FixedGrid(5, style.Space2),
-			style.ControlBox(),
-			style.Round(style.RadiusMd),
-			style.Anchor(),
-		).
-		When(widget.Invalid, PartWeekRow,
-			style.As(style.DangerWash),
-		).
-		Part(PartDay,
-			style.Row(style.Space2),
-			style.Center(),
-		).
-		Part(PartDayName,
-			style.FontWeight(style.WeightBold),
-		).
-		Part(PartToggle,
-			style.ControlBox(),
-			style.KeepSize(),
-		).
-		Part(PartTime,
-			style.ControlBox(),
-			style.Round(style.RadiusSm),
-			style.As(style.Inset),
-		).
-```
-
-The three deletions that matter, each deliberate:
-
-- **`style.Grow()` is gone from `PartDayName`.** It was the 584px dead gap: a
-  grid column already sizes the cell, and `Grow()` inside it stretched the label
-  to eat the row.
-- **`style.KeepSize()` is gone from `PartTime` and `PartDay`.** In a
-  `FixedGrid` the column decides the width; `KeepSize()` fought it and produced
-  the 61.6px selects crushed against the right edge.
-- **`style.KeepSize()` stays on `PartToggle` and `PartWeekHeadCell`** — the
-  checkbox must not stretch, and a header cell must not shrink below its label.
-
-`style.FixedGrid(cols int, gap Space)`, `style.PadInline`, `style.Center`,
-`style.ControlBox` and `style.Subtle` all already exist in
-`webtyp.com/widget/style`; `statgrid/css.go` in this repo is a worked example of
-a grid root.
-
-### 5.5 Tap targets ≥ 44×44
-
-`style.ControlBox()` on `PartToggle` and on `PartExcType` gives the checkbox and
-the radios a real control box instead of the browser's 13×13 default. Add it to
-`PartExcType`'s existing rule:
-
-```go
-		Part(PartExcType,
-			style.Row(style.Space2),
-			style.ControlBox(),
-		).
-```
-
-After Stage 5's verification, if `browser_audit_mobile` still reports any
-element of this component under 44×44, raise its box with
-`style.IconBox(style.IconMd)` — check the `IconSize` constants actually exported
-by `widget/style` before using a name. Do **not** invent a CSS literal; every
-value comes from a token.
-
-### 5.6 The empty exception list
-
-In `buildExceptionList`, when there is nothing to show, say so instead of
-rendering an empty `<ul>`:
-
-```go
-	if len(items) == 0 && len(e.Holidays) == 0 {
-		list.Child(Li().Set(clsExcItem.AsAttr()).
-			Text(lang.Translate("No exceptions").String()))
-		return list
-	}
-```
-
-Place it after `items := sortedExceptions(e.Exceptions)` and before the loop.
-Read the existing function first — if holidays are rendered in the same loop,
-the guard must account for both, exactly as written above.
-
----
-
-## 6. Stage 4 — "Horario especial", one key
-
-**File: `scheduleeditor/scheduleeditor.go`**
-
-```go
-func exceptionTypes() []fmt.KeyValue {
-	return []fmt.KeyValue{
-		{Key: ExcHoliday, Value: lang.Translate("Closed").String()},
-		{Key: ExcSpecialHours, Value: lang.Translate("Special hours").String()},
-		{Key: ExcBlocked, Value: lang.Translate("Blocked").String()},
-	}
-}
-```
-
-Why this works: `lang.lookupWord` binary-searches the **whole** argument string
-against the dictionary's EN column, case-insensitively
-(`webtyp.com/fmt/lang/dictionary.go`). A multi-word key is one lookup.
-`lang.Translate("Special", "hours")` was two lookups joined by a space, which
-cannot order a Spanish adjective phrase — "Especial horas" instead of "Horario
-especial".
-
-**Anti-footgun.** Do not "fix" the other `lang.Translate` calls in this package
-by merging their arguments. Every other call in `scheduleeditor.go` passes a
-single key already (`"Closed"`, `"Blocked"`, `"Add"`, `"Remove"`, `"Type"`,
-`"Date"`, `"Notes"`), and `date.WeekdayName` returns a single word by
-construction. Only `"Special hours"` was split.
-
----
-
-## 7. Stage 5 — README and tests
-
-### 7.1 `scheduleeditor/README.md`
-
-Update, in place:
-
-- The `WeeklyRow` snippet — remove `DayOfWeek`, and state that the slice index
-  is the day, `Week` is exactly 7 rows, Sunday first.
-- The `OnWeeklyChange` usage snippet — new two-parameter signature.
-- **"Translation keys"** — add `Day`, `Work start`, `Work end`, `Break start`,
-  `Break end`, `No exceptions`; replace `Special` + `hours` with the single key
-  `Special hours`.
-- **"Behavior" → weekly grid** — say the grid has a labelled header row and that
-  an inactive day's four selects are `disabled`.
-
-Do not restate the day-index rule anywhere else in the repo. Two copies drift
-and someone follows the stale one.
-
-### 7.2 Update the existing tests to the new API
+## 10. Stage 6 — tests
 
 `scheduleeditor_test.go` and `scheduleeditor_ui_wasm_test.go` construct
-`WeeklyRow{DayOfWeek: …}` and `OnWeeklyChange: func(r WeeklyRow)`. Migrate every
-occurrence. Find them all:
+`WeeklyRow` and `OnWeeklyChange` throughout. Find every one:
+`grep -rn "WeeklyRow\|OnWeeklyChange\|BreakStart\|BreakFinish" scheduleeditor/`.
 
-```
-grep -rn "DayOfWeek\|OnWeeklyChange" scheduleeditor/
-```
+| Test | CU |
+|---|---|
+| `TestOnePatternRowCoversSeveralWeekdays` | CU-08 |
+| `TestTwoRowsShareADayAndLeaveAGap` | CU-09 |
+| `TestEmptyPatternWithMarkedDaysIsValid` | CU-10 |
+| `TestMarkingDaysUsesTheCommonWindow` | CU-11 |
+| `TestMarkedDayCanDivergeFromTheCommonWindow` | CU-11 |
+| `TestPatternAndMarkedDaysRenderTogether` | CU-12 |
+| `TestUnmarkingADayFiresOnDaysUnmarked` | CU-15 |
+| `TestHourOptionsAreClampedToBounds` | **CU-02** |
+| `TestWiderBoundsOfferMoreOptions` | **CU-03** |
+| `TestZeroBoundsFallBackToFullDay` | — |
+| `TestHolidayIsNotSelectableInTheMarker` | CU-14 |
+| `TestOverlappingRowsAreMarkedInvalidButNotBlocked` | — |
+| `TestRevealedStatesAreWrittenByTheMarkup` | keep from the previous plan |
 
-### 7.3 The tests that would have caught the bug
+Verified facts to reuse, do not re-derive: `fmt.KeyValue` exposes `Key`/`Value`
+as **fields**; `testEditor()` and `emptyCtx{}` already exist in
+`scheduleeditor_test.go`, which carries `//go:build !wasm` and imports
+`strings`, `testing`, `webtyp.com/date`; attributes serialize as `key='value'`
+with **single** quotes, so counting a bare word double-counts.
 
-Add to `scheduleeditor_test.go`:
+## 11. Stage 7 — README
 
-```go
-// The seven rows render the seven day names in order. The bug this replaces:
-// the host left DayOfWeek at its zero value on unconfigured days and four rows
-// rendered "Sunday".
-func TestWeekRendersSevenDistinctDaysInOrder(t *testing.T) {
-	e := &ScheduleEditor{Week: make([]WeeklyRow, 7)}
-	e.Init(nil)
-	html := e.Render().String()
+Rewrite the data-shape, usage and behaviour sections. New translation keys to
+list: `Add row`, `Remove row`, `Marked days`, `Weekly pattern`, `Hours for
+marked days`, plus the seven weekday **short** names for the chips.
 
-	for i := 0; i < 7; i++ {
-		want := date.WeekdayName(i)
-		if !strings.Contains(html, want) {
-			t.Errorf("row %d: missing day name %q:\n%s", i, want, html)
-		}
-	}
-}
+## 12. Constraints
 
-// OnWeeklyChange reports the row's POSITION, whatever the row holds. This is
-// the assertion that makes "enable Tuesday, save Sunday" unrepresentable.
-func TestWeeklyChangeReportsThePosition(t *testing.T) {
-	var gotDay int
-	var gotRow WeeklyRow
-	e := &ScheduleEditor{
-		Week:           make([]WeeklyRow, 7),
-		OnWeeklyChange: func(d int, r WeeklyRow) { gotDay, gotRow = d, r },
-	}
-	e.Init(nil)
+- **No stdlib in WASM code**: `webtyp.com/fmt`, never `strconv`/`strings`.
+  `_test.go` files already import `strings`; production code must not.
+- **`dom.Element` embedded by VALUE.**
+- **`css.go` carries `//go:build !wasm`.** Never `ssr.go`, never `front.go`.
+- **Never compose an id string in `Render()`** — `Key(...)` + `el.Ref()`,
+  `data-*` as breadcrumb.
+- **No `map`** in code reaching the WASM binary.
+- **The component stays pure** — no `router`, no `orm`, no domain import.
+- **Do not fork `calendarslider`.** Missing capability is fixed there (§8).
+- **No `TODO`, nothing deprecated.** `WeeklyRow` is deleted. Before closing:
+  `grep -rn "TODO\|FIXME\|Deprecated" --include='*.go' scheduleeditor/`
+- `gotest`, never `go test`.
 
-	e.weeklyChange(2, func(r *WeeklyRow) { r.Active = true })
-
-	if gotDay != 2 {
-		t.Errorf("dayOfWeek = %d, want 2 (Tuesday)", gotDay)
-	}
-	if !gotRow.Active {
-		t.Error("the mutation did not reach the reported row")
-	}
-}
-
-// An inactive day's four time selects are disabled: they are not a schedule,
-// they are the absence of one.
-func TestInactiveDayDisablesItsTimeSelects(t *testing.T) {
-	week := make([]WeeklyRow, 7)
-	week[1] = WeeklyRow{Active: true, WorkStart: 480, WorkFinish: 840}
-	e := &ScheduleEditor{Week: week}
-	e.Init(nil)
-	html := e.Render().String()
-
-	// 7 rows x 4 selects = 28; row 1 is active, so 24 are disabled.
-	if got := strings.Count(html, "disabled"); got != 24 {
-		t.Errorf("disabled selects = %d, want 24:\n%s", got, html)
-	}
-}
-
-// The header labels every column. Four unlabelled dropdowns was the report.
-func TestWeekHeadLabelsEveryColumn(t *testing.T) {
-	e := &ScheduleEditor{Week: make([]WeeklyRow, 7)}
-	e.Init(nil)
-	html := e.Render().String()
-
-	if !strings.Contains(html, string(clsWeekHead)) {
-		t.Errorf("the weekly grid has no header row:\n%s", html)
-	}
-	for _, k := range weekHeadKeys {
-		if !strings.Contains(html, k) {
-			t.Errorf("header missing column %q:\n%s", k, html)
-		}
-	}
-}
-```
-
-`clsWeekHead` is a `css` class value — check how the existing tests compare
-class values in this file (`scheduleeditor_test.go` already asserts on
-`"scheduleeditor__week"`) and match that style rather than guessing at a
-conversion.
-
-The `strings` import: **`_test.go` files in this repo already import
-`strings`** — confirm at the top of `scheduleeditor_test.go` before adding it.
-Production code in this package must not.
-
----
-
-## 8. Constraints — read before writing code
-
-- **No standard library in WASM-compiled code.** `webtyp.com/fmt`, never
-  `strconv`, `strings`, `errors`. `_test.go` files are the only exception, and
-  this package's tests already import `strings` and `testing`.
-- **`dom.Element` is embedded by VALUE** — `Element`, never `*Element`. It is
-  already correct in `ScheduleEditor`; do not change it.
-- **SSR split by extension.** `css.go` carries `//go:build !wasm` and holds
-  `RenderCSS`. Never move CSS into `scheduleeditor.go`, and never create
-  `ssr.go` or `front.go` — both conventions are eliminated in this ecosystem.
-- **Never compose an id string inside `Render()`.** Use `Key(...)` +
-  `el.Ref()`, and `data-*` as the breadcrumb for tests and CSS. The
-  `data-day` attribute in §3.4 is the sanctioned form.
-- **No `map`** in code that reaches the WASM binary — it inflates the TinyGo
-  output. The `[]string` and `[]fmt.KeyValue` slices used above are deliberate.
-- **No `TODO`, no commented-out block, no deprecated field kept "for one
-  version".** `WeeklyRow.DayOfWeek` is deleted, not deprecated. Before closing:
-  `grep -rn "TODO\|FIXME\|Deprecated" --include='*.go' scheduleeditor/` — every
-  hit must predate this change.
-- Run `gotest`, never `go test`.
-
----
-
-## 9. Acceptance criteria
+## 13. Acceptance criteria
 
 | # | Check | Expected |
 |---|-------|----------|
-| 1 | `gotest ./scheduleeditor/` | green, including the four new tests and the `StateAttrs` test |
-| 2 | `gotest ./...` | green — `TestKindAllowsEveryState` and `TestNoRemovedSymbols` in `conformance_test.go` included |
-| 3 | `grep -rn "DayOfWeek" scheduleeditor/` | **empty** |
-| 4 | `grep -rn "style.Grow()" scheduleeditor/css.go` | **empty** |
-| 5 | `grep -n "PartExcHours" scheduleeditor/css.go` | one `Part(PartExcHours, …)` rule with `RevealedBy` |
-| 6 | `grep -n "RevealedBy" scheduleeditor/css.go` | exactly two hits: `PartExcForm`, `PartExcHours` |
-| 7 | `grep -rn 'Translate("Special"' scheduleeditor/` | **empty** |
-| 8 | `grep -rn 'Translate("Special hours")' scheduleeditor/` | one hit |
-| 9 | `GOOS=js GOARCH=wasm go build ./...` | compiles |
-| 10 | `grep -rn "TODO\|FIXME\|Deprecated" --include='*.go' scheduleeditor/` | no hit introduced here |
-| 11 | `README.md` | `DayOfWeek` absent; new keys listed; two-parameter callback shown |
+| 1 | `gotest ./scheduleeditor/` | green, every test in §10 |
+| 2 | `gotest ./...` | green — `conformance_test.go` included |
+| 3 | `grep -rn "WeeklyRow\|OnWeeklyChange\|BreakStart\|BreakFinish" scheduleeditor/` | **empty** |
+| 4 | `grep -rn "360\|1320" scheduleeditor/scheduleeditor.go` | **empty** — the hardcoded range is gone |
+| 5 | `grep -c "style.Center()" scheduleeditor/css.go` | **0** |
+| 6 | `GOOS=js GOARCH=wasm go build ./...` | compiles |
+| 7 | `grep -rn "TODO\|FIXME\|Deprecated" --include='*.go' scheduleeditor/` | no new hit |
 
----
-
-## 10. Stages
+## 14. Stages
 
 | # | Stage | Files | Done when |
 |---|-------|-------|-----------|
-| 1 | The day is the index | `scheduleeditor.go` | `DayOfWeek` deleted; `OnWeeklyChange(int, WeeklyRow)`; label and `Log` read `i`; `weekDays` guard |
-| 2 | The reveal reveals | `css.go`, `scheduleeditor_test.go` | `RevealedBy(widget.Open)` on both parts; `StateAttrs` test green |
-| 3 | A legible grid | `scheduleeditor.go`, `css.go` | header row; `FixedGrid(5)`; `Grow()` gone; inactive days disabled; tap targets |
-| 4 | One translation key | `scheduleeditor.go` | `"Special hours"` |
-| 5 | README + tests | `README.md`, both `_test.go` | every check in §9 passes |
-
-## 11. Note for the reviewer — what is NOT in this plan
-
-`.scheduleeditor` renders **1,950 `<option>` elements** (7 rows × 4 selects × 65
-options, plus the exception form's 2 × 65) — 55% of the demo page's 3,524 nodes.
-The native `<select>` is kept by an explicit owner decision; replacing it with a
-lighter range control is a separate API change and is deliberately **out of
-scope**. Recorded so it is not rediscovered as a new finding.
+| 1 | New data shape | `scheduleeditor.go` | `WeeklyRow` gone; `PatternRow`/`MarkedDay`/`Bounds` in |
+| 2 | Bounded hours | `scheduleeditor.go` | CU-02 and CU-03 green |
+| 3 | Pattern editor | `scheduleeditor.go` | CU-08, CU-09, CU-12 green |
+| 4a | `calendarslider` multi-select | `calendarslider/` | `SelectedMany`/`OnToggle`; single-select consumers untouched |
+| 4b | Day marker | `scheduleeditor.go` | CU-10, CU-11, CU-15 green |
+| 5 | CSS | `css.go` | one flow primitive per Part; 44×44 targets |
+| 6 | Tests | both `_test.go` | §10 complete |
+| 7 | README | `README.md` | shapes, keys, behaviour current |

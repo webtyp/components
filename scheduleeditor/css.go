@@ -43,7 +43,6 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 		).
 		Part(PartDay,
 			style.Row(style.Space2),
-			style.Center(),
 		).
 		Part(PartDayName,
 			style.FontWeight(style.WeightBold),

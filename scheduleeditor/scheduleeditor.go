@@ -245,16 +245,16 @@ func (e *ScheduleEditor) buildWeekRow(i int, r WeeklyRow) *Element {
 		Child(toggle)
 	row.Child(window)
 
-	row.Child(timePick(PartTime, "work-start", r.WorkStart, !r.Active, func(m int) {
+	row.Child(timePick(PartTime, "work-start", r.WorkStart, !r.Active, false, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.WorkStart = m })
 	}))
-	row.Child(timePick(PartTime, "work-finish", r.WorkFinish, !r.Active, func(m int) {
+	row.Child(timePick(PartTime, "work-finish", r.WorkFinish, !r.Active, false, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.WorkFinish = m })
 	}))
-	row.Child(timePick(PartTime, "break-start", r.BreakStart, !r.Active, func(m int) {
+	row.Child(timePick(PartTime, "break-start", r.BreakStart, !r.Active, true, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.BreakStart = m })
 	}))
-	row.Child(timePick(PartTime, "break-finish", r.BreakFinish, !r.Active, func(m int) {
+	row.Child(timePick(PartTime, "break-finish", r.BreakFinish, !r.Active, true, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.BreakFinish = m })
 	}))
 
@@ -288,13 +288,24 @@ func dayLabel(index int) string {
 // timePick arma un <select> de hora con las opciones 06:00–22:00, su valor
 // inicial y un listener de cambio que entrega los minutos al callback. Un día
 // inactivo deshabilita sus cuatro selects: no es un horario, es la ausencia
-// de uno.
-func timePick(part widget.Part, name string, val int, disabled bool, onChange func(int)) *Element {
+// de uno. allowNone antepone una opción "Sin colación" con value="0" — solo
+// los dos selects de colación la reciben: appointment_booking codifica "sin
+// colación" como BreakStart==0 && BreakFinish==0, y sin esta opción esos 0
+// no tenían <option> que los representara y el select caía en 06:00, una
+// mentira ("Colación desde 06:00") una vez que la columna quedó rotulada.
+func timePick(part widget.Part, name string, val int, disabled, allowNone bool, onChange func(int)) *Element {
 	sel := NewElement("select").
 		Set(NameScheduleEditor.Class(part).AsAttr()).
 		Attr("name", name)
 	if disabled {
 		sel.Attr("disabled", "disabled")
+	}
+	if allowNone {
+		if val == 0 {
+			sel.Child(SelectedOption("0", lang.Translate("No break").String()))
+		} else {
+			sel.Child(Option("0", lang.Translate("No break").String()))
+		}
 	}
 	for _, opt := range hourOptions(val) {
 		sel.Child(opt)

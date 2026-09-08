@@ -94,6 +94,7 @@ The component renders its chrome through
 - Type labels: `Closed`, `Special hours`, `Blocked`.
 - Weekly grid column headers: `Day`, `Work start`, `Work end`, `Break start`,
   `Break end`.
+- Break selects' explicit no-break option: `No break`.
 - Empty list: `No exceptions`.
 - Chrome: `Add`, `Remove`, `Type`, `Date`, `Notes`.
 
