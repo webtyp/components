@@ -3,6 +3,8 @@ PLAN: "refactor(components): drop author-invented element ids for Key + Ref()"
 TAG: v0.6.19
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 18267888995124046778
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
