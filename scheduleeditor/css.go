@@ -19,42 +19,46 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.Stack(style.Space3),
 			style.Fill(),
 		).
-		Part(PartWeek,
-			style.Stack(style.Space1),
+		Part(PartPattern,
+			style.Stack(style.Space2),
 		).
-		Part(PartWeekHead,
-			style.FixedGrid(5, style.Space2),
-			style.PadInline(style.Space2),
-			style.FontSize(style.TextSm),
-			style.FontWeight(style.WeightBold),
-			style.As(style.Subtle),
-		).
-		Part(PartWeekHeadCell,
-			style.KeepSize(),
-		).
-		Part(PartWeekRow,
-			style.FixedGrid(5, style.Space2),
+		Part(PartPatternRow,
+			style.Row(style.Space2),
 			style.ControlBox(),
 			style.Round(style.RadiusMd),
 			style.Anchor(),
 		).
-		When(widget.Invalid, PartWeekRow,
+		When(widget.Invalid, PartPatternRow,
 			style.As(style.DangerWash),
 		).
-		Part(PartDay,
-			style.Row(style.Space2),
+		Part(PartDayChips,
+			style.Row(style.Space1),
 		).
-		Part(PartDayName,
-			style.FontWeight(style.WeightBold),
-		).
-		Part(PartToggle,
-			style.ControlBox(),
-			style.KeepSize(),
-		).
-		Part(PartTime,
+		Part(PartDayChip,
 			style.ControlBox(),
 			style.Round(style.RadiusSm),
-			style.As(style.Inset),
+			style.Interactive(style.Subtle),
+		).
+		Part(PartRowRemove,
+			style.ControlBox(),
+			style.Interactive(style.Danger),
+			style.Round(style.RadiusSm),
+			style.KeepSize(),
+		).
+		Part(PartRowAdd,
+			style.ControlBox(),
+			style.Interactive(style.Primary),
+			style.Round(style.RadiusSm),
+			style.KeepSize(),
+		).
+		Part(PartMarker,
+			style.Stack(style.Space2),
+			style.As(style.Panel),
+			style.Round(style.RadiusMd),
+			style.Pad(style.Space3),
+		).
+		Part(PartMarkerHours,
+			style.Row(style.Space2),
 		).
 		Part(PartExceptions,
 			style.Stack(style.Space2),

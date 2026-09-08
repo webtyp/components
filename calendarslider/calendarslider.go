@@ -106,9 +106,7 @@ type CalendarSlider struct {
 	Element // value embed — NEVER pointer (TinyGo heap constraint)
 
 	// Start es el primer mes de la tira, formato "YYYY-MM"; vacío = el mes
-	// actual (zona local). Hacia atrás de Start no hay nada que deslizar —
-	// igual que el calendario original, pensado para reservar hacia
-	// adelante, no para consultar meses pasados.
+	// actual (zona local).
 	Start string
 	// NumMonths es cuántos meses hay para deslizar hacia adelante desde
 	// Start; 0 = 3, tope maxMonths (12).
@@ -121,25 +119,26 @@ type CalendarSlider struct {
 	// Selected es la fecha "YYYY-MM-DD" seleccionada, o "". Señal pública:
 	// el host puede leerla y escribirla.
 	Selected *SignalString
+	// SelectedMany holds space-separated date keys in multi-select mode.
+	// When nil (default), single-select mode using Selected is active.
+	SelectedMany *SignalString
+	// Expanded controls whether the full calendar strip (true) or collapsed chip (false) is shown.
+	Expanded *SignalBool
 	// OnSelect se invoca al hacer clic en un día ocupable, con "YYYY-MM-DD".
 	OnSelect func(date string)
+	// OnToggle fires in multi-select mode with the date and its new state (true=selected, false=unselected).
+	OnToggle func(date string, selected bool)
 
 	onFilter func(term string) // set via OnFilterChange — satisfies widget.Filterable
 
 	today string // fecha local de hoy, "YYYY-MM-DD"
 
-	expanded *SignalBool // true = full calendar showing; false = mobile collapsed chip showing
-
 	// months lets slideToMonth reach a month card's live node WITHOUT the
-	// component inventing a global id — ids belong to dom (webtyp/dom "Element
-	// ids are owned by dom"). A slice, not a map: the strip holds a handful of
-	// months and this package compiles to WASM, where the map runtime is budget
-	// this ecosystem does not spend. Rebuilt from scratch on every Render.
+	// component inventing a global id — ids belong to dom.
 	months []monthRef
 }
 
 // monthRef pairs a month key ("YYYY-MM") with the month card element.
-// The card is addressable because it carries Key(key).
 type monthRef struct {
 	key string
 	el  *Element
@@ -147,13 +146,8 @@ type monthRef struct {
 
 var _ widget.Filterable = (*CalendarSlider)(nil)
 
-// OnFilterChange implements widget.Filterable: it registers the sink called
-// with the picked day ("YYYY-MM-DD") on every day selection. The signature
-// is fixed by widget.Filterable — do not add a parameter, do not rename.
 func (c *CalendarSlider) OnFilterChange(fn func(term string)) { c.onFilter = fn }
 
-// holidayName busca date en Holidays. Recorrido lineal — a lo sumo unas
-// pocas decenas de entradas por ventana renderizada — no map, TinyGo.
 func (c *CalendarSlider) holidayName(date string) (string, bool) {
 	for _, h := range c.Holidays {
 		if h.Date == date {
@@ -163,8 +157,6 @@ func (c *CalendarSlider) holidayName(date string) (string, bool) {
 	return "", false
 }
 
-// occupationPercent busca date en Occupation. Recorrido lineal, misma razón
-// que holidayName.
 func (c *CalendarSlider) occupationPercent(date string) (int, bool) {
 	for _, o := range c.Occupation {
 		if o.Date == date {
@@ -181,13 +173,12 @@ func (c *CalendarSlider) Init(_ Ctx) {
 	if c.Selected == nil {
 		c.Selected = NewString("")
 	}
-	if c.expanded == nil {
-		c.expanded = NewBool(true)
+	if c.Expanded == nil {
+		c.Expanded = NewBool(true)
 	}
 	c.today = time.FormatDate(time.Now())
 }
 
-// numMonths aplica el default (0 = 3) y el tope maxMonths.
 func (c *CalendarSlider) numMonths() int {
 	n := c.NumMonths
 	if n < 1 {
@@ -199,8 +190,6 @@ func (c *CalendarSlider) numMonths() int {
 	return n
 }
 
-// startYearMonth resuelve el (año, mes) inicial de la tira: Start si es
-// válido, si no el mes de hoy.
 func (c *CalendarSlider) startYearMonth() (int, int) {
 	sy, sm := date.ParseMonthKey(c.today)
 	if c.Start != "" {
@@ -211,17 +200,6 @@ func (c *CalendarSlider) startYearMonth() (int, int) {
 	return sy, sm
 }
 
-// Render arma la tira completa de meses de una sola vez, Start primero —
-// sin señal, sin reconstrucción: el slide entre ellos lo hace el
-// scroll-snap del navegador, disparado por los enlaces ‹ › de cada mes hacia
-// el vecino. Al no reconstruirse nunca, el mes inicial es siempre el primer
-// hijo de la tira — la posición de scroll 0 — sin necesitar desplazar el
-// scroll por WASM al montar.
-//
-// La navegación es un bucle: el ‹ del primer mes apunta al último y el › del
-// último apunta al primero, igual que el deslizador infinito original — la
-// alternativa (sin bucle) obliga a recorrer los N meses en orden para volver
-// al principio.
 func (c *CalendarSlider) Render() *Element {
 	n := c.numMonths()
 	sy, sm := c.startYearMonth()
@@ -232,14 +210,12 @@ func (c *CalendarSlider) Render() *Element {
 		keys[i] = date.MonthKey(y, m)
 	}
 
-	// Rebuilt by buildMonth below; reuse the backing array. Every month card is
-	// fresh each Render, so the previous pass's anchors must not linger.
 	c.months = c.months[:0]
 
 	strip := Div().Set(clsStrip.AsAttr()).
 		Attr("role", "grid").
 		Attr("aria-label", "Calendario").
-		BindState(widget.Current, c.expanded)
+		BindState(widget.Current, c.Expanded)
 	for i, key := range keys {
 		y, m := date.ParseMonthKey(key)
 		prevKey := keys[(i-1+n)%n]
@@ -254,34 +230,13 @@ func (c *CalendarSlider) Render() *Element {
 		Child(c.buildCollapsed())
 }
 
-// buildCollapsed builds the bottom bar the calendar folds into and unfolds
-// from: a hidden checkbox + <label> — selectsearch's own open/close idiom
-// (see its PartHeader/toggle, selectsearch.go ~213-261) — toggles
-// c.expanded with the same two-way sync, no JS beyond that one listener.
-// Rendered last, full width, in normal flow under the strip, on every
-// viewport (it is the fold control even while expanded: tap to collapse,
-// tap to expand) — see the collapse rules in css.go. Both strip and chip
-// read the same c.expanded signal in opposite directions (strip follows it,
-// the chip's checkbox mirrors it); the chip carries no state attribute of
-// its own because no rule selects on it.
-//
-// The date text goes through lang.Translate, exactly like the month label
-// and for the identical reason: date.WeekdayName/date.MonthName return
-// English canonical names, never a hardcoded language — this component
-// registers no dictionary itself, it only asks to translate. With no
-// dictionary registered anywhere in the running app this reads "Monday 18
-// August 2026"; a host that has registered Spanish sees "Lunes 18 Agosto
-// 2026" with no further code change here.
 func (c *CalendarSlider) buildCollapsed() *Element {
 	toggle := Input("checkbox").Set(clsCollapsedToggle.AsAttr()).
-		BindAttrBool("checked", c.expanded).
+		BindAttrBool("checked", c.Expanded).
 		On("change", func(e Event) {
 			expanded := e.TargetChecked()
-			c.expanded.Set(expanded)
-			// Folding with no day picked picks today: the chip must never
-			// fold onto a blank label. Identical to tapping today itself —
-			// same signal, same callbacks — so the list filters to today.
-			if !expanded && c.Selected.Get() == "" && c.today != "" {
+			c.Expanded.Set(expanded)
+			if !expanded && c.SelectedMany == nil && c.Selected.Get() == "" && c.today != "" {
 				c.Selected.Set(c.today)
 				if c.OnSelect != nil {
 					c.OnSelect(c.today)
@@ -294,7 +249,13 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 
 	text := Span().Set(clsCollapsedText.AsAttr()).
 		BindTextFunc(func() string {
-			y, m, d := date.ParseDateKey(c.Selected.Get())
+			selKey := ""
+			if c.SelectedMany != nil {
+				selKey = c.SelectedMany.Get()
+			} else if c.Selected != nil {
+				selKey = c.Selected.Get()
+			}
+			y, m, d := date.ParseDateKey(selKey)
 			if y == 0 {
 				return ""
 			}
@@ -302,13 +263,6 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 			return lang.Translate(weekday, d, date.MonthName(m), y).String()
 		})
 
-	// The checkbox is NESTED in the label, not paired by for=/id. Implicit
-	// label association needs no id at all — and an id here would be the author
-	// naming one inside a component (webtyp/dom "Element ids are owned by dom"),
-	// besides colliding when two calendars share a page. Native label-click
-	// still toggles the checkbox, firing the change handler above. The checkbox
-	// is display:none (PartCollapsedToggle → style.Hide) so nesting it adds no
-	// visible box.
 	label := Label().Set(clsCollapsed.AsAttr()).
 		Child(toggle).
 		Child(Div().Set(clsCollapsedCap.AsAttr()).
@@ -318,8 +272,6 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 	return Div().Child(label)
 }
 
-// buildWeekdayRow arma la fila de días de la semana (lunes primero) que cada
-// sección de mes lleva en su cabecera, igual que el original.
 func (c *CalendarSlider) buildWeekdayRow() *Element {
 	weekdays := Ul().Set(clsWeekRow.AsAttr()).Attr("role", "row")
 	for _, name := range weekdayNames {
@@ -330,21 +282,8 @@ func (c *CalendarSlider) buildWeekdayRow() *Element {
 	return weekdays
 }
 
-// weeksPerMonth es el número de filas de semana que todo mes reserva,
-// ocupe o no sus 7 días — el máximo real (un mes de 31 días que empieza en
-// domingo cae en 6). Sin este piso fijo, un mes de 4 o 5 filas deja una
-// tarjeta más baja y la etiqueta del mes (y el ‹ › que se ancla a la
-// tarjeta) saltan verticalmente al deslizar entre meses.
 const weeksPerMonth = 6
 
-// buildMonth arma un mes: fila de días de la semana (lunes primero), 6 filas
-// de semana siempre (rellenas con celdas vacías si el mes real tiene menos,
-// ver weeksPerMonth), la etiqueta del mes debajo (como el original,
-// footer-title-month) y sus propios enlaces ‹ › hacia los meses vecinos —
-// siempre los dos, el primero y el último de la tira se enlazan entre sí
-// (ver Render). Cada mes es el único visible a la vez (scroll-snap en
-// PartStrip), así que sus flechas son, en la práctica, "las" flechas de
-// navegación mientras esté en pantalla.
 func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, prevWraps, nextWraps bool) *Element {
 	key := date.MonthKey(year, month)
 	monthEl := Div().Set(clsMonth.AsAttr()).
@@ -368,10 +307,6 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 		weeks++
 	}
 	for ; weeks < weeksPerMonth; weeks++ {
-		// clsDay (sin variante day-off/day-selectable/etc.) para que la fila
-		// de relleno mida lo mismo que una fila real — un <li> vacío sin la
-		// caja de IconBox colapsa a la altura de una línea de texto y la
-		// tarjeta vuelve a variar de alto entre meses.
 		fillerWeek := Ul().Set(clsWeekRow.AsAttr()).Attr("role", "row").Attr("aria-hidden", "true")
 		for i := 0; i < 7; i++ {
 			fillerWeek.Child(Li().Set(clsDay.AsAttr()).Attr("aria-hidden", "true"))
@@ -402,27 +337,11 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 		Child(monthName).
 		Child(next))
 
-	// Record this card (see monthRef). Done here,
-	// not in Render, so the one place that builds the card also registers it.
 	c.months = append(c.months, monthRef{key: key, el: monthEl})
 
 	return monthEl
 }
 
-// slideToMonth jumps the scroll-snap strip to the month card carrying the
-// given key. instant selects ScrollIntoViewInstant over the normal smooth
-// ScrollIntoView — reserved for the two wrap edges (first month's ‹, last
-// month's ›), where a smooth scroll would visibly travel across every
-// month in between in the wrong apparent direction. Every adjacent-month
-// navigation keeps calling this with instant=false.
-//
-// The target is resolved through an anchor THIS instance built (c.months),
-// never through a global id: two calendars on one page each scroll their own
-// strip. It is a method for exactly that reason — it was package-level only
-// because it had no handle on the instance, which is why it reached for a
-// hardcoded id. The anchor is the target month's ‹ button, which dom has
-// id'd during the WASM render (it carries a click handler); scrolling it into
-// view snaps the full-width strip to that month's card.
 func (c *CalendarSlider) slideToMonth(key string, instant bool) {
 	var el *Element
 	for i := range c.months {
@@ -478,7 +397,7 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 	}
 
 	isToday := c.today == dateStr
-	selectable := use >= 0
+	selectable := use >= 0 && holiday == ""
 
 	title := ""
 	switch {
@@ -490,9 +409,6 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 		title = fmt.Sprint(use) + "%"
 	}
 
-	// Un día con ocupación gana sobre domingo/feriado, igual que en el
-	// original (el bloque de ocupación reemplazaba la clase roja); hoy es
-	// aditivo por encima de cualquier variante.
 	classes := []fmt.KeyValue{clsDay.AsAttr()}
 	switch {
 	case selectable:
@@ -506,7 +422,15 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 		classes = append(classes, clsDayToday.AsAttr())
 	}
 
-	isSel := DeriveBool(func() bool { return c.Selected.Get() == dateStr })
+	isSel := DeriveBool(func() bool {
+		if c.SelectedMany != nil {
+			return containsWord(c.SelectedMany.Get(), dateStr)
+		}
+		if c.Selected != nil {
+			return c.Selected.Get() == dateStr
+		}
+		return false
+	})
 
 	stack := Div().Set(clsDayStack.AsAttr()).
 		Child(Span().Set(clsDayNum.AsAttr()).Text(fmt.Sprint(day)))
@@ -533,15 +457,68 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 	}
 	if selectable {
 		li.On("click", func(Event) {
-			c.Selected.Set(dateStr)
-			c.expanded.Set(false)
-			if c.OnSelect != nil {
-				c.OnSelect(dateStr)
-			}
-			if c.onFilter != nil {
-				c.onFilter(dateStr)
+			if c.SelectedMany != nil {
+				newVal, isNowSelected := toggleWord(c.SelectedMany.Get(), dateStr)
+				c.SelectedMany.Set(newVal)
+				if c.OnToggle != nil {
+					c.OnToggle(dateStr, isNowSelected)
+				}
+			} else {
+				if c.Selected != nil {
+					c.Selected.Set(dateStr)
+				}
+				c.Expanded.Set(false)
+				if c.OnSelect != nil {
+					c.OnSelect(dateStr)
+				}
+				if c.onFilter != nil {
+					c.onFilter(dateStr)
+				}
 			}
 		})
 	}
 	return li
+}
+
+func containsWord(s, word string) bool {
+	wLen := len(word)
+	sLen := len(s)
+	if wLen == 0 || sLen < wLen {
+		return false
+	}
+	for i := 0; i <= sLen-wLen; i++ {
+		if (i == 0 || s[i-1] == ' ' || s[i-1] == ',') && (i+wLen == sLen || s[i+wLen] == ' ' || s[i+wLen] == ',') {
+			if s[i:i+wLen] == word {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func toggleWord(s, word string) (string, bool) {
+	if containsWord(s, word) {
+		out := ""
+		wLen := len(word)
+		sLen := len(s)
+		for i := 0; i < sLen; {
+			if (i == 0 || s[i-1] == ' ' || s[i-1] == ',') && (i+wLen <= sLen && s[i:i+wLen] == word) && (i+wLen == sLen || s[i+wLen] == ' ' || s[i+wLen] == ',') {
+				i += wLen
+				if i < sLen && (s[i] == ' ' || s[i] == ',') {
+					i++
+				}
+			} else {
+				out += string(s[i])
+				i++
+			}
+		}
+		if len(out) > 0 && (out[len(out)-1] == ' ' || out[len(out)-1] == ',') {
+			out = out[:len(out)-1]
+		}
+		return out, false
+	}
+	if s == "" {
+		return word, true
+	}
+	return s + " " + word, true
 }

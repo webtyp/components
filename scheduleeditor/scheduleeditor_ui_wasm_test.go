@@ -28,9 +28,8 @@ func query(t *testing.T, sel string) js.Value {
 
 func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 	se := &scheduleeditor.ScheduleEditor{
-		Week: []scheduleeditor.WeeklyRow{
-			{}, {Active: true, WorkStart: 540, WorkFinish: 1020},
-			{}, {}, {}, {}, {},
+		Pattern: []scheduleeditor.PatternRow{
+			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
 		},
 		Exceptions: []scheduleeditor.Exception{
 			{ID: "x1", Date: "2026-09-19", Type: scheduleeditor.ExcHoliday},
@@ -40,18 +39,18 @@ func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 	se.Init(nil)
 	Render("app", se)
 
-	// The calendar part renders the day for the seeded exception. Tap it.
-	day := query(t, "[data-date='2026-09-19']")
+	// Two calendars now share the view (the day marker and the exceptions
+	// panel); scope the pick to the exceptions calendar so the click lands on
+	// OnSelect, not the marker's OnToggle.
+	day := query(t, ".scheduleeditor__exceptions [data-date='2026-09-19']")
 	day.Call("click")
 
-	// The inline add-form becomes visible (its container carries data-open).
 	form := query(t, ".scheduleeditor__exc-form")
 	open := form.Call("getAttribute", "data-open")
 	if open.IsNull() || open.IsUndefined() {
 		t.Fatal("expected the exception form to be open after picking a day")
 	}
 
-	// Submit the add: the callback receives the picked day with an empty ID.
 	var got string
 	se.OnExceptionAdd = func(ex scheduleeditor.Exception) { got = ex.Date }
 	query(t, ".scheduleeditor__exc-add").Call("click")
@@ -62,15 +61,13 @@ func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 
 func TestTwoInstancesShareAPage(t *testing.T) {
 	se1 := &scheduleeditor.ScheduleEditor{
-		Week: []scheduleeditor.WeeklyRow{
-			{}, {Active: true, WorkStart: 540, WorkFinish: 1020},
-			{}, {}, {}, {}, {},
+		Pattern: []scheduleeditor.PatternRow{
+			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
 		},
 	}
 	se2 := &scheduleeditor.ScheduleEditor{
-		Week: []scheduleeditor.WeeklyRow{
-			{}, {Active: true, WorkStart: 540, WorkFinish: 1020},
-			{}, {}, {}, {}, {},
+		Pattern: []scheduleeditor.PatternRow{
+			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
 		},
 	}
 	se1.Init(nil)
