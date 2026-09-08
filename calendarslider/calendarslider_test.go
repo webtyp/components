@@ -36,10 +36,10 @@ func TestBuildMonthAgosto2026(t *testing.T) {
 	if !Contains(children[7].String(), "August 2026") {
 		t.Errorf("el mes lleva la fila de navegación, con la etiqueta en el medio: debería decir 'August 2026', dice %s", children[7].String())
 	}
-	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='cs-m-2026-07'") {
+	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='2026-07'") {
 		t.Errorf("el botón anterior debería llevar data-target a julio, dice %s", children[7].String())
 	}
-	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='cs-m-2026-09'") {
+	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='2026-09'") {
 		t.Errorf("el botón siguiente debería llevar data-target a septiembre, dice %s", children[7].String())
 	}
 }
@@ -74,12 +74,12 @@ func TestRenderWrapsAround(t *testing.T) {
 
 	// Agosto (primero) enlaza hacia atrás con octubre (último) — el bucle.
 	augMonth := c.buildMonth(2026, 8, "2026-10", "2026-09", true, false).String()
-	if !Contains(augMonth, "data-target='cs-m-2026-10'") {
+	if !Contains(augMonth, "data-target='2026-10'") {
 		t.Errorf("el 'prev' de agosto (primero) debería envolver a octubre (último), dice %s", augMonth)
 	}
 	// Octubre (último) enlaza hacia adelante con agosto (primero) — el bucle.
 	octMonth := c.buildMonth(2026, 10, "2026-09", "2026-08", false, true).String()
-	if !Contains(octMonth, "data-target='cs-m-2026-08'") {
+	if !Contains(octMonth, "data-target='2026-08'") {
 		t.Errorf("el 'next' de octubre (último) debería envolver a agosto (primero), dice %s", octMonth)
 	}
 }
@@ -224,16 +224,16 @@ func TestRenderStructure(t *testing.T) {
 	// La tira [agosto, septiembre, octubre] es la esperada — Start es el
 	// primer mes, no el centro; un elemento estático por mes, sin señal ni
 	// reconstrucción.
-	for _, id := range []string{"cs-m-2026-08", "cs-m-2026-09", "cs-m-2026-10"} {
-		if !strings.Contains(htmlOut, "id='"+id+"'") {
-			t.Errorf("la tira debería incluir el mes %q, no aparece en:\n%s", id, htmlOut)
+	for _, key := range []string{"2026-08", "2026-09", "2026-10"} {
+		if !strings.Contains(htmlOut, "data-month='"+key+"'") {
+			t.Errorf("la tira debería incluir el mes %q, no aparece en:\n%s", key, htmlOut)
 		}
 	}
 
 	// Cada mes lleva sus dos enlaces (el bucle infinito se cubre en
 	// TestRenderWrapsAround); agosto (Start) enlaza a septiembre como
 	// siguiente.
-	if !Contains(htmlOut, "data-target='cs-m-2026-09'") {
+	if !Contains(htmlOut, "data-target='2026-09'") {
 		t.Error("agosto (Start) debería apuntar a septiembre como mes siguiente")
 	}
 
@@ -310,13 +310,13 @@ func TestNumMonthsClampsToMax(t *testing.T) {
 	c.Init(nil)
 	htmlOut := c.Render().String()
 
-	if got := strings.Count(htmlOut, "id='cs-m-"); got != maxMonths {
+	if got := strings.Count(htmlOut, "data-month='"); got != maxMonths {
 		t.Fatalf("NumMonths=20 debería recortarse a %d meses, la tira tiene %d", maxMonths, got)
 	}
-	if !Contains(htmlOut, "id='cs-m-2026-08'") {
+	if !Contains(htmlOut, "data-month='2026-08'") {
 		t.Error("el primer mes de una tira de 12 empezando en agosto 2026 debería ser agosto 2026 (Start)")
 	}
-	if !Contains(htmlOut, "id='cs-m-2027-07'") {
+	if !Contains(htmlOut, "data-month='2027-07'") {
 		t.Error("el último mes de una tira de 12 empezando en agosto 2026 debería ser julio 2027")
 	}
 }
@@ -326,7 +326,7 @@ func TestNumMonthsDefaultsToThree(t *testing.T) {
 	c := &CalendarSlider{Start: "2026-08"}
 	c.Init(nil)
 	htmlOut := c.Render().String()
-	if got := strings.Count(htmlOut, "id='cs-m-"); got != 3 {
+	if got := strings.Count(htmlOut, "data-month='"); got != 3 {
 		t.Errorf("NumMonths sin especificar debería dar 3 meses, la tira tiene %d", got)
 	}
 }

@@ -1,247 +1,275 @@
 ---
-PLAN: "feat: scheduleeditor component + targethour free-slot rows (demo agenda feature)"
-TAG: v0.7.0
+PLAN: "fix(calendarslider): drop author-invented global element ids"
+TAG: v0.6.18
 EXECUTOR: local
 REVIEWER: none
 ---
 
-# PLAN — `components` para la feature "Agenda + Reserva" (Etapa A del `DEMO_AGENDA_MASTER_PLAN`)
+> Executed LOCALLY (not dispatched). Wave 1 of 2 — wave 2 is `webtyp/dom`
+> making an author-set id inside a component's Render a hard panic.
 
-Orquestador: `webtyp/docs/DEMO_AGENDA_MASTER_PLAN.md` §4.3, §7 fila A.
-(Copia local: `/home/cesar/Dev/Project/webtyp/docs/DEMO_AGENDA_MASTER_PLAN.md`.)
+## Execution notes — two deviations from the written spec below
 
-**Dos partes independientes** en un solo `PLAN.md` (patrón `RESERVATION_VIEW_FIXES`):
+1. **A third `ID()` the initial grep missed:** `buildCollapsed`'s hidden
+   checkbox used `ID(c.uid+"-collapsed-toggle")` + a `for=` label. Fixed by
+   **nesting the checkbox inside the `<label>`** (implicit association — no
+   `for`, no id). `c.uid`, `nextCalendarSliderID`, `calendarSliderSeq`,
+   `suffixCollapsedToggle` deleted as now-dead.
+2. **Month card resolution:** the spec had `slideToMonth` call
+   `Get(monthEl.GetID())`. Minting the id at build time broke
+   `TestCalendarSlider_RenderIdempotent` (counter-based id ≠ deterministic
+   across renders — the same defect flagged in the closed dom PR #23). Instead
+   the card carries **no id**; `c.months` stores each month's `‹` **button**
+   (already dom-id'd in WASM because it has a click handler, and never in SSR —
+   the id path is observer-gated), and `slideToMonth` scrolls that button into
+   view, which snaps the full-width strip to its card. Same pattern
+   `usermenu` uses (`Get(menu.GetID())` on an element that carries an event).
 
-- **Parte 1** — componente nuevo `scheduleeditor`.
-- **Parte 2** — `targethour` gana filas de "hueco libre" (`FreeSlots`).
-
-No hay dependencia entre P1 y P2; se pueden ejecutar en cualquier orden. Ambas
-son necesarias para la demo (P1 para la Etapa D, P2 para la Etapa G).
-
-> Nota: la skill `components` cargada en algunas sesiones está **desactualizada**
-> (menciona `OnMount()` y `ssr.go`). La autoridad es `components/AGENTS.md` +
-> el código real: contrato = `Render()` + `Init(ctx dom.Ctx)` (sin `OnMount`),
-> CSS en `css.go` y SVG en `svg.go` (ambos `//go:build !wasm`), nunca `ssr.go`.
-> Referencia viva: `components/targethour/` (`targethour.go` + `css.go` + `svg.go`).
-
----
-
-# Parte 1 — `components/scheduleeditor`
-
-## Objetivo
-
-Componente **puro** (`Render()` + `Init()`, cero `router`/`orm`/módulos de
-dominio) para editar la agenda de un profesional: una **plantilla semanal** de 7
-filas y un **panel de excepciones por fecha**. El host traduce los callbacks a
-ops de `appointment_booking` (Etapa C/D) — el componente no lo sabe.
-
-Forma de datos = minutos int desde medianoche (forma `appointment_booking`).
-Justificación: master plan §8.
-
-## Ficheros (paquete `scheduleeditor/`, plano)
-
-```
-components/scheduleeditor/
-  scheduleeditor.go        # tipos públicos, ScheduleEditor, Render(), Init()
-  css.go                   # //go:build !wasm  — //go:embed scheduleeditor.css, RenderCSS()
-  scheduleeditor.css
-  svg.go                   # //go:build !wasm  — IconSvg() *sprite.Sprite (patrón targethour/svg.go)
-  scheduleeditor_test.go   # backend (sin build tag)
-  scheduleeditor_ui_wasm_test.go  # //go:build wasm — interacción
-```
-
-## API pública (fijada por el master plan §4.3 — no desviarse)
-
-```go
-package scheduleeditor
-
-type WeeklyRow struct {
-    DayOfWeek               int  // 0=Domingo … 6=Sábado
-    Active                  bool
-    WorkStart, WorkFinish   int  // minutos 0..1439
-    BreakStart, BreakFinish int  // 0/0 = sin colación
-}
-
-type Exception struct {
-    ID              string
-    Date            string // "YYYY-MM-DD"
-    Type            string // ExcHoliday | ExcSpecialHours | ExcBlocked
-    StartMin, EndMin int
-    Notes           string
-}
-
-const (
-    ExcHoliday      = "HOLIDAY"
-    ExcSpecialHours = "SPECIAL_HOURS"
-    ExcBlocked      = "BLOCKED"
-)
-
-type ScheduleEditor struct {
-    dom.Element
-    Week              []WeeklyRow      // el host pasa 7 filas (Dom..Sáb) ya ordenadas
-    Exceptions        []Exception
-    Holidays          []string         // fechas feriado nacional "YYYY-MM-DD", solo lectura
-    OnWeeklyChange    func(WeeklyRow)   // fila editada (toggle/entrada/salida/colación)
-    OnExceptionAdd    func(Exception)   // alta desde el panel (ID == "")
-    OnExceptionRemove func(id string)
-}
-
-func (e *ScheduleEditor) Init(ctx dom.Ctx)
-func (e *ScheduleEditor) Render() *dom.Element
-```
-
-## Comportamiento
-
-### Plantilla semanal (`.scheduleeditor__week`)
-
-- 7 filas, una por `WeeklyRow` en `Week` (el host garantiza 7, orden Dom→Sáb).
-  Si `len(Week) != 7`: renderizar las que haya + `dom.Log` de dev-warning, sin
-  panic (regla harness: lo que el compilador no caza cae a warning).
-- Cada fila:
-  - **Toggle activo** — `input[type=checkbox]`. Al cambiar: set `Active`,
-    invocar `OnWeeklyChange(row)`. Fila inactiva: horas atenuadas por CSS
-    (`[data-active="false"]`), pero **editables** (poner horas antes de activar
-    es válido — como el legado "paso 1: elegir horas").
-  - **Entrada / Salida / Colación desde / Colación hasta** — 4 `<select>`.
-    Opciones cada 15 min de 06:00 a 22:00 (rango fijo del componente,
-    documentado en el doc del paquete). Valor mostrado `HH:MM`, valor real
-    minutos int. Colación vacía en ambos ⇒ `BreakStart=BreakFinish=0`.
-  - Al cambiar cualquier select: recalcular la fila, `OnWeeklyChange(row)`.
-- **Validación de dev-warning (no bloqueante; NO llama a `OnWeeklyChange`):**
-  `WorkStart < WorkFinish`; con colación,
-  `WorkStart <= BreakStart < BreakFinish <= WorkFinish`. Fila inválida: marca
-  CSS `var(--color-error)` + `dom.Log`.
-
-### Panel de excepciones (`.scheduleeditor__exceptions`)
-
-Reutiliza `components/calendarslider` (API real, verificada):
-
-```go
-&calendarslider.CalendarSlider{
-    NumMonths:  3,
-    Holidays:   toCalHolidays(e.Holidays),          // []calendarslider.Holiday{Date,Name}
-    Occupation: occupationFromExceptions(e.Exceptions), // []calendarslider.OccupationDay{Date,Percent}
-    Selected:   e.sel,                               // *dom.SignalString
-    OnSelect:   func(date string) { e.sel.Set(date) },
-}
-```
-
-- `toCalHolidays` mapea `[]string` → `[]calendarslider.Holiday{Date: s, Name: "Feriado"}`.
-- `occupationFromExceptions`: un `OccupationDay{Date, Percent}` por fecha con
-  excepción — `Percent` 100 para HOLIDAY/BLOCKED, 50 para SPECIAL_HOURS. Solo
-  sirve para que `calendarslider` haga el día seleccionable y lo marque
-  (su regla: día con `Occupation` = clicable).
-- Al elegir un día (`e.sel` != "") → formulario inline de alta
-  (`.scheduleeditor__exc-form`, visibilidad por `e.sel != ""` bindeada, sin
-  reconstruir el árbol):
-  - `Date` prellenado con `e.sel.Get()` (solo lectura).
-  - `Type` — 3 radios. Etiquetas visibles: el componente es librería → renderiza
-    la palabra canónica inglesa vía `fmt/lang` `lang.Translate("Closed")` /
-    `"Special hours"` / `"Blocked"` y registra **nada** (el diccionario lo pone
-    la app — `layout/AGENTS.md` "Translatable messages"). Documentar estas 3
-    claves + los 7 nombres de día en el doc del paquete / `README`.
-  - `Type == SPECIAL_HOURS` o `BLOCKED`: dos `<select>` de hora (desde/hasta),
-    mismo rango 06:00–22:00. HOLIDAY los oculta (bind sobre `e.excType`).
-  - `Notes` — `input[type=text]` opcional.
-  - Botón "Agregar" → `OnExceptionAdd(Exception{ID: "", Date, Type, StartMin, EndMin, Notes})`;
-    limpia el form (reset `e.sel` a "").
-- Lista de excepciones vigentes (`.scheduleeditor__exc-list`), orden fecha asc:
-  fecha + etiqueta de tipo + horas si aplica + notas + "Quitar" →
-  `OnExceptionRemove(id)`. Las de `Holidays` van solo-lectura, sin "Quitar",
-  con marca visual distinta.
-
-### Signals internas (no exportadas)
-
-- `sel *dom.SignalString` — fecha elegida ("" = form oculto). Construida en `Init`.
-- `excType *dom.SignalString` — tipo elegido (controla visibilidad de los
-  `<select>` de hora).
-- `Week`/`Exceptions`/`Holidays` de campo son estado **inicial**: el host
-  persiste y remonta con datos frescos (mismo modelo que `targethour`/`crudview`
-  — el componente no es la fuente de verdad). No mantener copia mutable interna
-  más allá del render.
-
-### CSS-first
-
-- Tokens sin fallback: `var(--color-primary)`, `var(--color-error)`,
-  `var(--mag-pri)`, etc. Sin `:root` en el `.css`.
-- Atenuado de fila inactiva y visibilidad del form: CSS + `hidden`/`[data-*]`
-  toggled desde el handler; no reconstruir el árbol.
-
-## Tests P1
-
-`scheduleeditor_test.go` (backend, `RenderHTML()`):
-- `TestWeek_RendersSevenRows` / `TestWeek_InactiveRowMarked` (`data-active="false"`).
-- `TestWeek_HourOptionsRange` — cada `<select>` con opciones 06:00..22:00 c/15m.
-- `TestExceptions_ListSorted` — 3 excepciones desordenadas → render ordenado.
-- `TestExceptions_HolidayReadonly` — fecha en `Holidays` → sin "Quitar".
-- `TestSpecialHoursShowsTimeSelects` / `TestHolidayHidesTimeSelects` (según `excType`).
-- Callbacks (dobles que capturan el último valor): cambio de select en la fila
-  Lunes → `OnWeeklyChange` con `DayOfWeek==1` y minutos correctos; "Agregar" →
-  `OnExceptionAdd` con `ID==""`.
-
-`scheduleeditor_ui_wasm_test.go` (`//go:build wasm`): montar, clic en un día del
-calendario → el form de alta se hace visible; submit → callback.
+`data-month` / `data-date` breadcrumbs replace the `#cs-m-` / `#cs-d-`
+selectors in tests. New WASM regression: `TestTwoInstancesShareAPage`.
 
 ---
 
-# Parte 2 — `components/targethour` gana `FreeSlots`
+# PLAN — `calendarslider` stops inventing global element ids
 
-## Problema
+This is **wave 1 of 2**. Wave 2 (`webtyp/dom`) makes an author-set id inside a
+component's `Render()` a hard panic. This plan must land and publish **first**,
+so that `dom`'s new rule finds nothing to panic on.
 
-`targethour.TargetHour` hoy tiene solo `Selected`, `OnSelect`, `StatusOf`
-(`targethour.go:53`). **No** existe `FreeSlots`. La Etapa G necesita mostrar
-huecos horarios reservables (derivados de `list_availability`) como filas
-clicables junto a las reservas existentes.
+## Problem
 
-## Cambio
+`app-demo` mounts TWO `CalendarSlider` instances in one render (the `reservation`
+filter and `agenda`/`ScheduleEditor`). Both emit the same hardcoded global ids,
+so `dom.claimID` panics:
 
-En `targethour.go`, agregar al struct:
-
-```go
-// FreeSlots son horas "HH:MM" reservables (sin reserva). Se renderizan como
-// filas ligeras al final de la lista, visualmente distintas de un Item real
-// (sin estado, con un "+" o marco punteado). Opcional: nil = ninguna.
-FreeSlots []string
-// OnPickFree se invoca al hacer clic en un hueco libre, con su "HH:MM".
-OnPickFree func(hhmm string)
+```
+dom: id cs-m-2026-09 was written twice in one render, by <div> and <div>
 ```
 
-- `Render()` / la construcción de filas: tras las filas de `items`, emitir una
-  fila por cada `FreeSlots[i]` con clase `targethour__free` (o equivalente),
-  `On("click", ...)` → `OnPickFree(hhmm)`.
-- No participan de `listselect` (no son seleccionables para borrar/editar): son
-  acciones de "reservar esta hora".
-- CSS en `targethour/css.go` (`RenderSheet`/`RenderCSS` según el patrón del
-  fichero): estilo `targethour__free` — atenuado, cursor pointer, marca de
-  "disponible". Tokens sin fallback.
-- Retrocompatible: `FreeSlots` nil ⇒ HTML idéntico a hoy.
+The ids are invented by the component from data it does not uniquely own
+(`"cs-m-" + monthKey`), then used as a cross-instance lookup handle.
 
-## Tests P2
+## Decision (closed with the framework owner — not negotiable)
 
-- `TestFreeSlots_RenderedAfterItems` — 2 items + 3 `FreeSlots` → 5 filas, las 3
-  últimas con la clase `free`.
-- `TestFreeSlots_ClickCallsOnPickFree` (`//go:build wasm`) — clic en un hueco →
-  `OnPickFree` con el "HH:MM" correcto.
-- `TestFreeSlots_NilNoRegression` — `FreeSlots` nil → HTML sin filas `free`.
+**A component never creates a global element id.** `dom` owns ids. The component
+identifies its own nodes with `Key()` and, when it needs the live DOM node,
+resolves it through the element it already holds:
 
----
+```go
+ref, ok := Get(el.GetID())   // GetID() mints and caches a dom id on demand
+```
 
-## Criterios de aceptación (ambas partes)
+`(*Element).GetID()` already auto-generates and caches an id when the element has
+none — see
+[element.go:249](https://github.com/webtyp/dom/blob/main/element.go#L249). No new
+`dom` API is required by this plan, and `dom` does not need to change for this
+plan to go green.
 
-- `gotest ./...` verde en `components`.
-- `GOOS=js GOARCH=wasm go build ./...` OK.
-- `go list -deps ./scheduleeditor/ | grep webtyp/svg/sprite` → vacío (SVG solo en
-  `svg.go` con `//go:build !wasm`).
-- `README.md` de `components` indexa `scheduleeditor`; `docs/CATALOG.md` con su
-  entrada (formato de las existentes); si `docs/ARCHITECTURE.md` lista
-  componentes, incluirlo. `targethour` doc/README menciona `FreeSlots`.
-- `layout/docs/DICTIONARY.md` NO se toca desde aquí (es de `layout`), pero el
-  doc de `scheduleeditor` lista las claves de traducción que introduce, para que
-  la Etapa I las copie ahí.
+A previously dispatched plan proposed instance-prefixing the ids
+(`cs-m-<instance>-2026-09`). **That approach is rejected**: it keeps the component
+in the business of minting global ids, which is the thing being removed. Do not
+reintroduce it.
 
-## Fuera de alcance
+## Anti-footguns
 
-- Múltiples bloques por día (master O2) — `WeeklyRow` queda como struct (no 4
-  ints sueltos en la firma del callback) para no cerrar esa puerta.
-- Persistencia / red — es del host (Etapa C/D).
-- Cálculo de feriados o de huecos — el componente los recibe ya calculados.
+- This repo compiles to WASM. **No `map`** — the new lookup is a slice with a
+  linear scan (a strip holds a handful of months). Do not "optimize" it into a
+  `map[string]*Element`; the map runtime is binary budget this ecosystem does not
+  spend.
+- **No standard library** in this package: use `webtyp/fmt`, never `strings` /
+  `strconv` / `errors`.
+- Do **not** touch `webtyp/dom` from this plan. Wave 2 owns that repo.
+- Do **not** remove `Key()` anywhere. `Key` is the author's identity contract and
+  `BindChildren` reconciles on it.
+
+## Stage 1 — `calendarslider/calendarslider.go`: hold the month elements
+
+Add, next to the other package types:
+
+```go
+// monthRef pairs a month key with the element built for it, so slideToMonth can
+// reach the live node without inventing a global id. A slice, not a map: the
+// strip holds a handful of months and this package compiles to WASM, where the
+// map runtime is budget this ecosystem does not spend.
+type monthRef struct {
+	key string
+	el  *Element
+}
+```
+
+Add the field to `CalendarSlider`:
+
+```go
+	// months records the element built for each month key in the current
+	// render, so the ‹ › arrows can scroll to a sibling card. Rebuilt from
+	// scratch on every Render (see Render).
+	months []monthRef
+```
+
+## Stage 2 — `buildMonth`: drop the id, record the element
+
+In `func (c *CalendarSlider) buildMonth(...)` (currently
+`calendarslider.go:337`):
+
+- **Delete** the `ID("cs-m-" + key)` call (`calendarslider.go:341`).
+- Keep `Key(key)`.
+- Add `Attr("data-month", key)` in its place — the same test/CSS-addressable
+  breadcrumb the day cells already use with `data-date`, and **not** an id.
+- Record the element before returning it:
+
+```go
+	c.months = append(c.months, monthRef{key: key, el: monthEl})
+	return monthEl
+```
+
+So the head of `buildMonth` becomes:
+
+```go
+	key := date.MonthKey(year, month)
+	monthEl := Div().Set(clsMonth.AsAttr()).
+		Key(key).
+		Attr("data-month", key)
+```
+
+## Stage 3 — `Render`: reset the slice before rebuilding
+
+`Render()` rebuilds every month card on each call, so the slice must not grow
+without bound. Immediately before the loop that calls `buildMonth` (around
+`calendarslider.go:231`, where `keys[i] = date.MonthKey(y, m)` is filled), add:
+
+```go
+	c.months = c.months[:0] // rebuilt below; reuse the backing array
+```
+
+## Stage 4 — `slideToMonth` becomes a method
+
+Replace the package-level `func slideToMonth(key string, instant bool)`
+(`calendarslider.go:403`) with a method. It was package-level only because it had
+no way to reach the instance — which is exactly why it reached for a global id.
+
+```go
+// slideToMonth jumps the scroll-snap strip to the month card carrying the given
+// key. instant selects ScrollIntoViewInstant over the normal smooth
+// ScrollIntoView — reserved for the two wrap edges (first month's ‹, last
+// month's ›), where a smooth scroll would visibly travel across every month in
+// between in the wrong apparent direction. Every adjacent-month navigation keeps
+// calling this with instant=false.
+//
+// The card is resolved through the element this instance built, never through a
+// global id: two calendars on one page each scroll their own strip.
+func (c *CalendarSlider) slideToMonth(key string, instant bool) {
+	var el *Element
+	for i := range c.months {
+		if c.months[i].key == key {
+			el = c.months[i].el
+			break
+		}
+	}
+	if el == nil {
+		return
+	}
+	ref, ok := Get(el.GetID())
+	if !ok {
+		return
+	}
+	if instant {
+		ref.ScrollIntoViewInstant()
+		return
+	}
+	ref.ScrollIntoView()
+}
+```
+
+Update both call sites (`calendarslider.go:380` and `:387`):
+
+```go
+	prev.On("click", func(Event) { c.slideToMonth(prevKey, prevWraps) })
+	next.On("click", func(Event) { c.slideToMonth(nextKey, nextWraps) })
+```
+
+## Stage 5 — the arrow breadcrumbs stop carrying an id
+
+`calendarslider.go:378` and `:385` set `Attr("data-target", "cs-m-"+prevKey)` /
+`"cs-m-"+nextKey`. Nothing reads these at runtime; they exist as a breadcrumb and
+are asserted by one SSR test. Drop the `cs-m-` prefix so no code anywhere
+constructs an id-shaped string:
+
+```go
+		Attr("data-target", prevKey).
+```
+```go
+		Attr("data-target", nextKey).
+```
+
+## Stage 6 — day cells drop their id
+
+At `calendarslider.go:487-489`, **delete** `ID("cs-d-"+dateStr)`. Keep `Key(dateStr)`
+and the already-present `Attr("data-date", dateStr)` — that attribute is what
+tests address.
+
+## Stage 7 — tests
+
+`calendarslider_test.go` (SSR, `!wasm`):
+
+- Line 39-40: `data-target='cs-m-2026-07'` → `data-target='2026-07'`.
+
+`calendarslider_wasm_test.go` (`wasm`): every selector built on the deleted ids
+moves to the data attributes.
+
+- `#cs-d-2026-08-11` → `[data-date='2026-08-11']` (lines 51, 62, 154, 165).
+- `#cs-d-2026-08-01` → `[data-date='2026-08-01']` (line 70).
+- `#cs-m-2026-08 .calendarslider__month-name` →
+  `[data-month='2026-08'] .calendarslider__month-name` (line 89).
+- `#cs-m-2026-10 .calendarslider__month-name` →
+  `[data-month='2026-10'] .calendarslider__month-name` (line 92).
+
+New test in `calendarslider_wasm_test.go` — the regression this whole wave exists
+for:
+
+```go
+// TestTwoInstances_NoIdCollision mounts two calendars in ONE render, the shape
+// app-demo uses (a reservation filter and the agenda editor). Before this, both
+// emitted id="cs-m-<month>" and dom.claimID panicked. Each must now render and
+// scroll its own strip.
+func TestTwoInstances_NoIdCollision(t *testing.T) { ... }
+```
+
+It must assert:
+1. Rendering both in one pass does not panic.
+2. `document.querySelectorAll("[data-month='2026-08']")` returns **2** nodes,
+   and their `id` attributes are **different and non-empty**.
+3. Clicking the ‹ arrow inside instance A scrolls A's strip and leaves B's
+   `scrollLeft` untouched (stub `Element.prototype.scrollIntoView` the way
+   `calendarslider_wasm_test.go:181` already does, and record which node it was
+   called on).
+
+## Grep-verifiable acceptance criteria
+
+- `grep -rn 'cs-m-\|cs-d-' calendarslider/` → **empty** (production code and tests).
+- `grep -rn 'ID("' calendarslider/*.go | grep -v _test` → **empty**.
+- `grep -rn 'map\[' calendarslider/*.go` → **empty**.
+- `grep -n 'func slideToMonth' calendarslider/calendarslider.go` → **empty**
+  (it is a method now).
+- `gotest ./...` green, `wasm ✅` included.
+- `gofmt -l .` → **empty**.
+
+## Out of scope
+
+- `webtyp/dom` — wave 2, its own plan and repo.
+- Instance-prefixed ids (`cs-m-<instance>-…`) — rejected, see Decision.
+- Any other component. A sweep of this repo shows `calendarslider` is the **only**
+  component that sets an element id inside `Render()`; the two other hits
+  (`selectsearch/web/client.go`, `calendarslider/web/client.go`) are demo `main`s
+  where a root-level `ID("app-result")` is legitimate and stays.
+
+## Stages
+
+| # | File | Change |
+|---|---|---|
+| 1 | `calendarslider/calendarslider.go` | `monthRef` type + `months` field |
+| 2 | `calendarslider/calendarslider.go` | `buildMonth`: drop `ID()`, add `data-month`, record element |
+| 3 | `calendarslider/calendarslider.go` | `Render`: reset `c.months` |
+| 4 | `calendarslider/calendarslider.go` | `slideToMonth` → method resolving via `GetID()` |
+| 5 | `calendarslider/calendarslider.go` | `data-target` drops the `cs-m-` prefix |
+| 6 | `calendarslider/calendarslider.go` | day cells drop `ID("cs-d-…")` |
+| 7 | `calendarslider/*_test.go` | selectors → `data-date` / `data-month`; new two-instance test |

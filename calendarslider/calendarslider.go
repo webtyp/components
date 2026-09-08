@@ -84,15 +84,6 @@ const maxMonths = 12
 
 const iconCalendar = svg.Icon("cs-calendar")
 
-var calendarSliderSeq int
-
-func nextCalendarSliderID() int {
-	calendarSliderSeq++
-	return calendarSliderSeq
-}
-
-const suffixCollapsedToggle = "-collapsed-toggle"
-
 // Holiday es un feriado del calendario.
 type Holiday struct {
 	Date string // "YYYY-MM-DD"
@@ -137,8 +128,24 @@ type CalendarSlider struct {
 
 	today string // fecha local de hoy, "YYYY-MM-DD"
 
-	uid      string      // per-instance id prefix; two calendars on one page must not collide
 	expanded *SignalBool // true = full calendar showing; false = mobile collapsed chip showing
+
+	// months lets slideToMonth reach a month card's live node WITHOUT the
+	// component inventing a global id — ids belong to dom (webtyp/dom "Element
+	// ids are owned by dom"). A slice, not a map: the strip holds a handful of
+	// months and this package compiles to WASM, where the map runtime is budget
+	// this ecosystem does not spend. Rebuilt from scratch on every Render.
+	months []monthRef
+}
+
+// monthRef pairs a month key ("YYYY-MM") with a scroll anchor inside that
+// month's card. anchor is the card's ‹ button: it carries a click handler, so
+// dom assigns it an id during the WASM render (SSR emits none — the id path is
+// observer-gated, so Render stays idempotent). Scrolling that button into view
+// snaps the full-width strip to its card, which is all slideToMonth needs.
+type monthRef struct {
+	key    string
+	anchor *Element
 }
 
 var _ widget.Filterable = (*CalendarSlider)(nil)
@@ -179,9 +186,6 @@ func (c *CalendarSlider) Init(_ Ctx) {
 	}
 	if c.expanded == nil {
 		c.expanded = NewBool(true)
-	}
-	if c.uid == "" {
-		c.uid = fmt.Sprintf("%s-%d", string(NameCalendarSlider), nextCalendarSliderID())
 	}
 	c.today = time.FormatDate(time.Now())
 }
@@ -231,6 +235,10 @@ func (c *CalendarSlider) Render() *Element {
 		keys[i] = date.MonthKey(y, m)
 	}
 
+	// Rebuilt by buildMonth below; reuse the backing array. Every month card is
+	// fresh each Render, so the previous pass's anchors must not linger.
+	c.months = c.months[:0]
+
 	strip := Div().Set(clsStrip.AsAttr()).
 		Attr("role", "grid").
 		Attr("aria-label", "Calendario").
@@ -269,7 +277,6 @@ func (c *CalendarSlider) Render() *Element {
 // 2026" with no further code change here.
 func (c *CalendarSlider) buildCollapsed() *Element {
 	toggle := Input("checkbox").Set(clsCollapsedToggle.AsAttr()).
-		ID(c.uid+suffixCollapsedToggle).
 		BindAttrBool("checked", c.expanded).
 		On("change", func(e Event) {
 			expanded := e.TargetChecked()
@@ -298,13 +305,20 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 			return lang.Translate(weekday, d, date.MonthName(m), y).String()
 		})
 
+	// The checkbox is NESTED in the label, not paired by for=/id. Implicit
+	// label association needs no id at all — and an id here would be the author
+	// naming one inside a component (webtyp/dom "Element ids are owned by dom"),
+	// besides colliding when two calendars share a page. Native label-click
+	// still toggles the checkbox, firing the change handler above. The checkbox
+	// is display:none (PartCollapsedToggle → style.Hide) so nesting it adds no
+	// visible box.
 	label := Label().Set(clsCollapsed.AsAttr()).
-		Attr("for", c.uid+suffixCollapsedToggle).
+		Child(toggle).
 		Child(Div().Set(clsCollapsedCap.AsAttr()).
 			Child(iconCalendar.Render(string(clsCollapsedIcon)))).
 		Child(text)
 
-	return Div().Child(toggle).Child(label)
+	return Div().Child(label)
 }
 
 // buildWeekdayRow arma la fila de días de la semana (lunes primero) que cada
@@ -338,7 +352,7 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 	key := date.MonthKey(year, month)
 	monthEl := Div().Set(clsMonth.AsAttr()).
 		Key(key).
-		ID("cs-m-" + key)
+		Attr("data-month", key)
 
 	monthEl.Child(c.buildWeekdayRow())
 
@@ -375,21 +389,25 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 		Attr("type", "button").
 		Attr("aria-label", "Mes anterior").
 		Attr("title", "Mes anterior").
-		Attr("data-target", "cs-m-"+prevKey).
+		Attr("data-target", prevKey).
 		Text("‹")
-	prev.On("click", func(Event) { slideToMonth(prevKey, prevWraps) })
+	prev.On("click", func(Event) { c.slideToMonth(prevKey, prevWraps) })
 	next := Button().Set(clsNext.AsAttr()).
 		Attr("type", "button").
 		Attr("aria-label", "Mes siguiente").
 		Attr("title", "Mes siguiente").
-		Attr("data-target", "cs-m-"+nextKey).
+		Attr("data-target", nextKey).
 		Text("›")
-	next.On("click", func(Event) { slideToMonth(nextKey, nextWraps) })
+	next.On("click", func(Event) { c.slideToMonth(nextKey, nextWraps) })
 
 	monthEl.Child(Div().Set(clsMonthNav.AsAttr()).
 		Child(prev).
 		Child(monthName).
 		Child(next))
+
+	// Record this card's scroll anchor (its ‹ button — see monthRef). Done here,
+	// not in Render, so the one place that builds the button also registers it.
+	c.months = append(c.months, monthRef{key: key, anchor: prev})
 
 	return monthEl
 }
@@ -400,8 +418,26 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 // month's ›), where a smooth scroll would visibly travel across every
 // month in between in the wrong apparent direction. Every adjacent-month
 // navigation keeps calling this with instant=false.
-func slideToMonth(key string, instant bool) {
-	ref, ok := Get("cs-m-" + key)
+//
+// The target is resolved through an anchor THIS instance built (c.months),
+// never through a global id: two calendars on one page each scroll their own
+// strip. It is a method for exactly that reason — it was package-level only
+// because it had no handle on the instance, which is why it reached for a
+// hardcoded id. The anchor is the target month's ‹ button, which dom has
+// id'd during the WASM render (it carries a click handler); scrolling it into
+// view snaps the full-width strip to that month's card.
+func (c *CalendarSlider) slideToMonth(key string, instant bool) {
+	var anchor *Element
+	for i := range c.months {
+		if c.months[i].key == key {
+			anchor = c.months[i].anchor
+			break
+		}
+	}
+	if anchor == nil {
+		return
+	}
+	ref, ok := Get(anchor.GetID())
 	if !ok {
 		return
 	}
@@ -485,7 +521,6 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 
 	li := Li().Set(classes...).
 		Key(dateStr).
-		ID("cs-d-"+dateStr).
 		Attr("role", "gridcell").
 		Attr("data-date", dateStr).
 		BindState(widget.Selected, isSel).
