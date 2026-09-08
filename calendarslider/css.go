@@ -175,15 +175,16 @@ func (c *CalendarSlider) RenderCSS() *css.Stylesheet {
 			style.CenterContent(),
 		).
 		// A bare <svg> with no box falls back to 300x150; IconBox pins it.
-		// IconMd at TextLg (1.5em of 1.25rem = 30px): the footer action
-		// glyphs are 40px in a 64px cap (5/8 fill) — 30px in this 50px cap
-		// keeps that same fill ratio instead of bleeding edge to edge.
+		// IconLg at TextLg (2.5em of 1.25rem = 50px): the cap is a
+		// --control-height square, so the glyph fills it and the whole icon
+		// meets the touch-size floor on BOTH axes — IconMd (30px) left the
+		// glyph flagged by the mobile audit as a sub-44px hit area.
 		// Both are system tokens; no raw pixels, no viewBox padding hacks —
 		// svg.go keeps the plain FontAwesome viewBox + currentColor path,
 		// the same shape every webtyp/icons glyph package ships.
 		Part(PartCollapsedIcon,
 			style.FontSize(style.TextLg),
-			style.IconBox(style.IconMd),
+			style.IconBox(style.IconLg),
 		).
 		Part(PartCollapsedText,
 			style.Grow(),
