@@ -2,6 +2,8 @@
 PLAN: "feat!(scheduleeditor): blocks, pattern-apply-to-days, and a bulk day marker"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 669308868860479459
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
