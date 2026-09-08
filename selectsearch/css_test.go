@@ -66,9 +66,9 @@ func TestOptionsWearTheChassisHoverAndSelection(t *testing.T) {
 	// read as a foreign piece bolted onto the app.
 	s := (&SelectSearch{}).RenderCSS().String()
 	for _, want := range []string{
-		"--color-accent-wash",              // hover + focus
+		"--color-accent-wash", // hover + focus
 		`.selectsearch__option[data-selected="true"]`,
-		"--color-accent",                    // selected + press
+		"--color-accent", // selected + press
 	} {
 		if !strings.Contains(s, want) {
 			t.Errorf("expected %q, got:\n%s", want, s)

@@ -59,3 +59,30 @@ func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 		t.Fatalf("OnExceptionAdd received %q, want 2026-09-19", got)
 	}
 }
+
+func TestTwoInstancesShareAPage(t *testing.T) {
+	se1 := &scheduleeditor.ScheduleEditor{
+		Week: []scheduleeditor.WeeklyRow{
+			{DayOfWeek: 0}, {DayOfWeek: 1, Active: true, WorkStart: 540, WorkFinish: 1020},
+			{DayOfWeek: 2}, {DayOfWeek: 3}, {DayOfWeek: 4}, {DayOfWeek: 5}, {DayOfWeek: 6},
+		},
+	}
+	se2 := &scheduleeditor.ScheduleEditor{
+		Week: []scheduleeditor.WeeklyRow{
+			{DayOfWeek: 0}, {DayOfWeek: 1, Active: true, WorkStart: 540, WorkFinish: 1020},
+			{DayOfWeek: 2}, {DayOfWeek: 3}, {DayOfWeek: 4}, {DayOfWeek: 5}, {DayOfWeek: 6},
+		},
+	}
+	se1.Init(nil)
+	se2.Init(nil)
+
+	parent := NewElement("div").Child(se1).Child(se2)
+	if err := Render("app", parent); err != nil {
+		t.Fatalf("mounting two scheduleeditors in one render failed: %v", err)
+	}
+
+	editors := js.Global().Get("document").Call("querySelectorAll", ".scheduleeditor")
+	if editors.Get("length").Int() != 2 {
+		t.Fatalf("expected 2 scheduleeditors in DOM, got %d", editors.Get("length").Int())
+	}
+}

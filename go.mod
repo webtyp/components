@@ -26,5 +26,3 @@ require (
 	webtyp.com/model v0.1.8 // indirect
 	webtyp.com/router v0.1.35 // indirect
 )
-
-replace webtyp.com/icons => ../icons

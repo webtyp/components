@@ -103,7 +103,7 @@ func (sn *SiteNav) Render() *Element {
 	header.Child(toggleBtn)
 
 	// Menu container
-	menu := Div().Set(clsNavMenu.AsAttr()).ID(menuID)
+	menu := Div().Set(clsNavMenu.AsAttr()).Key(menuID)
 
 	// PartNav is declared in RenderCSS; without the class here every rule it
 	// carries addressed nothing, and the links kept the menu's own layout.

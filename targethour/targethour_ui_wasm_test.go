@@ -5,9 +5,9 @@ package targethour_test
 import (
 	"testing"
 
+	"syscall/js"
 	"webtyp.com/components/targethour"
 	. "webtyp.com/dom"
-	"syscall/js"
 )
 
 func TestMain(m *testing.M) {

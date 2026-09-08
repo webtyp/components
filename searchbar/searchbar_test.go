@@ -66,5 +66,3 @@ func TestSearchBar_SatisfiesFilterable(t *testing.T) {
 		t.Errorf("stored sink is not the one registered through the interface: got %q", got)
 	}
 }
-
-

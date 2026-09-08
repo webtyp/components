@@ -3,10 +3,10 @@
 package fieldset
 
 import (
-	"webtyp.com/widget"
 	"regexp"
 	"strings"
 	"testing"
+	"webtyp.com/widget"
 )
 
 var (

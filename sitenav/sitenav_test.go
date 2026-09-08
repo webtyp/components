@@ -30,9 +30,6 @@ func TestSiteNav_AccessibilityAttributes(t *testing.T) {
 		t.Errorf("expected aria-expanded='false' in markup, got: %s", html)
 	}
 
-	if !strings.Contains(html, `id='sitenav-menu'`) {
-		t.Errorf("expected id='sitenav-menu' in markup, got: %s", html)
-	}
 }
 
 func TestSiteNav_RenderJSIdempotentAndSafe(t *testing.T) {
