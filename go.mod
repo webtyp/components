@@ -13,7 +13,7 @@ require (
 	webtyp.com/svg v0.3.9
 	webtyp.com/time v0.5.5
 	webtyp.com/view v0.5.2
-	webtyp.com/widget v0.6.24
+	webtyp.com/widget v0.6.25
 )
 
 require (
@@ -32,7 +32,6 @@ replace webtyp.com/icons => ../icons
 // Local replace for unreleased work: widget's Form-holds-Open widening (the
 // gate for scheduleeditor's RevealedBy(widget.Open)). Drop once widget publishes
 // the tag carrying Kind.Allows(Form, Open).
-replace webtyp.com/widget => ../widget
 
 // Local replace for unreleased work: widget/style's ControlBox now emits
 // --control-width, which lives in the local css catalog. Drop once css publishes.
