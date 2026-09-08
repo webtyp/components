@@ -18,12 +18,17 @@ for the break means "no break".
 
 ```go
 type WeeklyRow struct {
-    DayOfWeek               int  // 0=Sunday .. 6=Saturday
     Active                  bool
     WorkStart, WorkFinish   int  // minutes from midnight
     BreakStart, BreakFinish int  // 0/0 = no break
 }
+```
 
+The slice index **is** the day: `Week` holds exactly 7 rows, Sunday first
+(0 = Sunday … 6 = Saturday). A row never carries its own day — a field would be
+free to disagree with its position, and did.
+
+```go
 type Exception struct {
     ID   string // "" when adding (host assigns on persist)
     Date string // "YYYY-MM-DD"
@@ -43,8 +48,8 @@ editor := &scheduleeditor.ScheduleEditor{
     Week:      rowsFromHost,          // 7 rows Sun..Sat
     Exceptions: exceptionsFromHost,   // sorted by date asc
     Holidays:  nationalHolidays,      // "YYYY-MM-DD", read-only
-    OnWeeklyChange: func(r scheduleeditor.WeeklyRow) {
-        _ = client.SaveWeeklyRow(toAppointment(r)) // host persists, then reloads
+    OnWeeklyChange: func(dayOfWeek int, r scheduleeditor.WeeklyRow) {
+        _ = client.SaveWeeklyRow(toAppointment(dayOfWeek, r)) // host persists, then reloads
     },
     OnExceptionAdd: func(ex scheduleeditor.Exception) {
         _ = client.AddException(toAppointment(ex))
@@ -55,18 +60,22 @@ editor := &scheduleeditor.ScheduleEditor{
 }
 ```
 
-`Week`/`Exceptions` are **initial state**: the host persists on each callback
-and re-mounts with fresh data (same model as `targethour`/`crudview` — the
-component is not the source of truth).
+`OnWeeklyChange` reports the row's **position** in `Week` as `dayOfWeek` — never
+a day carried by the row. `Week`/`Exceptions` are **initial state**: the host
+persists on each callback and re-mounts with fresh data (same model as
+`targethour`/`crudview` — the component is not the source of truth).
 
 ## Behavior
 
-- **Weekly grid** — one row per day; a checkbox enables the day; four selected
-  hour selectors (`work-start`, `work-finish`, `break-start`, `break-finish`)
-  offer 06:00–22:00 in 15-minute steps (values are minutes). The break is
-  shown and used only when both break fields are non-zero. An invalid row
-  (work window, or break outside work) is marked `data-invalid` and logged as a
-  dev warning — it never blocks the edit.
+- **Weekly grid** — a labelled header row (`Day`, `Work start`, `Work end`,
+  `Break start`, `Break end`) over one row per day; a checkbox enables the day;
+  four hour selectors (`work-start`, `work-finish`, `break-start`,
+  `break-finish`) offer 06:00–22:00 in 15-minute steps (values are minutes). An
+  **inactive day's four selects are `disabled`** — an unconfigured day is the
+  absence of a schedule, not a schedule at 06:00. The break is shown and used
+  only when both break fields are non-zero. An invalid row (work window, or
+  break outside work) is marked `data-invalid` and logged as a dev warning — it
+  never blocks the edit.
 - **Exceptions panel** — a `calendarslider` whose selectable days are the dates
   with exceptions (occupation 100 for holiday/blocked, 50 for special hours).
   Picking a day reveals an inline add form: type (Closed / Special hours /
@@ -83,6 +92,9 @@ The component renders its chrome through
 - Day names via `date.WeekdayName` (the 7 canonical English names
   `Sunday`..`Saturday`).
 - Type labels: `Closed`, `Special hours`, `Blocked`.
+- Weekly grid column headers: `Day`, `Work start`, `Work end`, `Break start`,
+  `Break end`.
+- Empty list: `No exceptions`.
 - Chrome: `Add`, `Remove`, `Type`, `Date`, `Notes`.
 
 ## Tests

@@ -28,10 +28,3 @@ require (
 )
 
 replace webtyp.com/icons => ../icons
-
-// Local replace for unreleased work: widget's Form-holds-Open widening (the
-// gate for scheduleeditor's RevealedBy(widget.Open)). Drop once widget publishes
-// the tag carrying Kind.Allows(Form, Open).
-
-// Local replace for unreleased work: widget/style's ControlBox now emits
-// --control-width, which lives in the local css catalog. Drop once css publishes.

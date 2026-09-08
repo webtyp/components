@@ -22,8 +22,18 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 		Part(PartWeek,
 			style.Stack(style.Space1),
 		).
+		Part(PartWeekHead,
+			style.FixedGrid(5, style.Space2),
+			style.PadInline(style.Space2),
+			style.FontSize(style.TextSm),
+			style.FontWeight(style.WeightBold),
+			style.As(style.Subtle),
+		).
+		Part(PartWeekHeadCell,
+			style.KeepSize(),
+		).
 		Part(PartWeekRow,
-			style.Row(style.Space2),
+			style.FixedGrid(5, style.Space2),
 			style.ControlBox(),
 			style.Round(style.RadiusMd),
 			style.Anchor(),
@@ -33,20 +43,18 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 		).
 		Part(PartDay,
 			style.Row(style.Space2),
-			style.KeepSize(),
 			style.Center(),
 		).
 		Part(PartDayName,
 			style.FontWeight(style.WeightBold),
-			style.Grow(),
 		).
 		Part(PartToggle,
+			style.ControlBox(),
 			style.KeepSize(),
 		).
 		Part(PartTime,
 			style.ControlBox(),
 			style.Round(style.RadiusSm),
-			style.KeepSize(),
 			style.As(style.Inset),
 		).
 		Part(PartExceptions,
@@ -58,13 +66,19 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.Pad(style.Space3),
 		).
 		Part(PartExcForm,
+			style.RevealedBy(widget.Open),
 			style.Stack(style.Space2),
 			style.As(style.Inset),
 			style.Round(style.RadiusMd),
 			style.Pad(style.Space3),
 		).
+		Part(PartExcHours,
+			style.RevealedBy(widget.Open),
+			style.Row(style.Space2),
+		).
 		Part(PartExcType,
 			style.Row(style.Space2),
+			style.ControlBox(),
 		).
 		Part(PartExcNotes,
 			style.ControlBox(),

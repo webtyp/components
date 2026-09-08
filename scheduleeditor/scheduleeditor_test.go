@@ -5,6 +5,8 @@ package scheduleeditor
 import (
 	"strings"
 	"testing"
+
+	"webtyp.com/date"
 )
 
 type emptyCtx struct{}
@@ -14,13 +16,13 @@ func (emptyCtx) OnCleanup(func()) {}
 func testEditor() *ScheduleEditor {
 	return &ScheduleEditor{
 		Week: []WeeklyRow{
-			{DayOfWeek: 0, Active: false, WorkStart: 0, WorkFinish: 0},
-			{DayOfWeek: 1, Active: true, WorkStart: 540, WorkFinish: 1020, BreakStart: 780, BreakFinish: 840},
-			{DayOfWeek: 2, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 3, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 4, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 5, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 6, Active: false, WorkStart: 0, WorkFinish: 0},
+			{Active: false, WorkStart: 0, WorkFinish: 0},
+			{Active: true, WorkStart: 540, WorkFinish: 1020, BreakStart: 780, BreakFinish: 840},
+			{Active: true, WorkStart: 540, WorkFinish: 1020},
+			{Active: true, WorkStart: 540, WorkFinish: 1020},
+			{Active: true, WorkStart: 540, WorkFinish: 1020},
+			{Active: true, WorkStart: 540, WorkFinish: 1020},
+			{Active: false, WorkStart: 0, WorkFinish: 0},
 		},
 	}
 }
@@ -128,9 +130,10 @@ func TestExceptions_HolidayReadonly(t *testing.T) {
 }
 
 // El formulario de alta: con excType SPECIAL_HOURS (default) muestra los
-// selects de hora (la fila hours lleva data-open); con HOLIDAY los oculta.
-// El form en sí lleva data-open mientras hay día elegido, así que el marcador
-// del "horario visible" es que data-open aparezca DOS veces (form + hours).
+// selects de hora (la fila hours lleva data-open="true"); con HOLIDAY los
+// oculta. El form en sí lleva data-open="true" mientras hay día elegido, así
+// que el marcador del "horario visible" es que data-open aparezca DOS veces
+// (form + hours).
 func TestSpecialHoursShowsTimeSelects(t *testing.T) {
 	e := testEditor()
 	e.Init(&emptyCtx{})
@@ -139,7 +142,7 @@ func TestSpecialHoursShowsTimeSelects(t *testing.T) {
 
 	html := e.buildExceptionForm().String()
 	if countOpen(html) != 2 {
-		t.Errorf("SPECIAL_HOURS must keep the hours row open (2x data-open):\n%s", html)
+		t.Errorf("SPECIAL_HOURS must keep the hours row open (2x data-open='true'):\n%s", html)
 	}
 }
 
@@ -151,7 +154,7 @@ func TestHolidayHidesTimeSelects(t *testing.T) {
 
 	html := e.buildExceptionForm().String()
 	if countOpen(html) != 1 {
-		t.Errorf("HOLIDAY must hide the hours row (exactly 1 data-open, the form's):\n%s", html)
+		t.Errorf("HOLIDAY must hide the hours row (exactly 1 data-open='true', the form's):\n%s", html)
 	}
 	if !strings.Contains(html, "scheduleeditor__exc-type") {
 		t.Errorf("the type radio group must render:\n%s", html)
@@ -160,8 +163,8 @@ func TestHolidayHidesTimeSelects(t *testing.T) {
 
 func countOpen(html string) int {
 	n := 0
-	for i := 0; i+len("data-open=''") <= len(html); i++ {
-		if html[i:i+len("data-open=''")] == "data-open=''" {
+	for i := 0; i+len("data-open='true'") <= len(html); i++ {
+		if html[i:i+len("data-open='true'")] == "data-open='true'" {
 			n++
 		}
 	}
@@ -196,13 +199,14 @@ func TestCallbacks_AddFiresOnExceptionAdd(t *testing.T) {
 }
 
 // Un cambio de entrada en la fila Lunes (índice 1) recompone la fila completa
-// y llama OnWeeklyChange con DayOfWeek==1 y los minutos editados.
+// y llama OnWeeklyChange con dayOfWeek==1 y los minutos editados.
 func TestCallbacks_WeeklyChangeMonday(t *testing.T) {
 	e := testEditor()
 	e.Init(&emptyCtx{})
 
+	var gotDay int
 	var got *WeeklyRow
-	e.OnWeeklyChange = func(r WeeklyRow) { got = &r }
+	e.OnWeeklyChange = func(d int, r WeeklyRow) { gotDay, got = d, &r }
 
 	// The weekly select's change handler recomputes from the ORIGINAL row with
 	// one field set — exercising the same path the DOM wiring uses. We call the
@@ -212,8 +216,8 @@ func TestCallbacks_WeeklyChangeMonday(t *testing.T) {
 	if got == nil {
 		t.Fatal("OnWeeklyChange not called")
 	}
-	if got.DayOfWeek != 1 {
-		t.Errorf("DayOfWeek = %d, want 1", got.DayOfWeek)
+	if gotDay != 1 {
+		t.Errorf("dayOfWeek = %d, want 1 (Monday)", gotDay)
 	}
 	if got.WorkStart != 600 {
 		t.Errorf("WorkStart = %d, want 600", got.WorkStart)
@@ -221,5 +225,92 @@ func TestCallbacks_WeeklyChangeMonday(t *testing.T) {
 	// Rest of the row preserved.
 	if got.WorkFinish != 1020 || got.BreakStart != 780 || got.BreakFinish != 840 {
 		t.Errorf("row not preserved: %+v", *got)
+	}
+}
+
+// Every state the stylesheet reveals or repaints on must actually be written
+// by the markup. The two halves live behind different build tags and nothing
+// checks them: this is the loop widget/docs/DESIGN.md §17 says the consumer
+// closes. The week carries one invalid row so data-invalid is written too.
+func TestRevealedStatesAreWrittenByTheMarkup(t *testing.T) {
+	week := make([]WeeklyRow, 7)
+	week[1] = WeeklyRow{Active: true, WorkStart: 600, WorkFinish: 480} // invalid window
+	e := &ScheduleEditor{Week: week}
+	e.Init(&emptyCtx{})
+	html := e.Render().String()
+
+	for _, kv := range e.sheet().StateAttrs() {
+		if !strings.Contains(html, kv.Key) {
+			t.Errorf("stylesheet reveals/repaints on %q but no element writes it:\n%s", kv.Key, html)
+		}
+	}
+}
+
+// The seven rows render the seven day names in order. The bug this replaces:
+// the host left the day at its zero value on unconfigured days and four rows
+// rendered "Sunday".
+func TestWeekRendersSevenDistinctDaysInOrder(t *testing.T) {
+	e := testEditor()
+	e.Init(&emptyCtx{})
+	html := e.Render().String()
+
+	for i := 0; i < 7; i++ {
+		want := date.WeekdayName(i)
+		if !strings.Contains(html, want) {
+			t.Errorf("row %d: missing day name %q:\n%s", i, want, html)
+		}
+	}
+}
+
+// OnWeeklyChange reports the row's POSITION, whatever the row holds. This is
+// the assertion that makes "enable Tuesday, save Sunday" unrepresentable.
+func TestWeeklyChangeReportsThePosition(t *testing.T) {
+	var gotDay int
+	var gotRow WeeklyRow
+	e := &ScheduleEditor{
+		Week:           make([]WeeklyRow, 7),
+		OnWeeklyChange: func(d int, r WeeklyRow) { gotDay, gotRow = d, r },
+	}
+	e.Init(&emptyCtx{})
+
+	e.weeklyChange(2, func(r *WeeklyRow) { r.Active = true })
+
+	if gotDay != 2 {
+		t.Errorf("dayOfWeek = %d, want 2 (Tuesday)", gotDay)
+	}
+	if !gotRow.Active {
+		t.Error("the mutation did not reach the reported row")
+	}
+}
+
+// An inactive day's four time selects are disabled: they are not a schedule,
+// they are the absence of one.
+func TestInactiveDayDisablesItsTimeSelects(t *testing.T) {
+	week := make([]WeeklyRow, 7)
+	week[1] = WeeklyRow{Active: true, WorkStart: 480, WorkFinish: 840}
+	e := &ScheduleEditor{Week: week}
+	e.Init(&emptyCtx{})
+	html := e.Render().String()
+
+	// 7 rows x 4 selects = 28; row 1 is active, so 24 are disabled.
+	// The attribute serializes as disabled='disabled', so count that marker.
+	if got := strings.Count(html, "disabled='disabled'"); got != 24 {
+		t.Errorf("disabled selects = %d, want 24:\n%s", got, html)
+	}
+}
+
+// The header labels every column. Four unlabelled dropdowns was the report.
+func TestWeekHeadLabelsEveryColumn(t *testing.T) {
+	e := testEditor()
+	e.Init(&emptyCtx{})
+	html := e.Render().String()
+
+	if !strings.Contains(html, string(clsWeekHead)) {
+		t.Errorf("the weekly grid has no header row:\n%s", html)
+	}
+	for _, k := range weekHeadKeys {
+		if !strings.Contains(html, k) {
+			t.Errorf("header missing column %q:\n%s", k, html)
+		}
 	}
 }

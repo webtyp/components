@@ -24,6 +24,8 @@ const NameScheduleEditor = widget.Name("scheduleeditor")
 
 const (
 	PartWeek       = widget.Part("week")
+	PartWeekHead   = widget.Part("week-head")
+	PartWeekHeadCell = widget.Part("week-head-cell")
 	PartWeekRow    = widget.Part("week-row")
 	PartDay        = widget.Part("day")
 	PartDayName    = widget.Part("day-name")
@@ -43,9 +45,11 @@ const (
 )
 
 var (
-	clsRoot       = NameScheduleEditor.Root()
-	clsWeek       = NameScheduleEditor.Class(PartWeek)
-	clsWeekRow    = NameScheduleEditor.Class(PartWeekRow)
+	clsRoot         = NameScheduleEditor.Root()
+	clsWeek         = NameScheduleEditor.Class(PartWeek)
+	clsWeekHead     = NameScheduleEditor.Class(PartWeekHead)
+	clsWeekHeadCell = NameScheduleEditor.Class(PartWeekHeadCell)
+	clsWeekRow      = NameScheduleEditor.Class(PartWeekRow)
 	clsDay        = NameScheduleEditor.Class(PartDay)
 	clsDayName    = NameScheduleEditor.Class(PartDayName)
 	clsToggle     = NameScheduleEditor.Class(PartToggle)
@@ -71,11 +75,14 @@ const (
 	ExcBlocked      = "BLOCKED"
 )
 
-// WeeklyRow es una fila de la plantilla semanal. DayOfWeek: 0=Domingo …
-// 6=Sábado. Los tiempos son minutos desde medianoche (0..1439); colación
-// 0/0 = sin colación.
+// WeeklyRow es una fila de la plantilla semanal. Los tiempos son minutos desde
+// medianoche (0..1439); colación 0/0 = sin colación.
+//
+// La fila NO lleva su día: su posición en ScheduleEditor.Week ES el día (índice
+// 0 = Domingo … 6 = Sábado). Un campo estaría libre de contradecir la posición,
+// y lo hizo — un host que lo dejó en su cero hizo que cada día no configurado
+// dijera ser Domingo, y lo persistió.
 type WeeklyRow struct {
-	DayOfWeek               int
 	Active                  bool
 	WorkStart, WorkFinish   int
 	BreakStart, BreakFinish int
@@ -106,7 +113,10 @@ type ScheduleEditor struct {
 	// Holidays: fechas de feriado nacional "YYYY-MM-DD", solo lectura.
 	Holidays []string
 
-	OnWeeklyChange    func(WeeklyRow) // fila editada (toggle/entrada/salida/colación)
+	// OnWeeklyChange fires on every edit of the weekly template (toggle,
+	// entry, exit, break). dayOfWeek is 0=Sunday … 6=Saturday, taken from the
+	// row's position in Week — never from the row.
+	OnWeeklyChange    func(dayOfWeek int, row WeeklyRow)
 	OnExceptionAdd    func(Exception) // alta desde el panel (ID == "")
 	OnExceptionRemove func(id string)
 
@@ -179,23 +189,48 @@ func hourOptions(selected int) []*Element {
 // Plantilla semanal
 // ---------------------------------------------------------------------------
 
+// weekDays es la longitud fija de la plantilla semanal: Sunday..Saturday.
+const weekDays = 7
+
 func (e *ScheduleEditor) buildWeek() *Element {
 	week := Div().Set(clsWeek.AsAttr()).Attr("role", "grid")
-	for i, r := range e.Week {
-		week.Child(e.buildWeekRow(i, r))
+	week.Child(e.buildWeekHead())
+	if len(e.Week) != weekDays {
+		Log("scheduleeditor: Week must hold exactly 7 rows (Sunday..Saturday), got", len(e.Week))
+	}
+	for i := 0; i < weekDays && i < len(e.Week); i++ {
+		week.Child(e.buildWeekRow(i, e.Week[i]))
 	}
 	return week
+}
+
+// weekHeadKeys son las cinco etiquetas de columna, en orden de render. Claves
+// en inglés — el diccionario de la app las traduce (ver README, "Translation
+// keys").
+var weekHeadKeys = []string{"Day", "Work start", "Work end", "Break start", "Break end"}
+
+// buildWeekHead es la fila de etiquetas de la grilla semanal. Sin ella los
+// cuatro selects son cuatro dropdowns sin etiqueta y nada dice cuál es cuál.
+func (e *ScheduleEditor) buildWeekHead() *Element {
+	head := Div().Set(clsWeekHead.AsAttr()).Attr("role", "row")
+	for _, k := range weekHeadKeys {
+		head.Child(Span().Set(clsWeekHeadCell.AsAttr()).
+			Attr("role", "columnheader").
+			Text(lang.Translate(k).String()))
+	}
+	return head
 }
 
 func (e *ScheduleEditor) buildWeekRow(i int, r WeeklyRow) *Element {
 	invalid := weekInvalid(r)
 	if invalid {
-		Log("scheduleeditor: weekly row for", date.WeekdayName(r.DayOfWeek), "invalid (work or break window)")
+		Log("scheduleeditor: weekly row for", date.WeekdayName(i), "invalid (work or break window)")
 	}
 
 	active := NewBool(r.Active)
 	row := Div().Set(clsWeekRow.AsAttr()).
 		Attr("data-active", mapBool(r.Active)).
+		Attr("data-day", fmt.Convert(i).String()).
 		BindState(widget.Invalid, NewBool(invalid))
 
 	// Toggle: set Active y dispara OnWeeklyChange con la fila resultante.
@@ -206,20 +241,20 @@ func (e *ScheduleEditor) buildWeekRow(i int, r WeeklyRow) *Element {
 	})
 
 	window := Div().Set(clsDay.AsAttr()).
-		Child(Span().Set(clsDayName.AsAttr()).Text(dayLabel(r.DayOfWeek))).
+		Child(Span().Set(clsDayName.AsAttr()).Text(dayLabel(i))).
 		Child(toggle)
 	row.Child(window)
 
-	row.Child(timePick(PartTime, "work-start", r.WorkStart, func(m int) {
+	row.Child(timePick(PartTime, "work-start", r.WorkStart, !r.Active, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.WorkStart = m })
 	}))
-	row.Child(timePick(PartTime, "work-finish", r.WorkFinish, func(m int) {
+	row.Child(timePick(PartTime, "work-finish", r.WorkFinish, !r.Active, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.WorkFinish = m })
 	}))
-	row.Child(timePick(PartTime, "break-start", r.BreakStart, func(m int) {
+	row.Child(timePick(PartTime, "break-start", r.BreakStart, !r.Active, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.BreakStart = m })
 	}))
-	row.Child(timePick(PartTime, "break-finish", r.BreakFinish, func(m int) {
+	row.Child(timePick(PartTime, "break-finish", r.BreakFinish, !r.Active, func(m int) {
 		e.weeklyChange(i, func(r *WeeklyRow) { r.BreakFinish = m })
 	}))
 
@@ -228,8 +263,8 @@ func (e *ScheduleEditor) buildWeekRow(i int, r WeeklyRow) *Element {
 
 // weeklyChange es el embudo único de cada edición de la plantilla semanal:
 // recompone la fila desde Week[i] (la fila editada), aplica la mutación y
-// dispara OnWeeklyChange una sola vez. Método para que el DOM y los tests
-// compartan exactamente el mismo camino.
+// dispara OnWeeklyChange una sola vez con la POSICIÓN de la fila. Método para
+// que el DOM y los tests compartan exactamente el mismo camino.
 func (e *ScheduleEditor) weeklyChange(i int, mutate func(*WeeklyRow)) {
 	if i < 0 || i >= len(e.Week) {
 		Log("scheduleeditor: weekly row index out of range", i)
@@ -238,23 +273,29 @@ func (e *ScheduleEditor) weeklyChange(i int, mutate func(*WeeklyRow)) {
 	r := e.Week[i]
 	mutate(&r)
 	if e.OnWeeklyChange != nil {
-		e.OnWeeklyChange(r)
+		e.OnWeeklyChange(i, r)
 	}
 }
 
-// dayLabel es el nombre del día. El componente es librería → renderiza el
-// nombre canónico inglés de webtyp/date (Sunday..Saturday) vía lang.Translate:
-// la app registra el diccionario, el componente solo pide traducir.
-func dayLabel(dow int) string {
-	return lang.Translate(date.WeekdayName(dow)).String()
+// dayLabel es el nombre del día para la POSICIÓN de una fila en Week. El
+// componente es librería → renderiza el nombre canónico inglés de webtyp/date
+// (Sunday..Saturday) vía lang.Translate: la app registra el diccionario, el
+// componente solo pide traducir.
+func dayLabel(index int) string {
+	return lang.Translate(date.WeekdayName(index)).String()
 }
 
 // timePick arma un <select> de hora con las opciones 06:00–22:00, su valor
-// inicial y un listener de cambio que entrega los minutos al callback.
-func timePick(part widget.Part, name string, val int, onChange func(int)) *Element {
+// inicial y un listener de cambio que entrega los minutos al callback. Un día
+// inactivo deshabilita sus cuatro selects: no es un horario, es la ausencia
+// de uno.
+func timePick(part widget.Part, name string, val int, disabled bool, onChange func(int)) *Element {
 	sel := NewElement("select").
 		Set(NameScheduleEditor.Class(part).AsAttr()).
 		Attr("name", name)
+	if disabled {
+		sel.Attr("disabled", "disabled")
+	}
 	for _, opt := range hourOptions(val) {
 		sel.Child(opt)
 	}
@@ -342,7 +383,7 @@ func occupationFromExceptions(excs []Exception) []calendarslider.OccupationDay {
 // reconstruir el árbol.
 func (e *ScheduleEditor) buildExceptionForm() *Element {
 	form := Div().Set(clsExcForm.AsAttr()).
-		BindAttrBoolFunc("data-open", func() bool { return e.sel.Get() != "" })
+		BindStateFunc(widget.Open, func() bool { return e.sel.Get() != "" })
 
 	typeRow := Div().Set(clsExcType.AsAttr())
 	typeRow.Child(Span().Text(lang.Translate("Type").String()))
@@ -367,7 +408,7 @@ func (e *ScheduleEditor) buildExceptionForm() *Element {
 	// Los selects de hora solo aplican a SPECIAL_HOURS/BLOCKED — se ocultan
 	// para HOLIDAY (bind sobre e.excType, sin reconstruir).
 	hoursRow := Div().Set(clsExcHours.AsAttr()).
-		BindAttrBoolFunc("data-open", func() bool { return e.excType.Get() != ExcHoliday }).
+		BindStateFunc(widget.Open, func() bool { return e.excType.Get() != ExcHoliday }).
 		Child(boundTimePick(PartTime, "exc-from", e.excFrom)).
 		Child(boundTimePick(PartTime, "exc-to", e.excTo))
 
@@ -419,7 +460,7 @@ func (e *ScheduleEditor) addException() {
 func exceptionTypes() []fmt.KeyValue {
 	return []fmt.KeyValue{
 		{Key: ExcHoliday, Value: lang.Translate("Closed").String()},
-		{Key: ExcSpecialHours, Value: lang.Translate("Special", "hours").String()},
+		{Key: ExcSpecialHours, Value: lang.Translate("Special hours").String()},
 		{Key: ExcBlocked, Value: lang.Translate("Blocked").String()},
 	}
 }
@@ -456,6 +497,12 @@ func boundTimePick(part widget.Part, name string, sig *SignalString) *Element {
 func (e *ScheduleEditor) buildExceptionList() *Element {
 	list := Ul().Set(clsExcList.AsAttr())
 	items := sortedExceptions(e.Exceptions)
+
+	if len(items) == 0 && len(e.Holidays) == 0 {
+		list.Child(Li().Set(clsExcItem.AsAttr()).
+			Text(lang.Translate("No exceptions").String()))
+		return list
+	}
 
 	for _, ex := range items {
 		isHoliday := containsDate(e.Holidays, ex.Date)
@@ -512,7 +559,7 @@ func exceptionLabel(t string) string {
 	case ExcHoliday:
 		return lang.Translate("Closed").String()
 	case ExcSpecialHours:
-		return lang.Translate("Special", "hours").String()
+		return lang.Translate("Special hours").String()
 	case ExcBlocked:
 		return lang.Translate("Blocked").String()
 	default:

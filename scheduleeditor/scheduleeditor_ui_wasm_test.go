@@ -29,8 +29,8 @@ func query(t *testing.T, sel string) js.Value {
 func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 	se := &scheduleeditor.ScheduleEditor{
 		Week: []scheduleeditor.WeeklyRow{
-			{DayOfWeek: 0}, {DayOfWeek: 1, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 2}, {DayOfWeek: 3}, {DayOfWeek: 4}, {DayOfWeek: 5}, {DayOfWeek: 6},
+			{}, {Active: true, WorkStart: 540, WorkFinish: 1020},
+			{}, {}, {}, {}, {},
 		},
 		Exceptions: []scheduleeditor.Exception{
 			{ID: "x1", Date: "2026-09-19", Type: scheduleeditor.ExcHoliday},
@@ -63,14 +63,14 @@ func TestScheduleEditor_AddFormAppearsOnDayPick(t *testing.T) {
 func TestTwoInstancesShareAPage(t *testing.T) {
 	se1 := &scheduleeditor.ScheduleEditor{
 		Week: []scheduleeditor.WeeklyRow{
-			{DayOfWeek: 0}, {DayOfWeek: 1, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 2}, {DayOfWeek: 3}, {DayOfWeek: 4}, {DayOfWeek: 5}, {DayOfWeek: 6},
+			{}, {Active: true, WorkStart: 540, WorkFinish: 1020},
+			{}, {}, {}, {}, {},
 		},
 	}
 	se2 := &scheduleeditor.ScheduleEditor{
 		Week: []scheduleeditor.WeeklyRow{
-			{DayOfWeek: 0}, {DayOfWeek: 1, Active: true, WorkStart: 540, WorkFinish: 1020},
-			{DayOfWeek: 2}, {DayOfWeek: 3}, {DayOfWeek: 4}, {DayOfWeek: 5}, {DayOfWeek: 6},
+			{}, {Active: true, WorkStart: 540, WorkFinish: 1020},
+			{}, {}, {}, {}, {},
 		},
 	}
 	se1.Init(nil)
