@@ -9,7 +9,7 @@ import (
 
 var _ dom.Component = (*SelectSearch)(nil)
 
-var idAttr = regexp.MustCompile(`id='[^']*'`)
+var idAttr = regexp.MustCompile(`(id|for|aria-controls)='[^']*'`)
 
 func TestSelectSearch_InitTwiceSafe(t *testing.T) {
 	c := &SelectSearch{Options: []SsOption{{ID: "1", Label: "One"}}}

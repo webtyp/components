@@ -5,9 +5,9 @@ package targetdate_test
 import (
 	"testing"
 
+	"syscall/js"
 	"webtyp.com/components/targetdate"
 	. "webtyp.com/dom"
-	"syscall/js"
 )
 
 func TestMain(m *testing.M) {

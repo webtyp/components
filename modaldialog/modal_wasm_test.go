@@ -5,8 +5,8 @@ package modaldialog
 import (
 	"testing"
 
-	. "webtyp.com/dom"
 	"syscall/js"
+	. "webtyp.com/dom"
 )
 
 func TestMain(m *testing.M) {

@@ -347,9 +347,8 @@ func (e *ScheduleEditor) buildExceptionForm() *Element {
 	typeRow := Div().Set(clsExcType.AsAttr())
 	typeRow.Child(Span().Text(lang.Translate("Type").String()))
 	for _, opt := range exceptionTypes() {
-		id := "scheduleeditor-type-" + opt.Key
 		radio := Input("radio").Set(clsExcType.AsAttr()).
-			ID(id).
+			Key(opt.Key).
 			Attr("name", "scheduleeditor-type").
 			Attr("value", opt.Key).
 			BindAttrBoolFunc("checked", func() bool { return e.excType.Get() == opt.Key })
@@ -361,8 +360,8 @@ func (e *ScheduleEditor) buildExceptionForm() *Element {
 				e.excTo.Set("1080")
 			}
 		})
-		typeRow.Child(radio).
-			Child(Label().Attr("for", id).Text(opt.Value))
+		label := Label().For(radio).Text(opt.Value)
+		typeRow.Child(radio).Child(label)
 	}
 
 	// Los selects de hora solo aplican a SPECIAL_HOURS/BLOCKED — se ocultan

@@ -18,11 +18,11 @@ const (
 )
 
 var (
-	clsModal         = NameModalDialog.Root()
-	clsModalContent  = NameModalDialog.Class(PartPanel)
-	clsModalHeader   = NameModalDialog.Class(PartHeader)
-	clsModalBody     = NameModalDialog.Class(PartBody)
-	clsModalClose    = NameModalDialog.Class(PartClose)
+	clsModal        = NameModalDialog.Root()
+	clsModalContent = NameModalDialog.Class(PartPanel)
+	clsModalHeader  = NameModalDialog.Class(PartHeader)
+	clsModalBody    = NameModalDialog.Class(PartBody)
+	clsModalClose   = NameModalDialog.Class(PartClose)
 )
 
 // ModalDialog represents a modal dialog component.

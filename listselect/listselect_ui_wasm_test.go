@@ -5,10 +5,10 @@ package listselect_test
 import (
 	"testing"
 
+	"syscall/js"
 	"webtyp.com/components/listselect"
 	. "webtyp.com/dom"
 	"webtyp.com/widget"
-	"syscall/js"
 )
 
 const uiName = widget.Name("uitest")

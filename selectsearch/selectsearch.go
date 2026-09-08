@@ -50,23 +50,6 @@ var (
 
 const iconArrowDown = svg.Icon("ss-arrow-down")
 
-// The per-instance id suffixes. Derived from c.uid (never written inline) so
-// two pickers on one page cannot collide — the label's `for`, the focus lookup
-// and every option id all share the same prefix.
-const (
-	suffixToggle  = "-toggle"
-	suffixSearch  = "-search"
-	suffixOptions = "-options"
-	suffixOption  = "-opt-"
-)
-
-var selectSearchSeq int
-
-func nextSelectSearchID() int {
-	selectSearchSeq++
-	return selectSearchSeq
-}
-
 // SearchMode decides whether the picker shows its search field.
 //
 // The field is not free: on a phone it summons the on-screen keyboard the
@@ -127,8 +110,6 @@ type SelectSearch struct {
 	rows             *SignalNodes
 	searchShown      *SignalBool
 
-	uid string // per-instance id prefix; two pickers on one page must not collide
-
 	onFilter func(term string) // set via OnFilterChange — satisfies widget.Filterable
 }
 
@@ -151,11 +132,6 @@ var _ widget.Filterable = (*SelectSearch)(nil)
 func (c *SelectSearch) OnFilterChange(fn func(term string)) { c.onFilter = fn }
 
 func (c *SelectSearch) Init(_ Ctx) {
-	// A page may mount more than one picker. The label's `for`, the focus
-	// lookup and every option id are derived from this prefix so instance B's
-	// header cannot toggle instance A's checkbox — the failure a fixed,
-	// page-global toggle id guarantees the moment a second picker appears.
-	c.uid = fmt.Sprintf("%s-%d", string(NameSelectSearch), nextSelectSearchID())
 	c.selectedLabel = NewString("")
 	c.selectedID = NewString("")
 	c.selectedSublabel = NewString("")
@@ -210,8 +186,16 @@ func (c *SelectSearch) Render() *Element {
 	hasSublabel := DeriveBool(func() bool { return c.selectedSublabel.Get() != "" })
 	hasDesc := DeriveBool(func() bool { return c.selectedDesc.Get() != "" })
 
+	searchInput := Input("search").
+		Set(ClsSsSearch.AsAttr()).
+		Key("search").
+		Attr("placeholder", "Search...").
+		Attr("role", "combobox").
+		BindAttrBool("aria-expanded", c.isOpen).
+		Bind(c.query)
+
 	toggle := Input("checkbox").Set(ClsSsToggle.AsAttr()).
-		ID(c.uid + suffixToggle).
+		Key("toggle").
 		BindAttrBool("checked", c.isOpen).
 		On("change", func(e Event) {
 			checked := e.TargetChecked()
@@ -220,10 +204,10 @@ func (c *SelectSearch) Render() *Element {
 			// keeps the on-screen keyboard down on a phone: focusing a text
 			// input is what summons it, and a picker showing five names has
 			// nothing to type into. Guarding on searchShown rather than on
-			// Get() succeeding keeps the intent readable — a missing element
+			// Ref() succeeding keeps the intent readable — a missing element
 			// would be a bug, not a mode.
 			if checked && c.searchShown.Get() {
-				if ref, ok := Get(c.uid + suffixSearch); ok {
+				if ref, ok := searchInput.Ref(); ok {
 					ref.Focus()
 				}
 			}
@@ -256,22 +240,21 @@ func (c *SelectSearch) Render() *Element {
 		Child(Show(hasDesc, Span().Set(ClsSsDesc.AsAttr()).BindText(c.selectedDesc)))
 
 	header := Label().Set(ClsSsHeader.AsAttr()).
-		Attr("for", c.uid+suffixToggle).
+		For(toggle).
 		Child(icon).
 		Child(headerBody)
 
-	searchInput := Input("search").
-		Set(ClsSsSearch.AsAttr()).
-		ID(c.uid + suffixSearch).
-		Attr("placeholder", "Search...").
-		Attr("role", "combobox").
-		BindAttrBool("aria-expanded", c.isOpen).
-		Attr("aria-controls", c.uid+suffixOptions).
-		Bind(c.query).
+	optList := Ul().Set(ClsSsOptions.AsAttr()).
+		Key("options").
+		Attr("role", "listbox").
+		BindChildren(c.rows)
+
+	searchInput.
+		Attr("aria-controls", optList.GetID()).
 		On("input", func(e Event) {
-			term := e.TargetValue()
 			// query is already updated by Bind(c.query) in WASM,
 			// but we need to trigger the rows update.
+			term := e.TargetValue()
 
 			if term != "" {
 				allHidden := true
@@ -291,18 +274,11 @@ func (c *SelectSearch) Render() *Element {
 			c.rows.Set(c.buildRows(term))
 		})
 
-	optList := Ul().Set(ClsSsOptions.AsAttr()).ID(c.uid + suffixOptions).
-		Attr("role", "listbox").
-		BindChildren(c.rows)
-
 	dropdown := Div().Set(ClsSsDropdown.AsAttr()).
 		Child(Show(c.searchShown, searchInput)).
 		Child(optList)
 
-	// The scrim: it dims and blurs everything behind the open sheet, which is
-	// what makes "which of these two lists am I using?" unanswerable-by-
-	// accident rather than a guess — the other list stops looking actionable,
-	// not merely different. It also gives the picker a dismissal it never had:
+	// The backdrop is the full-viewport scrim behind an open dropdown:
 	// tapping outside closes it. Setting the signal is enough to close, because
 	// the toggle checkbox reads it through BindAttrBool above; there is no
 	// second piece of state to keep in step.
@@ -366,7 +342,6 @@ func (c *SelectSearch) buildRows(term string) []*Element {
 
 		item := Li().Set(ClsSsOption.AsAttr()).
 			Key(opt.ID).
-			ID(c.uid + suffixOption + opt.ID). // required for wirePendingEvents to attach the click handler
 			Attr("role", "option").
 			BindStateFunc(widget.Selected, func() bool { return c.selectedID.Get() == o.ID }).
 			Child(text).

@@ -126,7 +126,7 @@ type simpleComponent struct {
 	html string
 }
 
-func (s *simpleComponent) String() string            { return s.html }
-func (s *simpleComponent) GetID() string             { return "" }
-func (s *simpleComponent) SetID(id string)           {}
+func (s *simpleComponent) String() string        { return s.html }
+func (s *simpleComponent) GetID() string         { return "" }
+func (s *simpleComponent) SetID(id string)       {}
 func (s *simpleComponent) Children() []Component { return nil }

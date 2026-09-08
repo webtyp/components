@@ -102,7 +102,18 @@ func (sn *SiteNav) Render() *Element {
 		Child(iconClose.Render(clsNavIconClose.String()))
 	header.Child(toggleBtn)
 
-	// Menu container
+	// Menu container.
+	//
+	// ID(), not Key()+Ref(): this component's behaviour ships as JavaScript
+	// (see RenderJS in js.go), which reaches the menu with
+	// document.getElementById("sitenav-menu") in three places and matches the
+	// toggle with [aria-controls="sitenav-menu"]. A dom-assigned id is invisible
+	// to that script, so replacing this with a Key silently breaks the mobile
+	// menu — it simply never opens, with no error.
+	//
+	// A site nav is a page singleton by construction (the script itself guards
+	// on window.__sitenavInit), so a fixed global id is the case ID() exists
+	// for — the same reason platformd keeps pd-msg-slot and pd-hamburger-btn.
 	menu := Div().Set(clsNavMenu.AsAttr()).ID(menuID)
 
 	// PartNav is declared in RenderCSS; without the class here every rule it

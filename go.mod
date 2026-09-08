@@ -5,12 +5,12 @@ go 1.25.2
 require (
 	webtyp.com/css v0.4.21
 	webtyp.com/date v0.0.6
-	webtyp.com/dom v0.13.11
+	webtyp.com/dom v0.13.12
 	webtyp.com/fmt v1.0.0
 	webtyp.com/html v0.0.21
 	webtyp.com/image v0.1.3
 	webtyp.com/js v0.0.10
-	webtyp.com/svg v0.3.5
+	webtyp.com/svg v0.3.7
 	webtyp.com/time v0.5.5
 	webtyp.com/view v0.5.2
 	webtyp.com/widget v0.6.24

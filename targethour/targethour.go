@@ -158,7 +158,6 @@ func (t *TargetHour) buildRow(it Item) *Element {
 	})
 
 	row := Li().Set(clsRow.AsAttr()).
-		ID(key).
 		Key(key).
 		Attr("role", "option").
 		BindState(widget.Selected, isSel).
@@ -210,7 +209,6 @@ func (t *TargetHour) buildFreeSlot(hhmm string) *Element {
 		Child(Span().Set(clsFreeAdd.AsAttr()).Text("+"))
 
 	return Li().Set(clsFree.AsAttr()).
-		ID(key).
 		Key(key).
 		Attr("data-free", hhmm).
 		On("click", func(Event) {

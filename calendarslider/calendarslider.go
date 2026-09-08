@@ -138,14 +138,11 @@ type CalendarSlider struct {
 	months []monthRef
 }
 
-// monthRef pairs a month key ("YYYY-MM") with a scroll anchor inside that
-// month's card. anchor is the card's ‹ button: it carries a click handler, so
-// dom assigns it an id during the WASM render (SSR emits none — the id path is
-// observer-gated, so Render stays idempotent). Scrolling that button into view
-// snaps the full-width strip to its card, which is all slideToMonth needs.
+// monthRef pairs a month key ("YYYY-MM") with the month card element.
+// The card is addressable because it carries Key(key).
 type monthRef struct {
-	key    string
-	anchor *Element
+	key string
+	el  *Element
 }
 
 var _ widget.Filterable = (*CalendarSlider)(nil)
@@ -405,9 +402,9 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 		Child(monthName).
 		Child(next))
 
-	// Record this card's scroll anchor (its ‹ button — see monthRef). Done here,
-	// not in Render, so the one place that builds the button also registers it.
-	c.months = append(c.months, monthRef{key: key, anchor: prev})
+	// Record this card (see monthRef). Done here,
+	// not in Render, so the one place that builds the card also registers it.
+	c.months = append(c.months, monthRef{key: key, el: monthEl})
 
 	return monthEl
 }
@@ -427,17 +424,17 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 // id'd during the WASM render (it carries a click handler); scrolling it into
 // view snaps the full-width strip to that month's card.
 func (c *CalendarSlider) slideToMonth(key string, instant bool) {
-	var anchor *Element
+	var el *Element
 	for i := range c.months {
 		if c.months[i].key == key {
-			anchor = c.months[i].anchor
+			el = c.months[i].el
 			break
 		}
 	}
-	if anchor == nil {
+	if el == nil {
 		return
 	}
-	ref, ok := Get(anchor.GetID())
+	ref, ok := el.Ref()
 	if !ok {
 		return
 	}
