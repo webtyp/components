@@ -3,7 +3,7 @@ module webtyp.com/components
 go 1.25.2
 
 require (
-	webtyp.com/css v0.4.21
+	webtyp.com/css v0.4.22
 	webtyp.com/date v0.0.6
 	webtyp.com/dom v0.13.12
 	webtyp.com/fmt v1.0.0
@@ -28,3 +28,11 @@ require (
 )
 
 replace webtyp.com/icons => ../icons
+
+// Local replace for unreleased work: widget's Form-holds-Open widening (the
+// gate for scheduleeditor's RevealedBy(widget.Open)). Drop once widget publishes
+// the tag carrying Kind.Allows(Form, Open).
+replace webtyp.com/widget => ../widget
+
+// Local replace for unreleased work: widget/style's ControlBox now emits
+// --control-width, which lives in the local css catalog. Drop once css publishes.
