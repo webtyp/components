@@ -176,6 +176,11 @@ func (c *SelectSearch) Render() *Element {
 		placeholderText = "Select..."
 	}
 
+	// The collapsed header shows one of two things, never both at once: the
+	// placeholder while nothing is picked, or — once a choice is made — the
+	// SAME name / id / trailing-datum layout an open option row uses. Both
+	// subtrees are always serialized (Show toggles display), so each is gated
+	// on its own condition and exactly one is visible.
 	hasSelection := DeriveBool(func() bool { return c.selectedLabel.Get() != "" })
 	noSelection := DeriveBool(func() bool { return c.selectedLabel.Get() == "" })
 	hasSublabel := DeriveBool(func() bool { return c.selectedSublabel.Get() != "" })
@@ -195,6 +200,12 @@ func (c *SelectSearch) Render() *Element {
 		On("change", func(e Event) {
 			checked := e.TargetChecked()
 			c.isOpen.Set(checked)
+			// Focus the field only when there IS one. This is the line that
+			// keeps the on-screen keyboard down on a phone: focusing a text
+			// input is what summons it, and a picker showing five names has
+			// nothing to type into. Guarding on searchShown rather than on
+			// Ref() succeeding keeps the intent readable — a missing element
+			// would be a bug, not a mode.
 			if checked && c.searchShown.Get() {
 				if ref, ok := searchInput.Ref(); ok {
 					ref.Focus()
@@ -202,8 +213,23 @@ func (c *SelectSearch) Render() *Element {
 			}
 		})
 
+	// The icon is a filled square cap around a white glyph, FIRST child —
+	// searchbar's own PartIcon/PartGlyph layout (that package's Render puts
+	// its cap before its input too; see its css.go for the flush-square
+	// recipe PartHeader below mirrors), not a bare svg trailing the text:
+	// a bare <svg> painted straight onto the header read as an unstyled
+	// stray mark, disconnected from the rest of the chassis, and trailing
+	// it put the cap on the wrong edge for this chassis' own convention.
+	//
+	// The cap sits OUTSIDE PartHeaderBody, flush to the header's edges;
+	// PartHeaderBody carries the padding that keeps the text and the trailing
+	// chip clear of the header's rounded clip. Every text node is its own
+	// Span because BindText writes textContent and would erase siblings.
 	icon := Div().Set(ClsSsIcon.AsAttr()).Child(iconArrowDown.Render(string(ClsSsGlyph)))
 
+	// The picked-state text column: name over id — the identical PartText /
+	// PartLabel / PartSublabel used inside an option row (see buildRows), so
+	// the header cannot drift from the row it echoes.
 	pickedText := Div().Set(ClsSsText.AsAttr()).
 		Child(Span().Set(ClsSsLabel.AsAttr()).BindText(c.selectedLabel)).
 		Child(Show(hasSublabel, Span().Set(ClsSsSublabel.AsAttr()).BindText(c.selectedSublabel)))
@@ -226,6 +252,8 @@ func (c *SelectSearch) Render() *Element {
 	searchInput.
 		Attr("aria-controls", optList.GetID()).
 		On("input", func(e Event) {
+			// query is already updated by Bind(c.query) in WASM,
+			// but we need to trigger the rows update.
 			term := e.TargetValue()
 
 			if term != "" {
@@ -250,9 +278,22 @@ func (c *SelectSearch) Render() *Element {
 		Child(Show(c.searchShown, searchInput)).
 		Child(optList)
 
+	// The backdrop is the full-viewport scrim behind an open dropdown:
+	// tapping outside closes it. Setting the signal is enough to close, because
+	// the toggle checkbox reads it through BindAttrBool above; there is no
+	// second piece of state to keep in step.
+	//
+	// It must be rendered BEFORE the dropdown: Backdrop(Viewport) and Flyout
+	// both resolve to the Combobox kind's dropdown layer, so the two tie on
+	// z-index and DOM order is what puts the sheet on top of its own scrim.
+	// usermenu orders trigger, backdrop, panel for the same reason.
 	backdrop := Div().Set(ClsSsBackdrop.AsAttr()).
 		On("click", func(e Event) { c.isOpen.Set(false) })
 
+	// BindState, not a class toggled by hand: data-open is the single value the
+	// stylesheet selects on, so markup and CSS cannot disagree. It is what lets
+	// the chevron turn be a CSS state rule instead of a second source of truth
+	// in Go.
 	return Div().Set(ClsSsBox.AsAttr()).
 		BindState(widget.Open, c.isOpen).
 		Child(toggle).
