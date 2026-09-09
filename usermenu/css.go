@@ -21,6 +21,9 @@ func (m *UserMenu) RenderCSS() *css.Stylesheet {
 		Part(PartTrigger,
 			style.Row(style.Space2),
 			style.Button(style.Subtle),
+			// A pill, not a 4px-cornered box: Button derives only RadiusSm from
+			// Subtle, so the explicit radius stays.
+			style.Round(style.RadiusFull),
 			style.Pad(style.Space1),
 		).
 		// IconMd, not IconLg: the trigger lives in the platform header, and a
