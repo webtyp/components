@@ -2,8 +2,9 @@
 PLAN: "refactor(css): every button goes through style.Button — one recipe, nine sites"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 11090955321065316234
+PR: https://github.com/webtyp/components/pull/28
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
@@ -80,6 +81,12 @@ go mod tidy
 `go.mod` must end up requiring `webtyp.com/widget v0.6.26` or higher. Do not
 bump any other dependency in this plan.
 
+**Careful with `replace webtyp.com/icons => ../icons`.** If `go mod tidy`
+removes that line, the `require` behind it falls back to the placeholder
+`v0.0.3` it was pinned at — four tags behind the published `v0.0.7`, a silent
+downgrade. Either leave the replace alone, or drop it **and** raise the require
+to `webtyp.com/icons@v0.0.7`. Never leave `v0.0.3` requireless of a replace.
+
 ## 4. Stage 2 — migrate the nine button sites
 
 For each site: replace the hand-rolled recipe with a single `style.Button(s)`,
@@ -90,6 +97,14 @@ keeping the same `Surface` argument the site already used.
 `style.Round(style.RadiusSm)`. Leave every other Option on the part untouched
 (`Row`, `Pad`, `FontSize`, `Anchor`, `Animate`, `Grow`, …) unless a stage below
 says otherwise.
+
+**`Round(style.RadiusSm)` and only that one.** `Button` derives its surface's
+default radius, and `Primary`/`Secondary`/`Danger`/`Subtle` all resolve to
+`RadiusSm` — so that call is the redundant one. A part carrying a *different*
+radius chose a shape deliberately and **keeps it**: `themetoggle`'s root and
+`usermenu`'s `PartTrigger` both carry `Round(style.RadiusFull)`, which is what
+makes them a circle and a pill. Deleting those silently turns both into
+4px-cornered boxes.
 
 ### 4.1 `actionbutton/css.go`
 
@@ -127,10 +142,28 @@ the root keeps nothing that restates it:
 		).
 ```
 
-Delete the whole `Root(...)` call: `Pad(Space2)` and `Round(RadiusSm)` are now
-`Button`'s job, and `As(style.Page)` under three interactive parts painted a
-surface no pixel of the widget ever showed. If removing `Root` leaves
-`style.For(b).` immediately followed by `Part(`, that is correct and compiles.
+`Pad(Space2)` and `Round(RadiusSm)` are now `Button`'s job, and `As(style.Page)`
+under three interactive parts painted a surface no pixel of the widget ever
+showed — all three go.
+
+**The `Root(...)` call itself must stay, with a real rule.** The markup is
+`class="actionbutton actionbutton__primary"` — root class and variant class on
+the same node — so `TestPairMarkupAndStylesheet` fails with *"HTML class
+\"actionbutton\" is unstyled in CSS"* if the root ends up ruleless. Do not
+satisfy it with filler. The rule that belongs there is the one the variants
+cannot supply:
+
+```go
+		// The root is the pressed element itself — the markup is
+		// class="actionbutton actionbutton__primary", both rules on one node —
+		// so it may not be ruleless (TestPairMarkupAndStylesheet). What belongs
+		// here is the one thing the variants cannot supply: with Href set this
+		// renders an <a>, which unlike a native <button> does not centre its own
+		// label inside the padding Button() adds.
+		Root(
+			style.CenterContent(),
+		).
+```
 
 ### 4.2 `scheduleeditor/css.go` — four sites
 
@@ -263,11 +296,13 @@ upstream in `widget` under its own plan, never re-created in a consumer. Leave
 | # | Check | Expected |
 |---|-------|----------|
 | 1 | `grep -rn 'style.Button(' --include=css.go . \| wc -l` | **9** |
-| 2 | `grep -rn 'style.Interactive(' --include=css.go . \| wc -l` | **8** — exactly the §5 list |
+| 2 | `grep -rn 'style.Interactive(' --include=css.go . \| wc -l` | **11** — the §5 list (4 in `calendarslider`) plus `scheduleeditor`'s `PartDayChip` |
 | 3 | `grep -n 'Interactive\|ControlBox\|KeepSize\|Round' scheduleeditor/css.go` | no hit on `PartRowAdd`, `PartRowRemove`, `PartExcAdd`, `PartExcRemove` |
 | 4 | `grep -n 'PartDayChip' -A 4 scheduleeditor/css.go` | unchanged: still `ControlBox()`, `Round(RadiusSm)`, `Interactive(Subtle)` |
-| 5 | `grep -n 'Root(' actionbutton/css.go` | empty — the root call is gone |
+| 5 | `grep -n -A 2 'Root(' actionbutton/css.go` | `style.CenterContent()` — one real rule, no `Pad`/`Round`/`As` |
 | 6 | `grep -n 'webtyp.com/widget v0.6.2' go.mod` | `v0.6.26` or higher |
+| 6b | `grep -n 'icons' go.mod` | `v0.0.7`, or a `replace` — never a bare `v0.0.3` |
+| 6c | `grep -n -B 3 'RadiusFull' themetoggle/css.go usermenu/css.go` | present on `themetoggle`'s root and on `usermenu`'s `PartTrigger` — the circle and the pill survived (`usermenu` has a second, pre-existing hit on `PartAvatar`) |
 | 7 | `grep -n 'func TestNoHandRolledButtons' conformance_test.go` | one hit |
 | 8 | `gotest ./...` | green |
 | 9 | `go vet ./... && gofmt -l .` | clean |
