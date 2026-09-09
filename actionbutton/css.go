@@ -11,18 +11,16 @@ import (
 func (b *ActionButton) RenderCSS() *css.Stylesheet {
 	return style.For(b).
 		Root(
-			style.Pad(style.Space2),
-			style.Round(style.RadiusSm),
-			style.As(style.Page),
+			style.KeepSize(),
 		).
 		Part(PartPrimary,
-			style.Interactive(style.Primary),
+			style.Button(style.Primary),
 		).
 		Part(PartSecondary,
-			style.Interactive(style.Secondary),
+			style.Button(style.Secondary),
 		).
 		Part(PartDanger,
-			style.Interactive(style.Danger),
+			style.Button(style.Danger),
 		).
 		Stylesheet()
 }

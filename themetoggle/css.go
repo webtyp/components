@@ -15,9 +15,7 @@ import (
 func (t *ThemeToggle) RenderCSS() *css.Stylesheet {
 	return style.For(t).
 		Root(
-			style.KeepSize(),
-			style.Interactive(style.Primary),
-			style.Round(style.RadiusFull),
+			style.Button(style.Primary),
 			style.Pad(style.Space1),
 			style.Docked(style.Viewport, style.EdgeTop, style.SideEnd, style.Space4),
 		).
