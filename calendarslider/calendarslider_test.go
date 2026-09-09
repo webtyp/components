@@ -226,8 +226,14 @@ func TestRenderStructure(t *testing.T) {
 		t.Error("las flechas no deberían llevar EdgeStrip (inset-block: 0) en ningún modo")
 	}
 
-	if !Contains(htmlOut, "Lun") || !Contains(htmlOut, "Dom") {
+	// Claves canónicas en inglés: la librería no fija idioma, lo traduce el
+	// diccionario de la app. Y el orden lo manda date.FirstWeekday, que es
+	// lunes por defecto — el domingo va último, no primero.
+	if !Contains(htmlOut, "Mon") || !Contains(htmlOut, "Sun") {
 		t.Error("la fila de días de la semana debería estar dentro de cada mes")
+	}
+	if mon, sun := Index(htmlOut, "Mon"), Index(htmlOut, "Sun"); mon < 0 || sun < 0 || mon > sun {
+		t.Errorf("la semana debe empezar en lunes y terminar en domingo (Mon=%d, Sun=%d)", mon, sun)
 	}
 	if !strings.Contains(htmlOut, "calendarslider__week-row") {
 		t.Error("las semanas deberían llevar la clase de grilla de 7 columnas")

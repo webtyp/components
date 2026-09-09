@@ -28,19 +28,36 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.Round(style.RadiusMd),
 			style.Anchor(),
 		).
+		When(widget.Selected, PartDayLabel,
+			style.As(style.Primary),
+		).
 		When(widget.Invalid, PartPatternRow,
 			style.As(style.DangerWash),
 		).
 		Part(PartDayChips,
 			style.Row(style.Space1),
 		).
+		// The checkbox itself: the real control, out of sight but still
+		// focusable and announced. A native checkbox brings its own skin and
+		// cannot be painted, so the visible pill is its <label> below.
 		Part(PartDayChip,
-			style.ControlBox(),
-			style.Round(style.RadiusSm),
-			style.Interactive(style.Subtle),
+			style.VisuallyHidden(),
 		).
+		// The pill. Button() because that is what it is — something the user
+		// presses — which also gives it the 44px control box the tap-target
+		// floor needs, now that the input no longer carries it.
+		Part(PartDayLabel,
+			style.Button(style.Subtle),
+		).
+		Part(PartFieldLabel,
+			style.As(style.Subtle),
+			style.FontSize(style.TextSm),
+		).
+		// Subtle, not Danger: one of these repeats on every pattern row, and a
+		// column of red blocks reads as an alarm rather than a control. The
+		// danger tint arrives on hover, from Interactive's own derivation.
 		Part(PartRowRemove,
-			style.Button(style.Danger),
+			style.Button(style.Subtle),
 		).
 		Part(PartRowAdd,
 			style.Button(style.Primary),

@@ -463,7 +463,9 @@ func TestNoRemovedSymbols(t *testing.T) {
 		forbidden := []string{
 			"style.On(",
 			"style.Of(",
-			"Hidden()",
+			// Prefixed: the retired symbol was style.Hidden(). A bare "Hidden()"
+			// also matches the legitimate style.VisuallyHidden().
+			"style.Hidden()",
 			"Shown()",
 			"Above()",
 			"Scrim()",
@@ -507,9 +509,6 @@ func TestNoHandRolledButtons(t *testing.T) {
 		},
 		"targetdate/css.go": {
 			"PartRow": true, // a list row
-		},
-		"scheduleeditor/css.go": {
-			"PartDayChip": true, // native checkbox tap target touch floor
 		},
 	}
 

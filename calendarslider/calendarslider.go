@@ -74,9 +74,12 @@ var (
 	clsCollapsedText   = NameCalendarSlider.Class(PartCollapsedText)
 )
 
-// weekdayNames es el encabezado de cada sección: la semana comienza en lunes,
-// igual que la implementación original.
-var weekdayNames = [7]string{"Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom"}
+// shortWeekdayKeys son las claves canónicas en inglés del encabezado. La
+// librería nunca fija un idioma ni el primer día: el texto lo traduce el
+// diccionario de la app vía lang.Translate, y el orden lo decide
+// date.FirstWeekday (lunes por defecto). Índice = convención de date.Weekday
+// (0 = Sunday … 6 = Saturday).
+var shortWeekdayKeys = [7]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
 
 // maxMonths es el tope de meses navegables por slide, igual al límite del
 // calendario original — evita una tira de scroll-snap sin control.
@@ -274,10 +277,10 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 
 func (c *CalendarSlider) buildWeekdayRow() *Element {
 	weekdays := Ul().Set(clsWeekRow.AsAttr()).Attr("role", "row")
-	for _, name := range weekdayNames {
+	for _, w := range date.WeekOrder() {
 		weekdays.Child(Li().Set(clsWeekday.AsAttr()).
 			Attr("role", "columnheader").
-			Text(name))
+			Text(lang.Translate(shortWeekdayKeys[w]).String()))
 	}
 	return weekdays
 }
@@ -365,7 +368,7 @@ func (c *CalendarSlider) slideToMonth(key string, instant bool) {
 }
 
 func (c *CalendarSlider) buildDayCells(year, month int) []*Element {
-	startCol := (date.Weekday(year, month, 1) + 6) % 7 // 0 = lunes
+	startCol := date.WeekColumn(date.Weekday(year, month, 1))
 	total := date.DaysInMonth(year, month)
 	cells := make([]*Element, 0, startCol+total)
 	for i := 0; i < startCol; i++ {

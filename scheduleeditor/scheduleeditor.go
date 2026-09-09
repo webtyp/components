@@ -28,6 +28,8 @@ const (
 	PartPatternRow  = widget.Part("pattern-row")
 	PartDayChips    = widget.Part("day-chips")
 	PartDayChip     = widget.Part("day-chip")
+	PartDayLabel    = widget.Part("day-label")
+	PartFieldLabel  = widget.Part("field-label")
 	PartRowRemove   = widget.Part("row-remove")
 	PartRowAdd      = widget.Part("row-add")
 	PartMarker      = widget.Part("marker")
@@ -51,6 +53,8 @@ var (
 	clsPatternRow  = NameScheduleEditor.Class(PartPatternRow)
 	clsDayChips    = NameScheduleEditor.Class(PartDayChips)
 	clsDayChip     = NameScheduleEditor.Class(PartDayChip)
+	clsDayLabel    = NameScheduleEditor.Class(PartDayLabel)
+	clsFieldLabel  = NameScheduleEditor.Class(PartFieldLabel)
 	clsRowRemove   = NameScheduleEditor.Class(PartRowRemove)
 	clsRowAdd      = NameScheduleEditor.Class(PartRowAdd)
 	clsMarker      = NameScheduleEditor.Class(PartMarker)
@@ -286,7 +290,9 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 	rowEl := Div().Set(clsPatternRow.AsAttr()).
 		BindState(widget.Invalid, NewBool(invalid))
 
-	// Start time select
+	// Start time select, with its label: two bare times side by side say
+	// nothing about which one opens the block.
+	rowEl.Child(Span().Set(clsFieldLabel.AsAttr()).Text(lang.Translate("From").String()))
 	startSel := NewElement("select").Attr("name", "start-time")
 	for _, opt := range hourOptions(row.StartMin, e.Bounds, 15) {
 		startSel.Child(opt)
@@ -300,6 +306,7 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 	rowEl.Child(startSel)
 
 	// End time select
+	rowEl.Child(Span().Set(clsFieldLabel.AsAttr()).Text(lang.Translate("To").String()))
 	endSel := NewElement("select").Attr("name", "end-time")
 	for _, opt := range hourOptions(row.EndMin, e.Bounds, 15) {
 		endSel.Child(opt)
@@ -313,8 +320,10 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 	rowEl.Child(endSel)
 
 	// Day chips
+	// Day chips in the app's own week order — Monday first unless the app
+	// called date.SetFirstWeekday. The component never assumes a locale.
 	chips := Div().Set(clsDayChips.AsAttr())
-	for d := 0; d < 7; d++ {
+	for _, d := range date.WeekOrder() {
 		dVal := d
 		hasDay := containsInt(row.Days, dVal)
 
@@ -335,7 +344,14 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 			})
 		})
 
-		label := Label().For(chipInput).Text(dayChipLabel(dVal))
+		// The input stays the real control — VisuallyHidden keeps it focusable
+		// and announced — and the label is the pill the eye sees, carrying the
+		// chosen state. A native checkbox cannot be skinned; this pairing is
+		// the standard way to make one read as a chip.
+		label := Label().For(chipInput).
+			Set(clsDayLabel.AsAttr()).
+			BindState(widget.Selected, NewBool(hasDay)).
+			Text(dayChipLabel(dVal))
 		chips.Child(chipInput).Child(label)
 	}
 	rowEl.Child(chips)
