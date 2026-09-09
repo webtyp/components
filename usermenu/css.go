@@ -20,10 +20,11 @@ func (m *UserMenu) RenderCSS() *css.Stylesheet {
 		// puts here has to have a bounded width, and a name does.
 		Part(PartTrigger,
 			style.Row(style.Space2),
-			style.Interactive(style.Subtle),
-			style.Pad(style.Space1),
+			style.Button(style.Subtle),
+			// A pill, not a 4px-cornered box: Button derives only RadiusSm from
+			// Subtle, so the explicit radius stays.
 			style.Round(style.RadiusFull),
-			style.KeepSize(),
+			style.Pad(style.Space1),
 		).
 		// IconMd, not IconLg: the trigger lives in the platform header, and a
 		// 40px avatar inflated the bar past 65px. At 24px the header settles

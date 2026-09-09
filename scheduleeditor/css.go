@@ -40,16 +40,10 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.Interactive(style.Subtle),
 		).
 		Part(PartRowRemove,
-			style.ControlBox(),
-			style.Interactive(style.Danger),
-			style.Round(style.RadiusSm),
-			style.KeepSize(),
+			style.Button(style.Danger),
 		).
 		Part(PartRowAdd,
-			style.ControlBox(),
-			style.Interactive(style.Primary),
-			style.Round(style.RadiusSm),
-			style.KeepSize(),
+			style.Button(style.Primary),
 		).
 		Part(PartMarker,
 			style.Stack(style.Space2),
@@ -89,10 +83,7 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.As(style.Inset),
 		).
 		Part(PartExcAdd,
-			style.ControlBox(),
-			style.Interactive(style.Primary),
-			style.Round(style.RadiusSm),
-			style.KeepSize(),
+			style.Button(style.Primary),
 		).
 		Part(PartExcList,
 			style.Stack(style.Space1),
@@ -107,9 +98,6 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.As(style.Subtle),
 		).
 		Part(PartExcRemove,
-			style.ControlBox(),
-			style.Interactive(style.Danger),
-			style.Round(style.RadiusSm),
-			style.KeepSize(),
+			style.Button(style.Danger),
 		)
 }

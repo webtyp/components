@@ -46,26 +46,26 @@ const (
 )
 
 var (
-	clsRoot         = NameScheduleEditor.Root()
-	clsPattern      = NameScheduleEditor.Class(PartPattern)
-	clsPatternRow   = NameScheduleEditor.Class(PartPatternRow)
-	clsDayChips     = NameScheduleEditor.Class(PartDayChips)
-	clsDayChip      = NameScheduleEditor.Class(PartDayChip)
-	clsRowRemove    = NameScheduleEditor.Class(PartRowRemove)
-	clsRowAdd       = NameScheduleEditor.Class(PartRowAdd)
-	clsMarker       = NameScheduleEditor.Class(PartMarker)
-	clsMarkerHours  = NameScheduleEditor.Class(PartMarkerHours)
-	clsExceptions   = NameScheduleEditor.Class(PartExceptions)
-	clsSlider       = NameScheduleEditor.Class(PartSlider)
-	clsExcForm      = NameScheduleEditor.Class(PartExcForm)
-	clsExcHours     = NameScheduleEditor.Class(PartExcHours)
-	clsExcType      = NameScheduleEditor.Class(PartExcType)
-	clsExcNotes     = NameScheduleEditor.Class(PartExcNotes)
-	clsExcAdd       = NameScheduleEditor.Class(PartExcAdd)
-	clsExcList      = NameScheduleEditor.Class(PartExcList)
-	clsExcItem      = NameScheduleEditor.Class(PartExcItem)
-	clsExcHoliday   = NameScheduleEditor.Class(PartExcHoliday)
-	clsExcRemove    = NameScheduleEditor.Class(PartExcRemove)
+	clsRoot        = NameScheduleEditor.Root()
+	clsPattern     = NameScheduleEditor.Class(PartPattern)
+	clsPatternRow  = NameScheduleEditor.Class(PartPatternRow)
+	clsDayChips    = NameScheduleEditor.Class(PartDayChips)
+	clsDayChip     = NameScheduleEditor.Class(PartDayChip)
+	clsRowRemove   = NameScheduleEditor.Class(PartRowRemove)
+	clsRowAdd      = NameScheduleEditor.Class(PartRowAdd)
+	clsMarker      = NameScheduleEditor.Class(PartMarker)
+	clsMarkerHours = NameScheduleEditor.Class(PartMarkerHours)
+	clsExceptions  = NameScheduleEditor.Class(PartExceptions)
+	clsSlider      = NameScheduleEditor.Class(PartSlider)
+	clsExcForm     = NameScheduleEditor.Class(PartExcForm)
+	clsExcHours    = NameScheduleEditor.Class(PartExcHours)
+	clsExcType     = NameScheduleEditor.Class(PartExcType)
+	clsExcNotes    = NameScheduleEditor.Class(PartExcNotes)
+	clsExcAdd      = NameScheduleEditor.Class(PartExcAdd)
+	clsExcList     = NameScheduleEditor.Class(PartExcList)
+	clsExcItem     = NameScheduleEditor.Class(PartExcItem)
+	clsExcHoliday  = NameScheduleEditor.Class(PartExcHoliday)
+	clsExcRemove   = NameScheduleEditor.Class(PartExcRemove)
 )
 
 // Tipos de excepción (valor de Exception.Type). Son las claves que
@@ -319,7 +319,7 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 		hasDay := containsInt(row.Days, dVal)
 
 		chipInput := Input("checkbox").Set(clsDayChip.AsAttr()).
-			Key("chip-" + fmt.Convert(index).String() + "-" + fmt.Convert(dVal).String()).
+			Key("chip-"+fmt.Convert(index).String()+"-"+fmt.Convert(dVal).String()).
 			BindAttrBool("checked", NewBool(hasDay))
 
 		chipInput.On("change", func(ev Event) {
@@ -354,8 +354,8 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 
 func (e *ScheduleEditor) addPatternRow() {
 	newRow := PatternRow{
-		StartMin: 540,  // 09:00
-		EndMin:   1080, // 18:00
+		StartMin: 540,                  // 09:00
+		EndMin:   1080,                 // 18:00
 		Days:     []int{1, 2, 3, 4, 5}, // Mon-Fri
 	}
 	newPattern := append(append([]PatternRow{}, e.Pattern...), newRow)
@@ -508,7 +508,7 @@ func (e *ScheduleEditor) buildMarker() *Element {
 			item := Li().Set(clsExcItem.AsAttr()).Key("marked-" + mDay.Date)
 			item.Child(Span().Text(mDay.Date))
 
-			mStartSel := NewElement("select").Attr("name", "md-start-" + mDay.Date)
+			mStartSel := NewElement("select").Attr("name", "md-start-"+mDay.Date)
 			for _, opt := range hourOptions(mDay.StartMin, e.Bounds, 15) {
 				mStartSel.Child(opt)
 			}
@@ -519,7 +519,7 @@ func (e *ScheduleEditor) buildMarker() *Element {
 				}
 			})
 
-			mEndSel := NewElement("select").Attr("name", "md-end-" + mDay.Date)
+			mEndSel := NewElement("select").Attr("name", "md-end-"+mDay.Date)
 			for _, opt := range hourOptions(mDay.EndMin, e.Bounds, 15) {
 				mEndSel.Child(opt)
 			}

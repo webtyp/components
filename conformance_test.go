@@ -486,6 +486,90 @@ func TestNoRemovedSymbols(t *testing.T) {
 	}
 }
 
+// A button is style.Button(Surface) and nothing else. Composing one by hand
+// from ControlBox + Interactive + Round + KeepSize is what left nine
+// components disagreeing about a button's height and shipped an 800px-wide
+// "Add row" bar. If a part needs an interactive surface that is NOT a button —
+// a table row, a calendar cell, a list option — it keeps Interactive() and
+// does not carry ControlBox() alongside it.
+func TestNoHandRolledButtons(t *testing.T) {
+	// allowlist maps css.go file path -> part name -> allowed
+	allowlist := map[string]map[string]bool{
+		"selectsearch/css.go": {
+			"PartOption": true, // a list option
+		},
+		"targethour/css.go": {
+			"PartRow":  true, // a list row
+			"PartFree": true, // a list row
+		},
+		"targetlist/css.go": {
+			"PartRow": true, // a list row
+		},
+		"targetdate/css.go": {
+			"PartRow": true, // a list row
+		},
+		"scheduleeditor/css.go": {
+			"PartDayChip": true, // native checkbox tap target touch floor
+		},
+	}
+
+	reBlock := regexp.MustCompile(`\s*(Part|Root)\(([^,\)]*)`)
+
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			if info.Name() == "docs" || info.Name() == ".git" || info.Name() == "web" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, "css.go") {
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		str := string(content)
+
+		cleanPath := filepath.ToSlash(path)
+
+		matches := reBlock.FindAllStringSubmatchIndex(str, -1)
+		for i, match := range matches {
+			blockStart := match[0]
+			blockEnd := len(str)
+			if i+1 < len(matches) {
+				blockEnd = matches[i+1][0]
+			}
+			block := str[blockStart:blockEnd]
+
+			if strings.Contains(block, "style.Interactive(") && strings.Contains(block, "style.ControlBox(") {
+				kind := str[match[2]:match[3]]
+				var partName string
+				if kind == "Root" {
+					partName = "Root"
+				} else {
+					partName = strings.TrimSpace(str[match[4]:match[5]])
+				}
+
+				if allowedParts, ok := allowlist[cleanPath]; ok && allowedParts[partName] {
+					continue
+				}
+
+				t.Errorf("%s: hand-rolled button (Interactive + ControlBox); use style.Button(Surface)", path)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestNoHoverCuePairs(t *testing.T) {
 	cueRe := regexp.MustCompile(`Cue\(widget\.(Hover|Focus),\s*([^,\n]+),`)
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
