@@ -46,18 +46,21 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 		// The pill. Button() because that is what it is — something the user
 		// presses — which also gives it the 44px control box the tap-target
 		// floor needs, now that the input no longer carries it.
+		// Inset, not Subtle: Subtle paints nothing, so an unchosen day read as
+		// loose text beside the chosen ones instead of as a pill you can
+		// press. Inset gives it the sunken fill and outline that says control.
 		Part(PartDayLabel,
-			style.Button(style.Subtle),
+			style.Button(style.Inset),
 		).
 		Part(PartFieldLabel,
 			style.As(style.Subtle),
 			style.FontSize(style.TextSm),
 		).
-		// Subtle, not Danger: one of these repeats on every pattern row, and a
-		// column of red blocks reads as an alarm rather than a control. The
-		// danger tint arrives on hover, from Interactive's own derivation.
+		// Inset, not Danger: one of these repeats on every pattern row, and a
+		// column of red blocks reads as an alarm rather than a control. Inset
+		// keeps it legible as a button; the tint arrives on hover.
 		Part(PartRowRemove,
-			style.Button(style.Subtle),
+			style.Button(style.Inset),
 		).
 		Part(PartRowAdd,
 			style.Button(style.Primary),
