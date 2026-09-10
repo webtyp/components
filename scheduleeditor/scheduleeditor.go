@@ -273,7 +273,7 @@ func (e *ScheduleEditor) buildPattern() *Element {
 	addBtn := Button().Set(clsRowAdd.AsAttr()).
 		Attr("type", "button").
 		Text(lang.Translate("Add row").String())
-	addBtn.On("click", func(Event) {
+	addBtn.OnClick(func(Event) {
 		e.addPatternRow()
 	})
 	container.Child(addBtn)
@@ -297,7 +297,7 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 	for _, opt := range hourOptions(row.StartMin, e.Bounds, 15) {
 		startSel.Child(opt)
 	}
-	startSel.On("change", func(ev Event) {
+	startSel.OnChange(func(ev Event) {
 		m, err := fmt.Convert(ev.TargetValue()).Int()
 		if err == nil {
 			e.updatePatternRow(index, func(r *PatternRow) { r.StartMin = m })
@@ -311,7 +311,7 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 	for _, opt := range hourOptions(row.EndMin, e.Bounds, 15) {
 		endSel.Child(opt)
 	}
-	endSel.On("change", func(ev Event) {
+	endSel.OnChange(func(ev Event) {
 		m, err := fmt.Convert(ev.TargetValue()).Int()
 		if err == nil {
 			e.updatePatternRow(index, func(r *PatternRow) { r.EndMin = m })
@@ -331,7 +331,7 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 			Key("chip-"+fmt.Convert(index).String()+"-"+fmt.Convert(dVal).String()).
 			BindAttrBool("checked", NewBool(hasDay))
 
-		chipInput.On("change", func(ev Event) {
+		chipInput.OnChange(func(ev Event) {
 			checked := ev.TargetChecked()
 			e.updatePatternRow(index, func(r *PatternRow) {
 				if checked {
@@ -360,7 +360,7 @@ func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
 	remBtn := Button().Set(clsRowRemove.AsAttr()).
 		Attr("type", "button").
 		Text(lang.Translate("Remove row").String())
-	remBtn.On("click", func(Event) {
+	remBtn.OnClick(func(Event) {
 		e.removePatternRow(index)
 	})
 	rowEl.Child(remBtn)
@@ -479,7 +479,7 @@ func (e *ScheduleEditor) buildMarker() *Element {
 	for _, opt := range hourOptions(signalMinutes(e.markerStart), e.Bounds, 15) {
 		startSel.Child(opt)
 	}
-	startSel.On("change", func(ev Event) {
+	startSel.OnChange(func(ev Event) {
 		e.markerStart.Set(ev.TargetValue())
 	})
 	hoursRow.Child(startSel)
@@ -488,7 +488,7 @@ func (e *ScheduleEditor) buildMarker() *Element {
 	for _, opt := range hourOptions(signalMinutes(e.markerEnd), e.Bounds, 15) {
 		endSel.Child(opt)
 	}
-	endSel.On("change", func(ev Event) {
+	endSel.OnChange(func(ev Event) {
 		e.markerEnd.Set(ev.TargetValue())
 	})
 	hoursRow.Child(endSel)
@@ -528,7 +528,7 @@ func (e *ScheduleEditor) buildMarker() *Element {
 			for _, opt := range hourOptions(mDay.StartMin, e.Bounds, 15) {
 				mStartSel.Child(opt)
 			}
-			mStartSel.On("change", func(ev Event) {
+			mStartSel.OnChange(func(ev Event) {
 				min, err := fmt.Convert(ev.TargetValue()).Int()
 				if err == nil && e.OnMarkedDayEdit != nil {
 					e.OnMarkedDayEdit(MarkedDay{Date: mDay.Date, StartMin: min, EndMin: mDay.EndMin})
@@ -539,7 +539,7 @@ func (e *ScheduleEditor) buildMarker() *Element {
 			for _, opt := range hourOptions(mDay.EndMin, e.Bounds, 15) {
 				mEndSel.Child(opt)
 			}
-			mEndSel.On("change", func(ev Event) {
+			mEndSel.OnChange(func(ev Event) {
 				min, err := fmt.Convert(ev.TargetValue()).Int()
 				if err == nil && e.OnMarkedDayEdit != nil {
 					e.OnMarkedDayEdit(MarkedDay{Date: mDay.Date, StartMin: mDay.StartMin, EndMin: min})
@@ -646,7 +646,7 @@ func (e *ScheduleEditor) buildExceptionForm() *Element {
 			Attr("name", "scheduleeditor-type").
 			Attr("value", opt.Key).
 			BindAttrBoolFunc("checked", func() bool { return e.excType.Get() == opt.Key })
-		radio.On("change", func(ev Event) {
+		radio.OnChange(func(ev Event) {
 			e.excType.Set(ev.TargetValue())
 			if opt.Key == ExcHoliday {
 				e.excFrom.Set("540")
@@ -670,7 +670,7 @@ func (e *ScheduleEditor) buildExceptionForm() *Element {
 	add := Button().Set(clsExcAdd.AsAttr()).
 		Attr("type", "button").
 		Text(lang.Translate("Add").String())
-	add.On("click", func(Event) { e.addException() })
+	add.OnClick(func(Event) { e.addException() })
 
 	dateRow := Div().Child(Span().Text(lang.Translate("Date").String())).
 		Child(Span().BindText(e.sel))
@@ -731,7 +731,7 @@ func boundTimePick(part widget.Part, name string, sig *SignalString, b Bounds) *
 	for _, opt := range hourOptions(signalMinutes(sig), b, 15) {
 		sel.Child(opt)
 	}
-	sel.On("change", func(ev Event) {
+	sel.OnChange(func(ev Event) {
 		sig.Set(ev.TargetValue())
 	})
 	return sel
@@ -767,7 +767,7 @@ func (e *ScheduleEditor) buildExceptionList() *Element {
 				Attr("type", "button").
 				Text(lang.Translate("Remove").String())
 			id := ex.ID
-			remove.On("click", func(Event) {
+			remove.OnClick(func(Event) {
 				if e.OnExceptionRemove != nil {
 					e.OnExceptionRemove(id)
 				}

@@ -172,7 +172,7 @@ func (t *TargetHour) buildRow(it Item) *Element {
 	row.BindStateFunc(widget.Locked, func() bool { return st == StatusConfirmed })
 	row.BindStateFunc(widget.Busy, func() bool { return st == StatusAttended })
 
-	row.On("click", func(Event) {
+	row.OnClick(func(Event) {
 		if t.sel.On().Get() {
 			t.sel.Toggle(id)
 			return
@@ -212,7 +212,7 @@ func (t *TargetHour) buildFreeSlot(hhmm string) *Element {
 	return Li().Set(clsFree.AsAttr()).
 		Key(key).
 		Attr("data-free", hhmm).
-		On("click", func(Event) {
+		OnClick(func(Event) {
 			if t.sel.On().Get() {
 				return // selection mode never opens on a free slot
 			}

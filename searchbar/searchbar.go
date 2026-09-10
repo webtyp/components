@@ -14,14 +14,12 @@ const NameSearchBar = widget.Name("searchbar")
 
 const (
 	PartIcon  = widget.Part("icon")  // the square coloured cap holding the magnifier
-	PartGlyph = widget.Part("glyph") // the magnifier <svg> itself
 	PartInput = widget.Part("input") // the text field, the body of the bar
 )
 
 var (
 	clsSearchBar = NameSearchBar.Root()
 	clsIcon      = NameSearchBar.Class(PartIcon)
-	clsGlyph     = NameSearchBar.Class(PartGlyph)
 	clsInput     = NameSearchBar.Class(PartInput)
 )
 
@@ -73,7 +71,7 @@ func (s *SearchBar) Render() *Element {
 	// A <label> so a click on the cap focuses nothing accidentally and the
 	// magnifier is announced as decoration, not as a button.
 	root.Child(Label().Set(clsIcon.AsAttr()).
-		Child(iconMagnifier.Render(string(clsGlyph))))
+		Child(iconMagnifier.Render()))
 
 	placeholder := s.Placeholder
 	if placeholder == "" {
@@ -93,7 +91,7 @@ func (s *SearchBar) Render() *Element {
 	input := Input("search").Set(clsInput.AsAttr()).
 		Attr("placeholder", placeholder).
 		Attr("size", "1")
-	input.On("input", func(e Event) {
+	input.OnInput(func(e Event) {
 		if s.onFilter != nil {
 			s.onFilter(e.TargetValue())
 		}

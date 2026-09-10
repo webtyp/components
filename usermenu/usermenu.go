@@ -144,13 +144,13 @@ func (m *UserMenu) Render() *Element {
 		Child(backdrop).
 		Child(panel)
 
-	menu.On("toggle", func(Event) {
+	menu.OnToggle(func(Event) {
 		if ref, ok := menu.Ref(); ok {
 			m.open.Set(ref.GetAttr("open") != "<null>")
 		}
 	})
 
-	backdrop.On("click", func(Event) {
+	backdrop.OnClick(func(Event) {
 		if ref, ok := menu.Ref(); ok {
 			ref.RemoveAttr("open")
 		}

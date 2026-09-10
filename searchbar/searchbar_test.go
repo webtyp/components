@@ -10,10 +10,16 @@ import (
 func TestSearchBar_RendersBarAndInput(t *testing.T) {
 	html := (&SearchBar{}).Render().String()
 
-	for _, want := range []string{"searchbar", "searchbar__icon", "searchbar__glyph", "searchbar__input", "type='search'"} {
+	// No searchbar__glyph: the magnifier <svg> carries no class of its own,
+	// because PartIcon's IconCap() sizes it as a child rule. A glyph class
+	// here would only exist to re-answer a question the cap already owns.
+	for _, want := range []string{"searchbar", "searchbar__icon", "searchbar__input", "type='search'", "<svg"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("markup missing %q\n%s", want, html)
 		}
+	}
+	if strings.Contains(html, "searchbar__glyph") {
+		t.Errorf("the glyph must not carry a class — IconCap sizes it:\n%s", html)
 	}
 }
 

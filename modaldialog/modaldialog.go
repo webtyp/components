@@ -54,7 +54,7 @@ func (m *ModalDialog) Render() *Element {
 		header.Child(Button().
 			Text("×").
 			Set(clsModalClose.AsAttr()).
-			On("click", func(e Event) { m.visible.Set(false) }))
+			OnClick(func(e Event) { m.visible.Set(false) }))
 	}
 
 	modalContent := Div().Set(clsModalContent.AsAttr()).
@@ -75,10 +75,10 @@ func (m *ModalDialog) Render() *Element {
 	modal := Div().Set(clsModal.AsAttr()).
 		Attr("role", "dialog").
 		Attr("aria-modal", "true").
-		On("click", func(e Event) { m.visible.Set(false) }).
+		OnClick(func(e Event) { m.visible.Set(false) }).
 		Child(modalContent)
 
-	modalContent.On("click", func(e Event) { e.StopPropagation() })
+	modalContent.OnClick(func(e Event) { e.StopPropagation() })
 	return Show(m.visible, modal)
 }
 

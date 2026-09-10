@@ -65,7 +65,7 @@ func (t *ThemeToggle) Render() *Element {
 		BindAttr("title", labelSig).
 		BindAttr("aria-label", labelSig).
 		Set(clsTsBtn.AsAttr()).
-		On("click", func(Event) {
+		OnClick(func(Event) {
 			t.onClick()
 		})
 }

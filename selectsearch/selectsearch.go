@@ -197,7 +197,7 @@ func (c *SelectSearch) Render() *Element {
 	toggle := Input("checkbox").Set(ClsSsToggle.AsAttr()).
 		Key("toggle").
 		BindAttrBool("checked", c.isOpen).
-		On("change", func(e Event) {
+		OnChange(func(e Event) {
 			checked := e.TargetChecked()
 			c.isOpen.Set(checked)
 			// Focus the field only when there IS one. This is the line that
@@ -251,7 +251,7 @@ func (c *SelectSearch) Render() *Element {
 
 	searchInput.
 		Attr("aria-controls", optList.GetID()).
-		On("input", func(e Event) {
+		OnInput(func(e Event) {
 			// query is already updated by Bind(c.query) in WASM,
 			// but we need to trigger the rows update.
 			term := e.TargetValue()
@@ -288,7 +288,7 @@ func (c *SelectSearch) Render() *Element {
 	// z-index and DOM order is what puts the sheet on top of its own scrim.
 	// usermenu orders trigger, backdrop, panel for the same reason.
 	backdrop := Div().Set(ClsSsBackdrop.AsAttr()).
-		On("click", func(e Event) { c.isOpen.Set(false) })
+		OnClick(func(e Event) { c.isOpen.Set(false) })
 
 	// BindState, not a class toggled by hand: data-open is the single value the
 	// stylesheet selects on, so markup and CSS cannot disagree. It is what lets
@@ -345,7 +345,7 @@ func (c *SelectSearch) buildRows(term string) []*Element {
 			Attr("role", "option").
 			BindStateFunc(widget.Selected, func() bool { return c.selectedID.Get() == o.ID }).
 			Child(text).
-			On("click", func(e Event) { c.selectOption(o) })
+			OnClick(func(e Event) { c.selectOption(o) })
 
 		if opt.Description != "" {
 			item.Child(Span().Set(ClsSsDesc.AsAttr()).Text(opt.Description))

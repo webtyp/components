@@ -23,6 +23,7 @@ func (t *DataTable) RenderCSS() *css.Stylesheet {
 		).
 		Part(PartRow,
 			style.Pad(style.Space2),
+			style.As(style.Panel),
 			style.Interactive(style.Panel),
 			style.Round(style.RadiusNone),
 		).

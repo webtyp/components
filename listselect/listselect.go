@@ -297,7 +297,7 @@ func Header(m *Mode, ids func() []string, name widget.Name) *Element {
 		})).
 		Child(selectall.Ref.Render(string(name.Class(partAllIcon))))
 
-	box.On("click", func(Event) {
+	box.OnClick(func(Event) {
 		if n := m.Count(); n > 0 && n == len(ids()) {
 			m.Clear()
 			return

@@ -32,6 +32,7 @@ func (t *TargetList) sheet() *style.Sheet {
 			style.Row(style.Space2),
 			style.KeepSize(),
 			style.ControlBox(),
+			style.As(style.Page),
 			style.Interactive(style.Page),
 			style.Pad(style.Space3),
 			style.Round(style.RadiusMd),

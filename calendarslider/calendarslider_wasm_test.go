@@ -48,7 +48,7 @@ func TestDayClickSelects(t *testing.T) {
 	c.Init(nil)
 	Render("app", c.Render())
 
-	bookable := query(t, "[data-date='2026-08-11']")
+	bookable := query(t, "[data-date='2026-08-11'] .calendarslider__day-button")
 	bookable.Call("click")
 	if c.Selected.Get() != "2026-08-11" {
 		t.Errorf("Selected = %q, want 2026-08-11", c.Selected.Get())
@@ -67,6 +67,10 @@ func TestDayClickSelects(t *testing.T) {
 	c.Selected.Set("")
 	got = ""
 	gotFilter = ""
+	// Un día no ocupable ni siquiera tiene botón: no hay nada que pulsar.
+	if exists("[data-date='2026-08-01'] .calendarslider__day-button") {
+		t.Error("un sábado sin ocupación no debería renderizar botón")
+	}
 	query(t, "[data-date='2026-08-01']").Call("click")
 	if c.Selected.Get() != "" || got != "" || gotFilter != "" {
 		t.Error("un día no ocupable no debería seleccionarse")

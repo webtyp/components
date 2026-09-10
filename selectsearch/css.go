@@ -189,17 +189,15 @@ func (c *SelectSearch) sheet() *style.Sheet {
 		// centred cap fills it edge to edge.
 		Part(PartIcon,
 			style.As(style.Primary),
-			style.MediaBox(style.AspectSquare),
-			style.ControlBox(),
-			style.KeepSize(),
+			style.IconCap(),
 		).
-		// A bare <svg> with no box falls back to 300x150 — same gotcha
-		// searchbar/css.go's PartGlyph documents; IconBox pins it.
-		// The GLYPH turns, not PartIcon: rotating the cap would spin the whole
-		// filled square. TurnNone is the resting rule Animate() transitions
-		// from — without a base value there is no start state to move off.
+		// PartGlyph survives IconCap for ONE reason: the GLYPH turns, not
+		// PartIcon — rotating the cap would spin the whole filled square. It
+		// carries no IconBox any more; the cap sizes its <svg> (half the cap)
+		// and that is no longer this component's decision. TurnNone is the
+		// resting rule Animate() transitions from — without a base value
+		// there is no start state to move off.
 		Part(PartGlyph,
-			style.IconBox(style.IconSm),
 			style.Rotate(style.TurnNone),
 			style.Animate(style.MotionBase),
 		).
@@ -251,6 +249,7 @@ func (c *SelectSearch) sheet() *style.Sheet {
 			style.Row(style.Space2),
 			style.KeepSize(),
 			style.ControlBox(),
+			style.As(style.Bare),
 			style.Interactive(style.Bare),
 			style.Pad(style.Space3),
 			style.Round(style.RadiusNone),

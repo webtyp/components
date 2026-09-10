@@ -70,7 +70,7 @@ func (b *ActionButton) Render() *Element {
 		Text(b.Text)
 
 	if b.OnClick != nil {
-		btn.On("click", b.OnClick)
+		btn.OnClick(b.OnClick)
 	}
 
 	return btn

@@ -32,6 +32,7 @@ func (t *TargetHour) sheet() *style.Sheet {
 			style.Row(style.Space2),
 			style.KeepSize(),
 			style.ControlBox(),
+			style.As(style.Page),
 			style.Interactive(style.Page),
 			style.Round(style.RadiusMd),
 		).

@@ -150,7 +150,7 @@ func (t *TargetDate) buildRow(it Item) *Element {
 		BindState(widget.Invalid, r.Danger).
 		BindAttrBool("aria-selected", DeriveBool(func() bool { return isSel.Get() || r.Danger.Get() }))
 
-	row.On("click", func(Event) {
+	row.OnClick(func(Event) {
 		if t.sel.On().Get() {
 			t.sel.Toggle(id)
 			return

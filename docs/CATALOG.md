@@ -61,7 +61,11 @@ the DOM patches in place, never re-renders. Day cells fill their grid track
 (squares via aspect-ratio, ~24px floor, no fixed boxes), so the grid always
 uses the full card width. The month nav is one static
 centered row (‹ label ›, 50px boxes from the closed scales), identical on
-desktop and touch — no hover reveal anywhere. Folding works on every
+desktop and touch — no hover reveal anywhere. Keyboard: the strip keeps
+`role="grid"` with working arrow-key navigation — one tab stop per month
+card (selected, else today, else first selectable day), `ArrowLeft/Right`
+±1 day, `ArrowUp/Down` ±7, `Home/End` to the week's ends, staying inside
+the month. Folding works on every
 viewport: the strip shows if and only if expanded (desktop defaults to
 expanded), and the calendar chip is a full-width bottom bar under the
 strip — always visible as the fold toggle, never floating, never

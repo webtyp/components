@@ -25,19 +25,17 @@ func (s *SearchBar) RenderCSS() *css.Stylesheet {
 			style.ControlBox(),
 			style.KeepSize(),
 		).
-		// The magnifier is the bar's square cap: aspect-ratio, not padding, sets
-		// the width — a padded box drifts off the control token (the old
+		// The magnifier is the bar's square cap: IconCap, not padding, sets the
+		// width — a padded box drifts off the control token (the old
 		// Pad(Space2)+icon-box measured 40px against the host's 66), while the
 		// square derives from the same --control-height as everything else.
+		// IconCap also sizes PartGlyph's <svg> (half the cap), which is why
+		// that part carries no IconBox of its own: the four options this used
+		// to spell out by hand are the recipe now, and so is the glyph size
+		// the four never covered.
 		Part(PartIcon,
 			style.As(style.Primary),
-			style.MediaBox(style.AspectSquare),
-			style.ControlBox(),
-			style.KeepSize(),
-		).
-		// A bare <svg> with no box falls back to 300x150; IconBox pins it.
-		Part(PartGlyph,
-			style.IconBox(style.IconMd),
+			style.IconCap(),
 		).
 		// The input is the body of the bar: it grows into whatever the cap
 		// leaves and answers to the same control height, so cap and body can

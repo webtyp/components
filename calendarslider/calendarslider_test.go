@@ -29,19 +29,21 @@ func TestBuildMonthAgosto2026(t *testing.T) {
 	}
 	children := m.Children()
 	if len(children) != 8 {
-		t.Fatalf("agosto 2026 debería tener fila de días + 6 semanas + fila de navegación (etiqueta + prev + next en una sola fila) = 8 hijos, tiene %d", len(children))
+		t.Fatalf("agosto 2026 debería tener fila de navegación + fila de días + 6 semanas = 8 hijos, tiene %d", len(children))
 	}
-	if children[0].String() != c.buildWeekdayRow().String() {
-		t.Error("el primer hijo del mes debería ser la fila de días de la semana")
+	// La navegación abre la tarjeta: la etiqueta nombra la grilla que viene
+	// abajo, así que se lee antes que los días.
+	if !Contains(children[0].String(), "August 2026") {
+		t.Errorf("el primer hijo debería ser la fila de navegación con la etiqueta en el medio: debería decir 'August 2026', dice %s", children[0].String())
 	}
-	if !Contains(children[7].String(), "August 2026") {
-		t.Errorf("el mes lleva la fila de navegación, con la etiqueta en el medio: debería decir 'August 2026', dice %s", children[7].String())
+	if !Contains(children[0].String(), "<button") || !Contains(children[0].String(), "data-target='2026-07'") {
+		t.Errorf("el botón anterior debería llevar data-target a julio, dice %s", children[0].String())
 	}
-	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='2026-07'") {
-		t.Errorf("el botón anterior debería llevar data-target a julio, dice %s", children[7].String())
+	if !Contains(children[0].String(), "<button") || !Contains(children[0].String(), "data-target='2026-09'") {
+		t.Errorf("el botón siguiente debería llevar data-target a septiembre, dice %s", children[0].String())
 	}
-	if !Contains(children[7].String(), "<button") || !Contains(children[7].String(), "data-target='2026-09'") {
-		t.Errorf("el botón siguiente debería llevar data-target a septiembre, dice %s", children[7].String())
+	if children[1].String() != c.buildWeekdayRow().String() {
+		t.Error("el segundo hijo del mes debería ser la fila de días de la semana")
 	}
 }
 
@@ -52,7 +54,7 @@ func TestBuildMonthAgosto2026(t *testing.T) {
 func TestBuildMonthAlwaysHasBothLinks(t *testing.T) {
 	c := &CalendarSlider{today: "2026-08-11"}
 	m := c.buildMonth(2026, 8, "2026-07", "2026-09", false, false).String()
-	if !Contains(m, "Mes anterior") || !Contains(m, "Mes siguiente") {
+	if !Contains(m, "Previous month") || !Contains(m, "Next month") {
 		t.Error("buildMonth debería incluir siempre ambos enlaces")
 	}
 }
@@ -99,7 +101,7 @@ func TestBuildMonthPadsToSixWeeks(t *testing.T) {
 		t.Fatalf("febrero 2021 debería tener 8 hijos (igual que cualquier mes), tiene %d", len(children))
 	}
 
-	for _, idx := range []int{5, 6} {
+	for _, idx := range []int{6, 7} {
 		week := children[idx]
 		if !Contains(week.String(), "aria-hidden") {
 			t.Errorf("la semana de relleno %d debería llevar aria-hidden", idx)
@@ -109,8 +111,8 @@ func TestBuildMonthPadsToSixWeeks(t *testing.T) {
 		}
 	}
 
-	if !Contains(children[7].String(), "February 2021") {
-		t.Errorf("la etiqueta debería seguir en la posición 7, dice %s", children[7].String())
+	if !Contains(children[0].String(), "February 2021") {
+		t.Errorf("la etiqueta debería abrir la tarjeta (posición 0), dice %s", children[0].String())
 	}
 }
 
@@ -122,7 +124,7 @@ func TestBuildMonthCells(t *testing.T) {
 		Holidays:   []Holiday{{Date: "2026-08-15", Name: "Asunción de la Virgen"}},
 		Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 60}, {Date: "2026-08-02", Percent: 30}},
 	}
-	firstWeek := c.buildMonth(2026, 8, "2026-07", "2026-09", false, false).Children()[1]
+	firstWeek := c.buildMonth(2026, 8, "2026-07", "2026-09", false, false).Children()[2]
 	cells := firstWeek.Children()
 	if len(cells) != 7 {
 		t.Fatalf("primera semana debería tener 7 celdas, tiene %d", len(cells))
@@ -162,8 +164,8 @@ func TestBuildMonthCells(t *testing.T) {
 	if !Contains(day11.String(), "day-selectable") {
 		t.Error("el día de hoy con ocupación debería ser seleccionable")
 	}
-	if !Contains(day11.String(), "title='Hoy'") {
-		t.Error("el día de hoy debería llevar title 'Hoy'")
+	if !Contains(day11.String(), "title='Today'") {
+		t.Error("el día de hoy debería llevar title 'Today'")
 	}
 
 	day15 := c.buildDay(2026, 8, 15)
@@ -250,7 +252,14 @@ func TestRenderStructure(t *testing.T) {
 }
 
 func TestPairMarkupAndStylesheet(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08", Holidays: []Holiday{{Date: "2026-08-15", Name: "x"}}, Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 10}}}
+	// Un día por cada escalón de la rampa de ocupación: la aserción es que
+	// NINGUNA clase de la hoja quede muerta, así que el fixture tiene que
+	// ejercitar las tres, no solo la que toque.
+	c := &CalendarSlider{Start: "2026-08", Holidays: []Holiday{{Date: "2026-08-15", Name: "x"}}, Occupation: []OccupationDay{
+		{Date: "2026-08-11", Percent: 10},
+		{Date: "2026-08-12", Percent: 60},
+		{Date: "2026-08-13", Percent: 95},
+	}}
 	c.Init(nil)
 	c.today = "2026-08-11"
 	htmlOut := c.Render().String()
@@ -458,17 +467,22 @@ func TestCollapseWorksEverywhere(t *testing.T) {
 	}
 }
 
-func TestCollapsedChipIsBottomBar(t *testing.T) {
+func TestCollapsedChipIsTopField(t *testing.T) {
 	c := &CalendarSlider{Start: "2026-08"}
 	c.Init(nil)
 	cssOut := c.RenderCSS().String()
 
 	kids := c.Render().Children()
 	if len(kids) != 2 {
-		t.Fatalf("la raíz debería tener tira + chip, tiene %d hijos", len(kids))
+		t.Fatalf("la raíz debería tener campo + tira, tiene %d hijos", len(kids))
 	}
-	if !Contains(kids[1].String(), "calendarslider__collapsed") {
-		t.Errorf("el chip debería ser el último hijo (barra inferior), dice:\n%s", kids[1].String())
+	// El campo es el DISPARADOR: va arriba, y la tira del mes cuelga de él.
+	// Antes quedaba debajo del panel que abría.
+	if !Contains(kids[0].String(), "calendarslider__collapsed") {
+		t.Errorf("el campo debería ser el primer hijo, dice:\n%s", kids[0].String())
+	}
+	if !Contains(kids[1].String(), "calendarslider__strip") {
+		t.Errorf("la tira debería ser el segundo hijo, dice:\n%s", kids[1].String())
 	}
 	for _, banned := range []string{
 		"inset-block-end:",
