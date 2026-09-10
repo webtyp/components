@@ -7,13 +7,13 @@ require (
 	webtyp.com/date v0.0.7
 	webtyp.com/dom v0.13.12
 	webtyp.com/fmt v1.0.0
-	webtyp.com/html v0.0.21
+	webtyp.com/html v0.0.23
 	webtyp.com/image v0.1.3
 	webtyp.com/js v0.0.10
 	webtyp.com/svg v0.3.9
 	webtyp.com/time v0.5.5
 	webtyp.com/view v0.5.2
-	webtyp.com/widget v0.6.28
+	webtyp.com/widget v0.6.29
 )
 
 require (
