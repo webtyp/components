@@ -24,5 +24,7 @@ require (
 	webtyp.com/icons v0.0.7
 	webtyp.com/json v0.5.25 // indirect
 	webtyp.com/model v0.1.8 // indirect
-	webtyp.com/router v0.1.35 // indirect
+	webtyp.com/router v0.1.37 // indirect
 )
+
+replace webtyp.com/widget => ../widget
