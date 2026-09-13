@@ -139,6 +139,18 @@ Signal-driven floating button that cycles between `auto → dark → light` them
 
 ---
 
+## [DeckTabs](../decktabs/README.md) — ✅ Slot-ready
+A strip of tabs over a deck of panels: one region of a screen holding several
+sections, one on view at a time. Assembles existing vocabulary only —
+`widget.Tabs`, `widget.Current` and `style.SlideDeck` — so it is the
+widget-scale version of the reveal `layout/platformd` runs at page scale. The
+**deck** is the name: every panel stays mounted as a layer and the state decides
+which one shows, so a half-filled form survives a trip through another tab. `Active` is an injected
+`*dom.SignalString`, so a URL fragment or a saved preference can drive it.
+[Detailed Documentation →](../decktabs/README.md)
+
+---
+
 ## Forms
 
 Forms are NOT part of `webtyp/components`.

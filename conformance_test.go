@@ -17,6 +17,7 @@ import (
 	"webtyp.com/components/calendarslider"
 	"webtyp.com/components/contentcard"
 	"webtyp.com/components/datatable"
+	"webtyp.com/components/decktabs"
 	"webtyp.com/components/fieldset"
 	"webtyp.com/components/herobanner"
 	"webtyp.com/components/infobar"
@@ -339,6 +340,7 @@ func TestEveryPackageEmits(t *testing.T) {
 		&selectsearch.SelectSearch{},
 		&sitenav.SiteNav{},
 		&statgrid.StatGrid{},
+		&decktabs.DeckTabs{},
 		&targethour.TargetHour{},
 		&targetlist.TargetList{},
 		&themetoggle.ThemeToggle{},
@@ -372,6 +374,7 @@ func TestKindAllowsEveryState(t *testing.T) {
 		"selectsearch":   &selectsearch.SelectSearch{},
 		"sitenav":        &sitenav.SiteNav{},
 		"statgrid":       &statgrid.StatGrid{},
+		"decktabs":       &decktabs.DeckTabs{},
 		"targethour":     &targethour.TargetHour{},
 		"targetlist":     &targetlist.TargetList{},
 		"themetoggle":    &themetoggle.ThemeToggle{},
