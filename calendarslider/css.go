@@ -156,6 +156,12 @@ func (c *CalendarSlider) RenderCSS() *css.Stylesheet {
 			style.Meter(style.Space1),
 			style.CenterSelf(),
 		).
+		// El trazo de disponibilidad: color primario, un solo estado. No entra
+		// en la rampa de ocupación — ver useLevelClass.
+		Part(PartDayUseOn,
+			style.As(style.Primary),
+			style.Round(style.RadiusFull),
+		).
 		Part(PartDayUseLow,
 			style.As(style.Success),
 			style.Round(style.RadiusFull),

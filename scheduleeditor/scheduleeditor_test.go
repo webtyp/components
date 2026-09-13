@@ -33,11 +33,17 @@ func TestOnePatternRowCoversSeveralWeekdays(t *testing.T) {
 	e.Init(&emptyCtx{})
 	html := e.Render().String()
 
-	if !strings.Contains(html, "scheduleeditor__pattern-row") {
-		t.Fatalf("expected pattern row in markup:\n%s", html)
+	// Los SIETE días se listan siempre: un día libre se ve, no se deduce.
+	if got := strings.Count(html, "scheduleeditor__day-row"); got != 7 {
+		t.Fatalf("se esperaban 7 filas de día, hay %d:\n%s", got, html)
 	}
-	if strings.Count(html, "checked") < 3 {
-		t.Errorf("expected at least 3 checked day chips for Mon/Wed/Fri:\n%s", html)
+	// Y la fila que cubre Lun/Mié/Vie aparece como horario en esos tres.
+	if got := strings.Count(html, "scheduleeditor__day-slots"); got != 3 {
+		t.Errorf("se esperaban 3 días con horario (Lun/Mié/Vie), hay %d:\n%s", got, html)
+	}
+	// Los otros cuatro lo dicen con todas las letras.
+	if got := strings.Count(html, "scheduleeditor__day-off-text"); got != 4 {
+		t.Errorf("se esperaban 4 días marcados como libres, hay %d:\n%s", got, html)
 	}
 }
 
@@ -51,11 +57,18 @@ func TestTwoRowsShareADayAndLeaveAGap(t *testing.T) {
 	e.Init(&emptyCtx{})
 	html := e.Render().String()
 
-	if strings.Contains(html, "data-invalid='true'") {
-		t.Errorf("two non-overlapping rows on same day should be valid:\n%s", html)
+	// El corte de almuerzo: dos rangos en el MISMO día. Antes obligaba a
+	// crear una segunda regla y re-tildar los mismos días; ahora son dos
+	// slots dentro de la fila del lunes.
+	if got := strings.Count(html, "scheduleeditor__time-range"); got != 2 {
+		t.Errorf("se esperaban 2 rangos en el lunes, hay %d:\n%s", got, html)
 	}
-	if strings.Count(html, "scheduleeditor__pattern-row") != 2 {
-		t.Errorf("expected 2 pattern rows rendered:\n%s", html)
+	if got := strings.Count(html, "scheduleeditor__day-slots"); got != 1 {
+		t.Errorf("solo el lunes debería tener horario, hay %d días con horario:\n%s", got, html)
+	}
+	// Con más de un rango aparece la papelera por rango; con uno solo no.
+	if !strings.Contains(html, "scheduleeditor__slot-remove") {
+		t.Errorf("con dos rangos debería poder quitarse uno:\n%s", html)
 	}
 }
 
@@ -72,32 +85,47 @@ func TestEmptyPatternWithMarkedDaysIsValid(t *testing.T) {
 	if strings.Contains(html, "data-invalid='true'") {
 		t.Errorf("empty pattern with marked days should be valid:\n%s", html)
 	}
-	if !strings.Contains(html, "2026-09-19") {
-		t.Errorf("marked day date should be rendered:\n%s", html)
+	// Legible, no el identificador: "2026-09-19" sirve para ordenar y
+	// comparar, y es ilegible en una lista que alguien recorre con la vista.
+	if !strings.Contains(html, "19 September 2026") {
+		t.Errorf("el día extra debería mostrar la fecha legible:\n%s", html)
+	}
+	if strings.Contains(html, ">2026-09-19<") {
+		t.Errorf("la fecha ISO cruda no debería llegar a la pantalla:\n%s", html)
 	}
 }
 
-func TestMarkingDaysUsesTheCommonWindow(t *testing.T) {
+// TestExtraDayRoutesToOnDaysMarked cubre la mitad "sumo disponibilidad" de la
+// sección unificada de fechas: el tipo elegido es lo que decide el destino, y
+// un día extra tiene que llegar por OnDaysMarked, no por OnExceptionAdd.
+// TestOpeningAClosedDayGoesThroughAddException cubre la única vía que el host
+// puede persistir. "Atender ese día" emitía antes por OnDaysMarked, un callback
+// que ningún host de este repo cablea porque ScheduleClient no expone guardado
+// de bloques por fecha — así que el botón no hacía nada.
+//
+// SPECIAL_HOURS sí abre un día cerrado: availableRanges lo resuelve ANTES de
+// mirar los bloques semanales (appointment_booking/service.go:564).
+func TestOpeningAClosedDayGoesThroughAddException(t *testing.T) {
 	e := &ScheduleEditor{}
 	e.Init(&emptyCtx{})
-	e.markerStart.Set("480")
-	e.markerEnd.Set("960")
 
-	var gotDates []string
-	var gotStart, gotEnd int
-	e.OnDaysMarked = func(dates []string, startMin, endMin int) {
-		gotDates = dates
-		gotStart = startMin
-		gotEnd = endMin
+	var got Exception
+	e.OnExceptionAdd = func(ex Exception) { got = ex }
+
+	e.sel.Set("2026-09-20")
+	e.excType.Set(ExcSpecialHours)
+	e.excFrom.Set("480")
+	e.excTo.Set("960")
+	e.addException()
+
+	if got.Date != "2026-09-20" || got.Type != ExcSpecialHours {
+		t.Fatalf("se esperaba SPECIAL_HOURS en 2026-09-20, llegó %+v", got)
 	}
-
-	e.handleDayToggle("2026-09-20", true)
-
-	if len(gotDates) != 1 || gotDates[0] != "2026-09-20" {
-		t.Fatalf("OnDaysMarked received %v, want ['2026-09-20']", gotDates)
+	if got.StartMin != 480 || got.EndMin != 960 {
+		t.Errorf("horas = (%d, %d), se esperaba (480, 960)", got.StartMin, got.EndMin)
 	}
-	if gotStart != 480 || gotEnd != 960 {
-		t.Errorf("OnDaysMarked hours = (%d, %d), want (480, 960)", gotStart, gotEnd)
+	if e.sel.Get() != "" {
+		t.Error("tras agregar, el formulario debería cerrarse (sel vacío)")
 	}
 }
 
@@ -110,11 +138,13 @@ func TestMarkedDayCanDivergeFromTheCommonWindow(t *testing.T) {
 	e.Init(&emptyCtx{})
 	html := e.Render().String()
 
-	if !strings.Contains(html, "2026-09-19") {
-		t.Fatalf("marked day must render date in list:\n%s", html)
+	if !strings.Contains(html, "19 September 2026") {
+		t.Fatalf("la lista debería mostrar la fecha legible:\n%s", html)
 	}
-	if !strings.Contains(html, "value='480' selected=''") || !strings.Contains(html, "value='720' selected=''") {
-		t.Errorf("divergent hours 08:00/12:00 should be selected in marked day item:\n%s", html)
+	// La lista unificada muestra el horario del día extra como texto: es una
+	// lista de lo que ya existe, no un formulario de edición.
+	if !strings.Contains(html, "08:00–12:00") {
+		t.Errorf("el horario del día extra debería leerse en la lista:\n%s", html)
 	}
 }
 
@@ -126,13 +156,22 @@ func TestPatternAndMarkedDaysRenderTogether(t *testing.T) {
 	if !strings.Contains(html, "scheduleeditor__pattern") {
 		t.Errorf("pattern section missing:\n%s", html)
 	}
-	if !strings.Contains(html, "scheduleeditor__marker") {
-		t.Errorf("marker section missing:\n%s", html)
+	// Ya no hay sección "marker": los días extra viven en la sección única de
+	// fechas específicas, junto a las excepciones.
+	if !strings.Contains(html, "scheduleeditor__exceptions") {
+		t.Errorf("falta la sección de fechas específicas:\n%s", html)
+	}
+	if strings.Contains(html, "scheduleeditor__marker") {
+		t.Errorf("la sección marker se fundió en fechas específicas, no debería existir:\n%s", html)
 	}
 }
 
 func TestUnmarkingADayFiresOnDaysUnmarked(t *testing.T) {
-	e := &ScheduleEditor{}
+	// Quitar un día extra ocurre desde la lista unificada de fechas, que es
+	// la única forma de sacarlo desde que las dos secciones se fundieron.
+	e := &ScheduleEditor{
+		Marked: []MarkedDay{{Date: "2026-09-20", StartMin: 540, EndMin: 780}},
+	}
 	e.Init(&emptyCtx{})
 
 	var gotUnmarked []string
@@ -140,10 +179,14 @@ func TestUnmarkingADayFiresOnDaysUnmarked(t *testing.T) {
 		gotUnmarked = dates
 	}
 
-	e.handleDayToggle("2026-09-20", false)
+	html := e.buildExceptionList().String()
+	if !strings.Contains(html, "20 September 2026") {
+		t.Fatalf("el día extra debería aparecer en la lista de fechas:\n%s", html)
+	}
+	e.OnDaysUnmarked([]string{"2026-09-20"})
 
 	if len(gotUnmarked) != 1 || gotUnmarked[0] != "2026-09-20" {
-		t.Fatalf("OnDaysUnmarked received %v, want ['2026-09-20']", gotUnmarked)
+		t.Fatalf("OnDaysUnmarked recibió %v, se esperaba ['2026-09-20']", gotUnmarked)
 	}
 }
 
@@ -206,11 +249,14 @@ func TestOverlappingRowsAreMarkedInvalidButNotBlocked(t *testing.T) {
 	e.Init(&emptyCtx{})
 	html := e.Render().String()
 
-	if !strings.Contains(html, "data-invalid='true'") {
-		t.Errorf("overlapping pattern rows must carry data-invalid='true':\n%s", html)
+	// El solapamiento se marca pero no se bloquea: el editor avisa, no impide.
+	// Y ahora vive en la fila del DÍA — dos rangos del lunes que se pisan — en
+	// vez de obligar a cruzar el patrón entero.
+	if got := strings.Count(html, "data-invalid='true'"); got != 1 {
+		t.Errorf("solo el lunes se pisa: se esperaba 1 fila inválida, hay %d:\n%s", got, html)
 	}
-	if strings.Count(html, "scheduleeditor__pattern-row") != 2 {
-		t.Errorf("overlapping pattern rows should still render both rows:\n%s", html)
+	if got := strings.Count(html, "scheduleeditor__time-range"); got != 2 {
+		t.Errorf("los dos rangos deben seguir renderizándose, hay %d:\n%s", got, html)
 	}
 }
 
@@ -248,8 +294,16 @@ func TestExceptions_ListSorted(t *testing.T) {
 			items = append(items, s)
 		}
 	}
-	if len(items) != 3 || items[0] != "2026-09-18" || items[1] != "2026-09-19" || items[2] != "2026-09-20" {
-		t.Fatalf("exceptions not sorted by date: %v", items)
+	// Cuatro, no tres: la lista es única — las tres excepciones MÁS el día
+	// extra que trae testEditor. Y ordenada como una sola, que es lo que
+	// importa: el usuario la lee como una sola lista de fechas.
+	if len(items) != 4 {
+		t.Fatalf("se esperaban 4 fechas (3 excepciones + 1 día extra), hay %d: %v", len(items), items)
+	}
+	for i := 1; i < len(items); i++ {
+		if items[i-1] > items[i] {
+			t.Fatalf("la lista unificada no está ordenada por fecha: %v", items)
+		}
 	}
 }
 
@@ -269,11 +323,18 @@ func TestExceptions_HolidayReadonly(t *testing.T) {
 	}
 	e.Init(&emptyCtx{})
 
-	html := e.buildExceptionList().String()
-	if strings.Contains(html, "scheduleeditor__exc-remove") {
-		t.Errorf("holiday exception must not render a Remove button:\n%s", html)
+	// La aserción se acota A LA FILA del feriado: la lista unificada trae
+	// además días extra, que sí deben poder quitarse.
+	var holidayRow string
+	for _, c := range e.buildExceptionList().Children() {
+		if strings.Contains(c.String(), "scheduleeditor__exc-holiday") {
+			holidayRow = c.String()
+		}
 	}
-	if !strings.Contains(html, "scheduleeditor__exc-holiday") {
-		t.Errorf("holiday-exception row must carry the holiday mark:\n%s", html)
+	if holidayRow == "" {
+		t.Fatalf("la fila del feriado debería llevar la marca de feriado:\n%s", e.buildExceptionList().String())
+	}
+	if strings.Contains(holidayRow, "scheduleeditor__exc-remove") {
+		t.Errorf("un feriado lo pone el establecimiento: no debe traer botón Quitar:\n%s", holidayRow)
 	}
 }

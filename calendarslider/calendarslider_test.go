@@ -188,6 +188,40 @@ func TestBuildMonthCells(t *testing.T) {
 	}
 }
 
+// TestMeterKindDecidesTheColour cubre el contrato que faltaba: el mismo 100
+// es rojo en un calendario de reservas (el día está lleno) y verde en uno de
+// disponibilidad (el día está abierto). La agenda pintaba "trabajás ese día"
+// con el rojo reservado para "no queda cupo" hasta que Meter existió.
+func TestMeterKindDecidesTheColour(t *testing.T) {
+	full := []OccupationDay{{Date: "2026-08-11", Percent: 100}}
+
+	booking := &CalendarSlider{Start: "2026-08", Occupation: full}
+	booking.Init(nil)
+	if !Contains(booking.buildDay(2026, 8, 11).String(), "day-use-high") {
+		t.Errorf("ocupación 100%% debería ser el escalón alto (rojo):\n%s", booking.buildDay(2026, 8, 11).String())
+	}
+
+	agenda := &CalendarSlider{Start: "2026-08", Occupation: full, Meter: Availability}
+	agenda.Init(nil)
+	got := agenda.buildDay(2026, 8, 11).String()
+	// Disponibilidad no entra en la rampa: es binaria, y tres escalones de
+	// color inventarían una gradación que el dato no tiene. Un solo trazo.
+	if !Contains(got, "day-use-on") {
+		t.Errorf("la disponibilidad debería llevar su propio trazo:\n%s", got)
+	}
+	for _, banned := range []string{"day-use-high", "day-use-mid", "day-use-low"} {
+		if Contains(got, banned) {
+			t.Errorf("la disponibilidad no debe usar la rampa de ocupación (%s):\n%s", banned, got)
+		}
+	}
+
+	// La LONGITUD de la barra no cambia con el sentido: sigue siendo el
+	// porcentaje literal. Solo el color lo lee.
+	if !Contains(got, "--meter-fill:100%") {
+		t.Errorf("la barra debería medir el porcentaje real:\n%s", got)
+	}
+}
+
 func TestClampOccupation(t *testing.T) {
 	c := &CalendarSlider{Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 150}, {Date: "2026-08-12", Percent: -5}}}
 	if !Contains(c.buildDay(2026, 8, 11).String(), "data-use='100'") {
@@ -262,7 +296,11 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 	}}
 	c.Init(nil)
 	c.today = "2026-08-11"
-	htmlOut := c.Render().String()
+	// El trazo de disponibilidad solo aparece con Meter: Availability, así que
+	// el pareo necesita las dos variantes para no dejar CSS muerto.
+	avail := &CalendarSlider{Start: "2026-08", Meter: Availability, Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 100}}}
+	avail.Init(nil)
+	htmlOut := c.Render().String() + avail.Render().String()
 	cssOut := c.RenderCSS().String()
 
 	extractClasses := func(hay, prefix string) map[string]bool {

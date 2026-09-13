@@ -153,6 +153,7 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 		fieldname + "__error":       true,
 		fieldname + "__radio-group": true,
 		fieldname + "__submit":      true,
+		fieldname + "__reveal":      true,
 	}
 
 	for cls := range cssClasses {

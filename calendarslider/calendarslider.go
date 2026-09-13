@@ -36,6 +36,7 @@ const (
 	PartDayStack        = widget.Part("day-stack")
 	PartDayButton       = widget.Part("day-button")
 	PartDayUse          = widget.Part("day-use")
+	PartDayUseOn        = widget.Part("day-use-on")
 	PartDayUseLow       = widget.Part("day-use-low")
 	PartDayUseMid       = widget.Part("day-use-mid")
 	PartDayUseHigh      = widget.Part("day-use-high")
@@ -64,6 +65,7 @@ var (
 	clsDayStack        = NameCalendarSlider.Class(PartDayStack)
 	clsDayButton       = NameCalendarSlider.Class(PartDayButton)
 	clsDayUse          = NameCalendarSlider.Class(PartDayUse)
+	clsDayUseOn        = NameCalendarSlider.Class(PartDayUseOn)
 	clsDayUseLow       = NameCalendarSlider.Class(PartDayUseLow)
 	clsDayUseMid       = NameCalendarSlider.Class(PartDayUseMid)
 	clsDayUseHigh      = NameCalendarSlider.Class(PartDayUseHigh)
@@ -99,8 +101,28 @@ type Holiday struct {
 	Name string
 }
 
+// MeterKind names what OccupationDay.Percent MEANS, which is what decides the
+// bar's colour. The number alone cannot say it: 100 is bad news on a booking
+// calendar (the day is full) and good news on an availability calendar (the
+// day is wide open). Without this the same widget painted "you work that day"
+// in the red it reserves for "no room left".
+//
+// The LENGTH of the bar is always the plain percentage; only the colour reads
+// the kind. Availability is the complement of occupancy, so one is the other's
+// ramp reversed — there is no second ramp to keep in sync.
+type MeterKind uint8
+
+const (
+	// Occupancy: Percent is how FULL the date is. High is a warning.
+	// The zero value, so a caller that says nothing keeps today's behaviour.
+	Occupancy MeterKind = iota
+	// Availability: Percent is how OPEN the date is. High is positive.
+	Availability
+)
+
 // OccupationDay es el porcentaje de ocupación (0..100) de una fecha; su sola
-// presencia en la lista hace el día seleccionable.
+// presencia en la lista hace el día seleccionable. Qué significa ese
+// porcentaje —y por lo tanto de qué color se pinta— lo dice Meter.
 type OccupationDay struct {
 	Date    string // "YYYY-MM-DD"
 	Percent int
@@ -125,6 +147,9 @@ type CalendarSlider struct {
 	// Occupation lista el porcentaje de ocupación por fecha. Slice, no map —
 	// TinyGo.
 	Occupation []OccupationDay
+	// Meter dice qué significa el porcentaje de Occupation: ocupación (por
+	// defecto) o disponibilidad. Ver MeterKind.
+	Meter MeterKind
 	// Selected es la fecha "YYYY-MM-DD" seleccionada, o "". Señal pública:
 	// el host puede leerla y escribirla.
 	Selected *SignalString
@@ -576,7 +601,7 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 	}
 	stack.Child(Span().Set(clsDayNum.AsAttr()).Text(fmt.Sprint(day)))
 	if selectable {
-		stack.Child(Div().Set(clsDayUse.AsAttr(), useLevelClass(use).AsAttr()).
+		stack.Child(Div().Set(clsDayUse.AsAttr(), useLevelClass(use, c.Meter).AsAttr()).
 			Attr("data-use", fmt.Sprint(use)).
 			Attr("style", "--meter-fill:"+fmt.Sprint(use)+"%;"))
 	}
@@ -702,7 +727,19 @@ func splitWords(s string) []string {
 // Three steps, not a continuous gradient: a bar with no track behind it cannot
 // be read as a fraction by length, so the level has to be legible as colour
 // alone — free, filling, full.
-func useLevelClass(use int) widget.Class {
+// useLevelClass elige el color del medidor.
+//
+// Availability NO usa la rampa. Una rampa comunica "cuánto": tiene sentido para
+// ocupación, donde 30% y 80% son estados distintos que conviene distinguir de
+// un vistazo. La disponibilidad de esta pantalla es binaria — el día se atiende
+// o no —, así que tres escalones de color inventan una gradación que el dato no
+// tiene, y el verde/rojo le pone además una carga de bueno/malo a algo que solo
+// dice "acá hay agenda". Un único trazo en el color primario: la marca de la
+// app, sin juicio.
+func useLevelClass(use int, kind MeterKind) widget.Class {
+	if kind == Availability {
+		return clsDayUseOn
+	}
 	switch {
 	case use >= 85:
 		return clsDayUseHigh

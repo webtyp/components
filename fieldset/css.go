@@ -102,6 +102,21 @@ func (f *Fieldset) RenderCSS() *css.Stylesheet {
 			style.Pad(style.Space4),
 			style.ControlBox(),
 		).
+		// Bottom-right corner of the field, not top-right: PartError already
+		// owns the top-right corner (the two would overlap the moment a
+		// masked field also has an error to show). Docked has no
+		// vertical-center primitive today — a real gap in the DSL, not
+		// solved here — so bottom-right is the closest fit that never
+		// collides with the label chip (top) or the error message (top,
+		// trailing). ControlBox matches PartInput/PartSubmit's own tap
+		// target instead of a bespoke size. Inactive by default (a quiet
+		// affordance, not a second call to action next to the field it
+		// sits in) — When(Selected, …) below brightens it once revealed.
+		Part(widget.PartReveal,
+			style.Docked(style.Parent, style.EdgeBottom, style.SideEnd, style.Space2),
+			style.Glyph(style.Inactive),
+			style.ControlBox(),
+		).
 		Part(widget.PartRadioGroup,
 			style.Row(style.Space3),
 			style.Pad(style.Space1),
@@ -160,6 +175,12 @@ func (f *Fieldset) RenderCSS() *css.Stylesheet {
 		// the signal. Painting the whole box danger buried the value.
 		When(widget.Invalid, widget.PartInput,
 			style.Glyph(style.Danger),
+		).
+		// dom writes data-selected on the reveal button itself when the
+		// value is showing (see form's wireMaskToggle) — When targets the
+		// same element the state is written on, unlike WhenWithin above.
+		When(widget.Selected, widget.PartReveal,
+			style.Glyph(style.Primary),
 		).
 		Stylesheet()
 }

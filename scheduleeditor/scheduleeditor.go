@@ -24,52 +24,74 @@ import (
 const NameScheduleEditor = widget.Name("scheduleeditor")
 
 const (
-	PartPattern     = widget.Part("pattern")
-	PartPatternRow  = widget.Part("pattern-row")
-	PartDayChips    = widget.Part("day-chips")
-	PartDayChip     = widget.Part("day-chip")
-	PartDayLabel    = widget.Part("day-label")
-	PartFieldLabel  = widget.Part("field-label")
-	PartRowRemove   = widget.Part("row-remove")
-	PartRowAdd      = widget.Part("row-add")
-	PartMarker      = widget.Part("marker")
-	PartMarkerHours = widget.Part("marker-hours")
-	PartExceptions  = widget.Part("exceptions")
-	PartSlider      = widget.Part("slider")
-	PartExcForm     = widget.Part("exc-form")
-	PartExcHours    = widget.Part("exc-hours")
-	PartExcType     = widget.Part("exc-type")
-	PartExcNotes    = widget.Part("exc-notes")
-	PartExcAdd      = widget.Part("exc-add")
-	PartExcList     = widget.Part("exc-list")
-	PartExcItem     = widget.Part("exc-item")
-	PartExcHoliday  = widget.Part("exc-holiday")
-	PartExcRemove   = widget.Part("exc-remove")
+	PartPattern      = widget.Part("pattern")
+	PartPatternRow   = widget.Part("pattern-row")
+	PartDayChips     = widget.Part("day-chips")
+	PartDayChip      = widget.Part("day-chip")
+	PartDayLabel     = widget.Part("day-label")
+	PartFieldLabel   = widget.Part("field-label")
+	PartRowRemove    = widget.Part("row-remove")
+	PartRowAdd       = widget.Part("row-add")
+	PartMarker       = widget.Part("marker")
+	PartMarkerHours  = widget.Part("marker-hours")
+	PartSectionTitle = widget.Part("section-title")
+	PartTimeRange    = widget.Part("time-range")
+	PartDayRow       = widget.Part("day-row")
+	PartDaySlots     = widget.Part("day-slots")
+	PartDayOffText   = widget.Part("day-off-text")
+	PartSlotAdd      = widget.Part("slot-add")
+	PartSlotRemove   = widget.Part("slot-remove")
+	PartHintText     = widget.Part("hint-text")
+	PartExceptions   = widget.Part("exceptions")
+	PartSlider       = widget.Part("slider")
+	PartExcForm      = widget.Part("exc-form")
+	PartExcHours     = widget.Part("exc-hours")
+	PartExcNotes     = widget.Part("exc-notes")
+	PartExcAdd       = widget.Part("exc-add")
+	PartExcList      = widget.Part("exc-list")
+	PartExcItem      = widget.Part("exc-item")
+	PartExcDate      = widget.Part("exc-date")
+	PartExcDateRow   = widget.Part("exc-date-row")
+	PartExcAction    = widget.Part("exc-action")
+	PartExcHint      = widget.Part("exc-hint")
+	PartExcHoliday   = widget.Part("exc-holiday")
+	PartExcRemove    = widget.Part("exc-remove")
 )
 
 var (
-	clsRoot        = NameScheduleEditor.Root()
-	clsPattern     = NameScheduleEditor.Class(PartPattern)
-	clsPatternRow  = NameScheduleEditor.Class(PartPatternRow)
-	clsDayChips    = NameScheduleEditor.Class(PartDayChips)
-	clsDayChip     = NameScheduleEditor.Class(PartDayChip)
-	clsDayLabel    = NameScheduleEditor.Class(PartDayLabel)
-	clsFieldLabel  = NameScheduleEditor.Class(PartFieldLabel)
-	clsRowRemove   = NameScheduleEditor.Class(PartRowRemove)
-	clsRowAdd      = NameScheduleEditor.Class(PartRowAdd)
-	clsMarker      = NameScheduleEditor.Class(PartMarker)
-	clsMarkerHours = NameScheduleEditor.Class(PartMarkerHours)
-	clsExceptions  = NameScheduleEditor.Class(PartExceptions)
-	clsSlider      = NameScheduleEditor.Class(PartSlider)
-	clsExcForm     = NameScheduleEditor.Class(PartExcForm)
-	clsExcHours    = NameScheduleEditor.Class(PartExcHours)
-	clsExcType     = NameScheduleEditor.Class(PartExcType)
-	clsExcNotes    = NameScheduleEditor.Class(PartExcNotes)
-	clsExcAdd      = NameScheduleEditor.Class(PartExcAdd)
-	clsExcList     = NameScheduleEditor.Class(PartExcList)
-	clsExcItem     = NameScheduleEditor.Class(PartExcItem)
-	clsExcHoliday  = NameScheduleEditor.Class(PartExcHoliday)
-	clsExcRemove   = NameScheduleEditor.Class(PartExcRemove)
+	clsRoot         = NameScheduleEditor.Root()
+	clsPattern      = NameScheduleEditor.Class(PartPattern)
+	clsPatternRow   = NameScheduleEditor.Class(PartPatternRow)
+	clsDayChips     = NameScheduleEditor.Class(PartDayChips)
+	clsDayChip      = NameScheduleEditor.Class(PartDayChip)
+	clsDayLabel     = NameScheduleEditor.Class(PartDayLabel)
+	clsFieldLabel   = NameScheduleEditor.Class(PartFieldLabel)
+	clsRowRemove    = NameScheduleEditor.Class(PartRowRemove)
+	clsRowAdd       = NameScheduleEditor.Class(PartRowAdd)
+	clsMarker       = NameScheduleEditor.Class(PartMarker)
+	clsMarkerHours  = NameScheduleEditor.Class(PartMarkerHours)
+	clsSectionTitle = NameScheduleEditor.Class(PartSectionTitle)
+	clsTimeRange    = NameScheduleEditor.Class(PartTimeRange)
+	clsDayRow       = NameScheduleEditor.Class(PartDayRow)
+	clsDaySlots     = NameScheduleEditor.Class(PartDaySlots)
+	clsDayOffText   = NameScheduleEditor.Class(PartDayOffText)
+	clsSlotAdd      = NameScheduleEditor.Class(PartSlotAdd)
+	clsSlotRemove   = NameScheduleEditor.Class(PartSlotRemove)
+	clsHintText     = NameScheduleEditor.Class(PartHintText)
+	clsExceptions   = NameScheduleEditor.Class(PartExceptions)
+	clsSlider       = NameScheduleEditor.Class(PartSlider)
+	clsExcForm      = NameScheduleEditor.Class(PartExcForm)
+	clsExcHours     = NameScheduleEditor.Class(PartExcHours)
+	clsExcNotes     = NameScheduleEditor.Class(PartExcNotes)
+	clsExcAdd       = NameScheduleEditor.Class(PartExcAdd)
+	clsExcList      = NameScheduleEditor.Class(PartExcList)
+	clsExcItem      = NameScheduleEditor.Class(PartExcItem)
+	clsExcDate      = NameScheduleEditor.Class(PartExcDate)
+	clsExcDateRow   = NameScheduleEditor.Class(PartExcDateRow)
+	clsExcAction    = NameScheduleEditor.Class(PartExcAction)
+	clsExcHint      = NameScheduleEditor.Class(PartExcHint)
+	clsExcHoliday   = NameScheduleEditor.Class(PartExcHoliday)
+	clsExcRemove    = NameScheduleEditor.Class(PartExcRemove)
 )
 
 // Tipos de excepción (valor de Exception.Type). Son las claves que
@@ -146,11 +168,8 @@ type ScheduleEditor struct {
 	OnExceptionAdd    func(Exception)
 	OnExceptionRemove func(id string)
 
-	markerStart *SignalString // start min string for day marker common window
-	markerEnd   *SignalString // end min string for day marker common window
-	markedSel   *SignalString // multi-select signal for day marker calendar slider
-
 	sel     *SignalString // día elegido por el calendario ("" = form oculto)
+	calOpen *SignalBool   // el calendario queda desplegado: acá es la pantalla, no un filtro
 	excType *SignalString // tipo elegido en el formulario de alta
 	excFrom *SignalString // hora "desde" del formulario (minutos)
 	excTo   *SignalString // hora "hasta" del formulario (minutos)
@@ -161,17 +180,11 @@ func (e *ScheduleEditor) WidgetName() widget.Name { return NameScheduleEditor }
 func (e *ScheduleEditor) WidgetKind() widget.Kind { return widget.Form }
 
 func (e *ScheduleEditor) Init(_ Ctx) {
-	if e.markerStart == nil {
-		e.markerStart = NewString("540") // 09:00
-	}
-	if e.markerEnd == nil {
-		e.markerEnd = NewString("780") // 13:00
-	}
-	if e.markedSel == nil {
-		e.markedSel = NewString(e.markedDatesString())
-	}
 	if e.sel == nil {
 		e.sel = NewString("")
+	}
+	if e.calOpen == nil {
+		e.calOpen = NewBool(true)
 	}
 	if e.excType == nil {
 		e.excType = NewString(ExcSpecialHours)
@@ -185,17 +198,6 @@ func (e *ScheduleEditor) Init(_ Ctx) {
 	if e.excNote == nil {
 		e.excNote = NewString("")
 	}
-}
-
-func (e *ScheduleEditor) markedDatesString() string {
-	res := ""
-	for i, m := range e.Marked {
-		if i > 0 {
-			res += " "
-		}
-		res += m.Date
-	}
-	return res
 }
 
 // ---------------------------------------------------------------------------
@@ -262,203 +264,286 @@ func dayChipLabel(index int) string {
 	return lang.Translate(shortWeekdayKeys[index]).String()
 }
 
-func (e *ScheduleEditor) buildPattern() *Element {
-	container := Div().Set(clsPattern.AsAttr())
-	container.Child(Div().Text(lang.Translate("Weekly pattern").String()))
-
-	for i, row := range e.Pattern {
-		container.Child(e.buildPatternRow(i, row))
+// dayFullLabel es el nombre largo del día. La fila por día lo lleva entero
+// ("Lunes"): una lista de siete renglones tiene sitio para la palabra, y la
+// abreviatura solo existía porque los chips competían por el ancho de una fila.
+func dayFullLabel(index int) string {
+	if index < 0 || index > 6 {
+		return ""
 	}
-
-	addBtn := Button().Set(clsRowAdd.AsAttr()).
-		Attr("type", "button").
-		Text(lang.Translate("Add row").String())
-	addBtn.OnClick(func(Event) {
-		e.addPatternRow()
-	})
-	container.Child(addBtn)
-
-	return container
+	return lang.Translate(date.WeekdayName(index)).String()
 }
 
-func (e *ScheduleEditor) buildPatternRow(index int, row PatternRow) *Element {
-	invalid := patternRowInvalid(index, row, e.Pattern)
-	if invalid {
-		Log("scheduleeditor: pattern row invalid or overlapping")
-	}
+// ---------------------------------------------------------------------------
+// Patrón semanal — una fila POR DÍA
+// ---------------------------------------------------------------------------
+//
+// La sección lista los siete días SIEMPRE, cada uno con su interruptor y sus
+// rangos. Antes listaba "filas" abstractas: un rango horario más un juego de
+// casillas eligiendo a qué días aplicaba.
+//
+// Por qué cambió. La fila abstracta contesta "¿a qué días aplica este bloque
+// de 08:00–14:00?", y nadie planifica así: la pregunta real es "¿qué horario
+// tengo los lunes?". De ahí salían tres defectos que ninguna cantidad de CSS
+// arregla:
+//
+//  1. "Quitar fila" no significaba nada — no hay tal fila en la cabeza de
+//     quien lo usa, es un artefacto de cómo se guarda el dato.
+//  2. Un día libre era la AUSENCIA de una fila que lo mencionara: había que
+//     cruzar todas las filas mentalmente para saber si el martes se trabaja.
+//     Con los siete días a la vista, un día libre se ve.
+//  3. El solapamiento podía ocurrir ENTRE filas — el mismo día en dos reglas
+//     distintas — y detectarlo obligaba a cruzar el patrón entero. Por día
+//     solo puede ocurrir entre los rangos de ESE día: una comprobación local
+//     y explicable, "estos dos horarios del lunes se pisan".
+//
+// Es el patrón de Calendly, Cal.com, Acuity, Google Calendar (working hours),
+// Microsoft Bookings, Square Appointments y Fresha: "weekly hours" es una
+// lista de los siete días, no una lista de reglas.
+//
+// El contrato con el host NO cambia: se sigue emitiendo []PatternRow por
+// OnPatternChange. Lo único es que al primer cambio las filas se normalizan a
+// una por (día, rango) — semánticamente idéntico, y es lo que hace que el
+// mapeo día↔dato sea trivial y sin ambigüedad.
 
-	rowEl := Div().Set(clsPatternRow.AsAttr()).
-		BindState(widget.Invalid, NewBool(invalid))
-
-	// Start time select, with its label: two bare times side by side say
-	// nothing about which one opens the block.
-	rowEl.Child(Span().Set(clsFieldLabel.AsAttr()).Text(lang.Translate("From").String()))
-	startSel := NewElement("select").Attr("name", "start-time")
-	for _, opt := range hourOptions(row.StartMin, e.Bounds, 15) {
-		startSel.Child(opt)
-	}
-	startSel.OnChange(func(ev Event) {
-		m, err := fmt.Convert(ev.TargetValue()).Int()
-		if err == nil {
-			e.updatePatternRow(index, func(r *PatternRow) { r.StartMin = m })
-		}
-	})
-	rowEl.Child(startSel)
-
-	// End time select
-	rowEl.Child(Span().Set(clsFieldLabel.AsAttr()).Text(lang.Translate("To").String()))
-	endSel := NewElement("select").Attr("name", "end-time")
-	for _, opt := range hourOptions(row.EndMin, e.Bounds, 15) {
-		endSel.Child(opt)
-	}
-	endSel.OnChange(func(ev Event) {
-		m, err := fmt.Convert(ev.TargetValue()).Int()
-		if err == nil {
-			e.updatePatternRow(index, func(r *PatternRow) { r.EndMin = m })
-		}
-	})
-	rowEl.Child(endSel)
-
-	// Day chips
-	// Day chips in the app's own week order — Monday first unless the app
-	// called date.SetFirstWeekday. The component never assumes a locale.
-	chips := Div().Set(clsDayChips.AsAttr())
-	for _, d := range date.WeekOrder() {
-		dVal := d
-		hasDay := containsInt(row.Days, dVal)
-
-		chipInput := Input("checkbox").Set(clsDayChip.AsAttr()).
-			Key("chip-"+fmt.Convert(index).String()+"-"+fmt.Convert(dVal).String()).
-			BindAttrBool("checked", NewBool(hasDay))
-
-		chipInput.OnChange(func(ev Event) {
-			checked := ev.TargetChecked()
-			e.updatePatternRow(index, func(r *PatternRow) {
-				if checked {
-					if !containsInt(r.Days, dVal) {
-						r.Days = append(r.Days, dVal)
-					}
-				} else {
-					r.Days = removeInt(r.Days, dVal)
-				}
-			})
-		})
-
-		// The input stays the real control — VisuallyHidden keeps it focusable
-		// and announced — and the label is the pill the eye sees, carrying the
-		// chosen state. A native checkbox cannot be skinned; this pairing is
-		// the standard way to make one read as a chip.
-		label := Label().For(chipInput).
-			Set(clsDayLabel.AsAttr()).
-			BindState(widget.Selected, NewBool(hasDay)).
-			Text(dayChipLabel(dVal))
-		chips.Child(chipInput).Child(label)
-	}
-	rowEl.Child(chips)
-
-	// Remove row button
-	remBtn := Button().Set(clsRowRemove.AsAttr()).
-		Attr("type", "button").
-		Text(lang.Translate("Remove row").String())
-	remBtn.OnClick(func(Event) {
-		e.removePatternRow(index)
-	})
-	rowEl.Child(remBtn)
-
-	return rowEl
+// dayRange es un rango de un día concreto, ya desanidado del PatternRow.
+type dayRange struct {
+	StartMin, EndMin int
 }
 
-func (e *ScheduleEditor) addPatternRow() {
-	newRow := PatternRow{
-		StartMin: 540,                  // 09:00
-		EndMin:   1080,                 // 18:00
-		Days:     []int{1, 2, 3, 4, 5}, // Mon-Fri
-	}
-	newPattern := append(append([]PatternRow{}, e.Pattern...), newRow)
-	if e.OnPatternChange != nil {
-		e.OnPatternChange(newPattern)
-	}
-}
-
-func (e *ScheduleEditor) updatePatternRow(index int, mutate func(*PatternRow)) {
-	if index < 0 || index >= len(e.Pattern) {
-		return
-	}
-	newPattern := append([]PatternRow{}, e.Pattern...)
-	mutate(&newPattern[index])
-	if e.OnPatternChange != nil {
-		e.OnPatternChange(newPattern)
-	}
-}
-
-func (e *ScheduleEditor) removePatternRow(index int) {
-	if index < 0 || index >= len(e.Pattern) {
-		return
-	}
-	newPattern := make([]PatternRow, 0, len(e.Pattern)-1)
-	for i, r := range e.Pattern {
-		if i != index {
-			newPattern = append(newPattern, r)
-		}
-	}
-	if e.OnPatternChange != nil {
-		e.OnPatternChange(newPattern)
-	}
-}
-
-func patternRowInvalid(index int, row PatternRow, all []PatternRow) bool {
-	if len(row.Days) == 0 {
-		return true
-	}
-	if row.StartMin >= row.EndMin {
-		return true
-	}
-	for i, other := range all {
-		if i == index {
-			continue
-		}
-		if sharesDay(row.Days, other.Days) && rangesOverlap(row.StartMin, row.EndMin, other.StartMin, other.EndMin) {
-			return true
-		}
-	}
-	return false
-}
-
-func sharesDay(a, b []int) bool {
-	for _, x := range a {
-		if containsInt(b, x) {
-			return true
-		}
-	}
-	return false
-}
-
-func rangesOverlap(s1, e1, s2, e2 int) bool {
-	return s1 < e2 && s2 < e1
-}
-
-func containsInt(slice []int, v int) bool {
-	for _, x := range slice {
-		if x == v {
-			return true
-		}
-	}
-	return false
-}
-
-func removeInt(slice []int, v int) []int {
-	out := make([]int, 0, len(slice))
-	for _, x := range slice {
-		if x != v {
-			out = append(out, x)
+// rangesForDay reúne los rangos que hoy cubren el día d, en orden de entrada.
+func (e *ScheduleEditor) rangesForDay(d int) []dayRange {
+	out := make([]dayRange, 0, 2)
+	for _, row := range e.Pattern {
+		if containsInt(row.Days, d) {
+			out = append(out, dayRange{StartMin: row.StartMin, EndMin: row.EndMin})
 		}
 	}
 	return out
 }
 
-// ---------------------------------------------------------------------------
-// Marcador de Días (Day Marker)
-// ---------------------------------------------------------------------------
+// emitDayRanges reconstruye el patrón con los rangos de d reemplazados por
+// next (vacío = el día no se trabaja) y lo emite.
+func (e *ScheduleEditor) emitDayRanges(d int, next []dayRange) {
+	rows := make([]PatternRow, 0, len(e.Pattern)*2)
+	for _, wd := range date.WeekOrder() {
+		src := e.rangesForDay(wd)
+		if wd == d {
+			src = next
+		}
+		for _, r := range src {
+			rows = append(rows, PatternRow{StartMin: r.StartMin, EndMin: r.EndMin, Days: []int{wd}})
+		}
+	}
+	e.Pattern = rows
+	if e.OnPatternChange != nil {
+		e.OnPatternChange(rows)
+	}
+}
+
+func (e *ScheduleEditor) buildPattern() *Element {
+	container := Div().Set(clsPattern.AsAttr())
+	container.Child(Div().Set(clsSectionTitle.AsAttr()).Text(lang.Translate("Weekly pattern").String()))
+	container.Child(Div().Set(clsHintText.AsAttr()).
+		Text(lang.Translate("Turn on the days you work and set their hours").String()))
+
+	for _, d := range date.WeekOrder() {
+		container.Child(e.buildDayRow(d))
+	}
+	return container
+}
+
+// buildDayRow es la fila de UN día de la semana: nombre, interruptor, y sus
+// rangos. Siempre presente, se trabaje ese día o no.
+func (e *ScheduleEditor) buildDayRow(d int) *Element {
+	dVal := d
+	ranges := e.rangesForDay(dVal)
+	on := len(ranges) > 0
+
+	rowEl := Div().Set(clsDayRow.AsAttr()).
+		Key("day-"+fmt.Convert(dVal).String()).
+		BindState(widget.Selected, NewBool(on)).
+		BindState(widget.Invalid, NewBool(dayInvalid(ranges)))
+
+	toggle := Input("checkbox").Set(clsDayChip.AsAttr()).
+		Key("toggle-"+fmt.Convert(dVal).String()).
+		BindAttrBool("checked", NewBool(on))
+	toggle.OnChange(func(ev Event) {
+		if ev.TargetChecked() {
+			e.emitDayRanges(dVal, []dayRange{e.defaultRange()})
+		} else {
+			e.emitDayRanges(dVal, nil)
+		}
+	})
+
+	// El <label> es la píldora visible; el checkbox real queda accesible pero
+	// fuera de vista (un checkbox nativo no se puede pintar).
+	name := Label().For(toggle).
+		Set(clsDayLabel.AsAttr()).
+		BindState(widget.Selected, NewBool(on)).
+		Text(dayFullLabel(dVal))
+
+	rowEl.Child(toggle).Child(name)
+
+	if !on {
+		// Un día libre lo dice con todas las letras. Antes había que deducirlo
+		// de que ninguna fila lo mencionara.
+		rowEl.Child(Span().Set(clsDayOffText.AsAttr()).
+			Text(lang.Translate("Does not work").String()))
+		return rowEl
+	}
+
+	slots := Div().Set(clsDaySlots.AsAttr())
+	for i, r := range ranges {
+		slots.Child(e.buildDaySlot(dVal, i, r, len(ranges) > 1))
+	}
+
+	// Un segundo rango en el mismo día es la jornada partida: mañana y tarde.
+	// Solo se ofrece si hay hueco después del último — un "+" que agrega algo
+	// que el servidor va a rechazar es peor que un "+" ausente.
+	if next, ok := e.nextPeriod(ranges); ok {
+		addSlot := Button().Set(clsSlotAdd.AsAttr()).
+			Attr("type", "button").
+			Attr("title", lang.Translate("Add time range").String()).
+			Text("+")
+		addSlot.OnClick(func(Event) {
+			e.emitDayRanges(dVal, append(append([]dayRange{}, ranges...), next))
+		})
+		slots.Child(addSlot)
+	}
+
+	rowEl.Child(slots)
+	return rowEl
+}
+
+// buildDaySlot es un rango horario dentro de un día: desde, hasta, y la
+// papelera solo cuando hay más de uno (con uno solo, apagar el día es la
+// acción correcta y la papelera sería un segundo camino para lo mismo).
+func (e *ScheduleEditor) buildDaySlot(d, idx int, r dayRange, removable bool) *Element {
+	dVal, iVal := d, idx
+	slot := Div().Set(clsTimeRange.AsAttr()).
+		Key("slot-" + fmt.Convert(dVal).String() + "-" + fmt.Convert(iVal).String())
+
+	slot.Child(Span().Set(clsFieldLabel.AsAttr()).Text(lang.Translate("From").String()))
+	startSel := NewElement("select").Attr("name", "start-time")
+	for _, opt := range hourOptions(r.StartMin, e.Bounds, 15) {
+		startSel.Child(opt)
+	}
+	startSel.OnChange(func(ev Event) {
+		if m, err := fmt.Convert(ev.TargetValue()).Int(); err == nil {
+			e.mutateSlot(dVal, iVal, func(x *dayRange) { x.StartMin = m })
+		}
+	})
+	slot.Child(startSel)
+
+	slot.Child(Span().Set(clsFieldLabel.AsAttr()).Text(lang.Translate("To").String()))
+	endSel := NewElement("select").Attr("name", "end-time")
+	for _, opt := range hourOptions(r.EndMin, e.Bounds, 15) {
+		endSel.Child(opt)
+	}
+	endSel.OnChange(func(ev Event) {
+		if m, err := fmt.Convert(ev.TargetValue()).Int(); err == nil {
+			e.mutateSlot(dVal, iVal, func(x *dayRange) { x.EndMin = m })
+		}
+	})
+	slot.Child(endSel)
+
+	if removable {
+		rm := Button().Set(clsSlotRemove.AsAttr()).
+			Attr("type", "button").
+			Attr("title", lang.Translate("Remove time range").String()).
+			Text("×")
+		rm.OnClick(func(Event) {
+			cur := e.rangesForDay(dVal)
+			if iVal < 0 || iVal >= len(cur) {
+				return
+			}
+			e.emitDayRanges(dVal, append(append([]dayRange{}, cur[:iVal]...), cur[iVal+1:]...))
+		})
+		slot.Child(rm)
+	}
+	return slot
+}
+
+func (e *ScheduleEditor) mutateSlot(d, idx int, mutate func(*dayRange)) {
+	cur := e.rangesForDay(d)
+	if idx < 0 || idx >= len(cur) {
+		return
+	}
+	mutate(&cur[idx])
+	e.emitDayRanges(d, cur)
+}
+
+// dayInvalid informa si los rangos de UN día no se sostienen: alguno termina
+// antes de empezar, o dos se pisan. Local a un día — no hay que cruzar el
+// patrón entero, que es lo que hacía falta cuando una regla abarcaba varios
+// días.
+//
+// El rango invertido va acá y no solo el solapamiento: la primera versión de
+// esta comprobación solo miraba pares y dejaba pasar un 18:00–09:00 suelto,
+// que la validación anterior sí atrapaba.
+func dayInvalid(rs []dayRange) bool {
+	for i, r := range rs {
+		if r.EndMin <= r.StartMin {
+			return true
+		}
+		for j := i + 1; j < len(rs); j++ {
+			if r.StartMin < rs[j].EndMin && rs[j].StartMin < r.EndMin {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// nextPeriod calcula el rango que agrega el "+": la tarde después de la
+// mañana. Empieza una hora DESPUÉS de que termina el último — el corte de
+// almuerzo — y dura lo mismo que él, recortado al cierre.
+//
+// No es defaultRange(). Ese es el horario de un día que se enciende desde
+// cero; usarlo también acá agregaba un 09:00–18:00 encima de un 08:00–14:00
+// que ya existía, el servidor lo rechazaba por solapamiento y el "+" no hacía
+// nada visible. Un control que no puede producir un estado válido no debe
+// ofrecerse: si no hay hueco, ok es false y el "+" no se dibuja.
+func (e *ScheduleEditor) nextPeriod(ranges []dayRange) (dayRange, bool) {
+	if len(ranges) == 0 {
+		return e.defaultRange(), true
+	}
+	last := ranges[0]
+	for _, r := range ranges {
+		if r.EndMin > last.EndMin {
+			last = r
+		}
+	}
+	closeMin := 1440
+	if e.Bounds.CloseMin > e.Bounds.OpenMin {
+		closeMin = e.Bounds.CloseMin
+	}
+
+	const lunchBreak = 60
+	start := last.EndMin + lunchBreak
+	if start >= closeMin {
+		return dayRange{}, false
+	}
+	dur := last.EndMin - last.StartMin
+	end := start + dur
+	if end > closeMin {
+		end = closeMin
+	}
+	if end <= start {
+		return dayRange{}, false
+	}
+	return dayRange{StartMin: start, EndMin: end}, true
+}
+
+// defaultRange es el horario con el que se enciende un día: la apertura del
+// establecimiento si el host la declaró, y 09:00–18:00 si no.
+func (e *ScheduleEditor) defaultRange() dayRange {
+	if e.Bounds.CloseMin > e.Bounds.OpenMin {
+		return dayRange{StartMin: e.Bounds.OpenMin, EndMin: e.Bounds.CloseMin}
+	}
+	return dayRange{StartMin: 540, EndMin: 1080}
+}
 
 func (e *ScheduleEditor) horizonMonths() int {
 	if e.Horizon <= 0 {
@@ -467,151 +552,54 @@ func (e *ScheduleEditor) horizonMonths() int {
 	return e.Horizon
 }
 
-func (e *ScheduleEditor) buildMarker() *Element {
-	marker := Div().Set(clsMarker.AsAttr())
-	marker.Child(Div().Text(lang.Translate("Marked days").String()))
-
-	// Common hours controls
-	hoursRow := Div().Set(clsMarkerHours.AsAttr())
-	hoursRow.Child(Span().Text(lang.Translate("Hours for marked days").String()))
-
-	startSel := NewElement("select").Attr("name", "marker-start").Bind(e.markerStart)
-	for _, opt := range hourOptions(signalMinutes(e.markerStart), e.Bounds, 15) {
-		startSel.Child(opt)
-	}
-	startSel.OnChange(func(ev Event) {
-		e.markerStart.Set(ev.TargetValue())
-	})
-	hoursRow.Child(startSel)
-
-	endSel := NewElement("select").Attr("name", "marker-end").Bind(e.markerEnd)
-	for _, opt := range hourOptions(signalMinutes(e.markerEnd), e.Bounds, 15) {
-		endSel.Child(opt)
-	}
-	endSel.OnChange(func(ev Event) {
-		e.markerEnd.Set(ev.TargetValue())
-	})
-	hoursRow.Child(endSel)
-
-	marker.Child(hoursRow)
-
-	// Combine Holidays & Closures into read-only unavailable dates
-	unavailHolidays := make([]string, 0, len(e.Holidays)+len(e.Closures))
-	unavailHolidays = append(unavailHolidays, e.Holidays...)
-	unavailHolidays = append(unavailHolidays, e.Closures...)
-
-	// Occupation list for calendarslider: all dates in horizon or marked days get occupation=100 so they are selectable
-	occ := occupationFromMarkedAndHorizon(e.Marked, e.horizonMonths())
-
-	cal := &calendarslider.CalendarSlider{
-		NumMonths:    e.horizonMonths(),
-		Holidays:     toCalHolidays(unavailHolidays),
-		Occupation:   occ,
-		SelectedMany: e.markedSel,
-		Expanded:     NewBool(false),
-		OnToggle: func(date string, selected bool) {
-			e.handleDayToggle(date, selected)
-		},
-	}
-
-	marker.Child(cal)
-
-	// List of marked days with individual hour pickers if divergent
-	if len(e.Marked) > 0 {
-		markedList := Ul().Set(clsExcList.AsAttr())
-		for _, md := range e.Marked {
-			mDay := md
-			item := Li().Set(clsExcItem.AsAttr()).Key("marked-" + mDay.Date)
-			item.Child(Span().Text(mDay.Date))
-
-			mStartSel := NewElement("select").Attr("name", "md-start-"+mDay.Date)
-			for _, opt := range hourOptions(mDay.StartMin, e.Bounds, 15) {
-				mStartSel.Child(opt)
-			}
-			mStartSel.OnChange(func(ev Event) {
-				min, err := fmt.Convert(ev.TargetValue()).Int()
-				if err == nil && e.OnMarkedDayEdit != nil {
-					e.OnMarkedDayEdit(MarkedDay{Date: mDay.Date, StartMin: min, EndMin: mDay.EndMin})
-				}
-			})
-
-			mEndSel := NewElement("select").Attr("name", "md-end-"+mDay.Date)
-			for _, opt := range hourOptions(mDay.EndMin, e.Bounds, 15) {
-				mEndSel.Child(opt)
-			}
-			mEndSel.OnChange(func(ev Event) {
-				min, err := fmt.Convert(ev.TargetValue()).Int()
-				if err == nil && e.OnMarkedDayEdit != nil {
-					e.OnMarkedDayEdit(MarkedDay{Date: mDay.Date, StartMin: mDay.StartMin, EndMin: min})
-				}
-			})
-
-			item.Child(mStartSel).Child(mEndSel)
-			markedList.Child(item)
-		}
-		marker.Child(markedList)
-	}
-
-	return marker
-}
-
-func occupationFromMarkedAndHorizon(marked []MarkedDay, horizonMonths int) []calendarslider.OccupationDay {
-	startYear, startMonth := date.ParseMonthKey(time.FormatDate(time.Now())[:7])
-	if startYear == 0 {
-		startYear = 2026
-		startMonth = 1
-	}
-
-	out := make([]calendarslider.OccupationDay, 0, horizonMonths*31)
-	seen := make([]string, 0, horizonMonths*31)
-
-	for m := 0; m < horizonMonths; m++ {
-		y, mon := date.AddMonths(startYear, startMonth, m)
-		days := date.DaysInMonth(y, mon)
-		for d := 1; d <= days; d++ {
-			dStr := date.DateKey(y, mon, d)
-			out = append(out, calendarslider.OccupationDay{Date: dStr, Percent: 50})
-			seen = append(seen, dStr)
-		}
-	}
-
-	for _, md := range marked {
-		if !containsDate(seen, md.Date) {
-			out = append(out, calendarslider.OccupationDay{Date: md.Date, Percent: 100})
-		}
-	}
-	return out
-}
-
-func (e *ScheduleEditor) handleDayToggle(dateStr string, selected bool) {
-	if selected {
-		startMin := signalMinutes(e.markerStart)
-		endMin := signalMinutes(e.markerEnd)
-		if e.OnDaysMarked != nil {
-			e.OnDaysMarked([]string{dateStr}, startMin, endMin)
-		}
-	} else {
-		if e.OnDaysUnmarked != nil {
-			e.OnDaysUnmarked([]string{dateStr})
-		}
-	}
-}
-
 // ---------------------------------------------------------------------------
-// Panel de excepciones
+// Fechas específicas — UNA sección, un calendario
 // ---------------------------------------------------------------------------
+//
+// Antes eran dos: "Días marcados" (multi-selección, sumaba días sueltos que SÍ
+// se atienden) y "Excepciones por fecha" (selección simple, quitaba o alteraba
+// un día). Vistas desde afuera son la misma pregunta con el signo cambiado —
+// "en esta fecha pasa algo distinto de lo habitual" — y ambas se presentaban
+// con un campo idéntico que decía "Elegir fecha". No había forma de saber cuál
+// era cuál, ni por qué había dos.
+//
+// Ahora hay una: elegís la fecha y después decís qué pasa. El TIPO es lo que
+// decide a qué callback del host va — "día extra" a OnDaysMarked, el resto a
+// OnExceptionAdd — así que el contrato con el host no cambia; lo que cambia es
+// que el usuario ve una decisión en vez de dos secciones sin nombre.
+//
+// Es el patrón "date overrides" de Calendly y Cal.com, y el equivalente en
+// Acuity, Microsoft Bookings y Square: una lista de fechas que se apartan de
+// la semana tipo, con un botón para agregar.
 
 func (e *ScheduleEditor) buildExceptions() *Element {
 	return Div().Set(clsExceptions.AsAttr()).
+		Child(Div().Set(clsSectionTitle.AsAttr()).Text(lang.Translate("Specific dates").String())).
+		Child(Div().Set(clsHintText.AsAttr()).
+			Text(lang.Translate("Dates that differ from the weekly pattern").String())).
+		Child(e.buildExceptionList()).
 		Child(&calendarslider.CalendarSlider{
-			NumMonths:  3,
+			NumMonths:  e.horizonMonths(),
 			Holidays:   toCalHolidays(e.Holidays),
-			Occupation: occupationFromExceptions(e.Exceptions),
-			Selected:   e.sel,
-			OnSelect:   func(dateKey string) { e.sel.Set(dateKey) },
+			Occupation: e.effectiveOccupation(),
+			// Disponibilidad, no ocupación: acá 100 significa "ese día se
+			// atiende". Sin decirlo, el widget lo pintaba con el rojo que
+			// reserva para "no queda cupo" — rojo debajo de cada día que
+			// trabajás.
+			Meter:    calendarslider.Availability,
+			Selected: e.sel,
+			Expanded: e.calOpen,
+			OnSelect: func(dateKey string) {
+				e.sel.Set(dateKey)
+				// calendarslider se pliega al elegir un día: correcto cuando
+				// es un filtro —elegís y seguís— y lo contrario de lo que hace
+				// falta acá, donde el calendario ES la pantalla y hay que ver
+				// el efecto del cambio sobre el mes. Sin esto había que
+				// reabrirlo a mano para comprobar si el día quedó marcado.
+				e.calOpen.Set(true)
+			},
 		}).
-		Child(e.buildExceptionForm()).
-		Child(e.buildExceptionList())
+		Child(e.buildExceptionForm())
 }
 
 func toCalHolidays(days []string) []calendarslider.Holiday {
@@ -622,65 +610,257 @@ func toCalHolidays(days []string) []calendarslider.Holiday {
 	return out
 }
 
-func occupationFromExceptions(excs []Exception) []calendarslider.OccupationDay {
-	out := make([]calendarslider.OccupationDay, 0, len(excs))
-	for _, ex := range excs {
-		p := 50
-		if ex.Type == ExcHoliday || ex.Type == ExcBlocked {
-			p = 100
+// effectiveOccupation proyecta la agenda REAL sobre el calendario: el patrón
+// semanal aplicado a cada fecha del horizonte, con las excepciones encima.
+//
+// Dos cosas a la vez, y por eso reemplaza a la lista de excepciones sueltas:
+//
+//  1. TODA fecha del horizonte queda seleccionable. calendarslider hace
+//     seleccionable un día solo si aparece en Occupation, así que listar solo
+//     las excepciones existentes dejaba el calendario muerto: no se podía
+//     elegir una fecha que todavía no fuera excepción, que es lo único que se
+//     quiere hacer ahí.
+//  2. El calendario deja de ser un campo de entrada y pasa a ser el RESULTADO:
+//     se ve el lunes/miércoles/viernes del patrón dibujado sobre los meses y,
+//     encima, el día suelto que se agregó o se cerró. Cambiar el patrón cambia
+//     el calendario, que es lo que convierte dos formularios independientes en
+//     una sola afirmación sobre la agenda.
+//
+// El porcentaje es la barra que calendarslider ya pinta: 100 = ese día se
+// atiende, 0 = no. No es "ocupación" en el sentido de reservas: es
+// disponibilidad, que es lo que este editor decide.
+func (e *ScheduleEditor) effectiveOccupation() []calendarslider.OccupationDay {
+	months := e.horizonMonths()
+	startYear, startMonth := date.ParseMonthKey(time.FormatDate(time.Now())[:7])
+	if startYear == 0 {
+		return nil
+	}
+
+	worksOn := [7]bool{}
+	for _, row := range e.Pattern {
+		for _, d := range row.Days {
+			if d >= 0 && d <= 6 {
+				worksOn[d] = true
+			}
 		}
-		out = append(out, calendarslider.OccupationDay{Date: ex.Date, Percent: p})
+	}
+
+	out := make([]calendarslider.OccupationDay, 0, months*31)
+	for m := 0; m < months; m++ {
+		y, mon := date.AddMonths(startYear, startMonth, m)
+		for d := 1; d <= date.DaysInMonth(y, mon); d++ {
+			pct := 0
+			if worksOn[date.Weekday(y, mon, d)] {
+				pct = 100
+			}
+			out = append(out, calendarslider.OccupationDay{Date: date.DateKey(y, mon, d), Percent: pct})
+		}
+	}
+
+	// Las excepciones mandan sobre el patrón: es lo que significa "excepción".
+	for i := range out {
+		for _, md := range e.Marked {
+			if md.Date == out[i].Date {
+				out[i].Percent = 100
+			}
+		}
+		for _, ex := range e.Exceptions {
+			if ex.Date != out[i].Date {
+				continue
+			}
+			if ex.Type == ExcHoliday || ex.Type == ExcBlocked {
+				out[i].Percent = 0
+			} else {
+				out[i].Percent = 100
+			}
+		}
 	}
 	return out
+}
+
+// ---------------------------------------------------------------------------
+// La acción la elige el DÍA, no el usuario
+// ---------------------------------------------------------------------------
+//
+// El formulario ofrecía cuatro tipos —Día extra / Cerrado / Horario especial /
+// Bloqueado— sobre cualquier fecha. El problema no era que fueran muchos: era
+// que la mayoría son INVÁLIDOS según el día que se tocó. Sobre un día que el
+// patrón no cubre, "Cerrado" no hace nada (ya está cerrado) y "Horario
+// especial" acota una ventana que no existe — el propio backend lo dice:
+// "Abrir un día ya no necesita esta excepción" (service.go). De cuatro
+// opciones, en un día no laborable sirve UNA.
+//
+// Así que el formulario no pedía una decisión: pedía esquivar trampas que el
+// sistema ya sabe cuáles son. El calendario acaba de dibujar si ese día se
+// trabaja; volver a preguntarlo es pedir que se repita lo que la pantalla
+// mostró.
+//
+// Ahora el estado del día elige la acción y la acción pregunta a lo sumo una
+// cosa más. El contrato con el host no cambia: se siguen emitiendo HOLIDAY,
+// SPECIAL_HOURS y MarkedDay por los mismos callbacks.
+
+// dayFacts es lo que se sabe de la fecha elegida, que es lo que decide qué
+// acción ofrecer.
+type dayFacts struct {
+	covered bool // el patrón semanal cubre ese día de la semana
+	exc     *Exception
+	marked  *MarkedDay
+}
+
+func (e *ScheduleEditor) factsFor(key string) dayFacts {
+	var f dayFacts
+	y, m, d := date.ParseDateKey(key)
+	if y != 0 {
+		wd := date.Weekday(y, m, d)
+		for _, row := range e.Pattern {
+			if containsInt(row.Days, wd) {
+				f.covered = true
+				break
+			}
+		}
+	}
+	for i := range e.Exceptions {
+		if e.Exceptions[i].Date == key {
+			f.exc = &e.Exceptions[i]
+			break
+		}
+	}
+	for i := range e.Marked {
+		if e.Marked[i].Date == key {
+			f.marked = &e.Marked[i]
+			break
+		}
+	}
+	return f
 }
 
 func (e *ScheduleEditor) buildExceptionForm() *Element {
 	form := Div().Set(clsExcForm.AsAttr()).
 		BindStateFunc(widget.Open, func() bool { return e.sel.Get() != "" })
 
-	typeRow := Div().Set(clsExcType.AsAttr())
-	typeRow.Child(Span().Text(lang.Translate("Type").String()))
-	for _, opt := range exceptionTypes() {
-		radio := Input("radio").Set(clsExcType.AsAttr()).
-			Key(opt.Key).
-			Attr("name", "scheduleeditor-type").
-			Attr("value", opt.Key).
-			BindAttrBoolFunc("checked", func() bool { return e.excType.Get() == opt.Key })
-		radio.OnChange(func(ev Event) {
-			e.excType.Set(ev.TargetValue())
-			if opt.Key == ExcHoliday {
-				e.excFrom.Set("540")
-				e.excTo.Set("1080")
-			}
-		})
-		label := Label().For(radio).Text(opt.Value)
-		typeRow.Child(radio).Child(label)
-	}
+	// La fecha, legible. Antes decía "Fecha2026-09-02": sin separación y con
+	// el identificador crudo que nadie lee.
+	form.Child(Div().Set(clsExcDateRow.AsAttr()).
+		Child(NewElement("time").
+			Set(clsExcDate.AsAttr()).
+			BindAttrFunc("datetime", func() string { return e.sel.Get() }).
+			BindTextFunc(func() string { return humanDate(e.sel.Get()) })))
 
-	hoursRow := Div().Set(clsExcHours.AsAttr()).
-		BindStateFunc(widget.Open, func() bool { return e.excType.Get() != ExcHoliday }).
-		Child(boundTimePick(PartExcHours, "exc-from", e.excFrom, e.Bounds)).
-		Child(boundTimePick(PartExcHours, "exc-to", e.excTo, e.Bounds))
+	form.Child(e.buildRevertAction())
+	form.Child(e.buildCloseAction())
+	form.Child(e.buildOpenAction())
+	return form
+}
+
+// buildRevertAction: la fecha YA tiene una excepción. La única acción que tiene
+// sentido es deshacerla — antes había que ir a buscarla a la lista, y tocar el
+// día volvía a abrir el alta, de modo que se podían apilar dos excepciones
+// sobre la misma fecha.
+func (e *ScheduleEditor) buildRevertAction() *Element {
+	box := Div().Set(clsExcAction.AsAttr()).
+		BindStateFunc(widget.Open, func() bool {
+			f := e.factsFor(e.sel.Get())
+			return f.exc != nil || f.marked != nil
+		})
+
+	box.Child(Span().Set(clsExcHint.AsAttr()).
+		BindTextFunc(func() string {
+			f := e.factsFor(e.sel.Get())
+			if f.marked != nil {
+				return lang.Translate("Extra day").String()
+			}
+			if f.exc != nil {
+				return exceptionLabel(f.exc.Type)
+			}
+			return ""
+		}))
+
+	revert := Button().Set(clsExcAdd.AsAttr()).
+		Attr("type", "button").
+		Text(lang.Translate("Back to normal hours").String())
+	revert.OnClick(func(Event) {
+		f := e.factsFor(e.sel.Get())
+		if f.marked != nil && e.OnDaysUnmarked != nil {
+			e.OnDaysUnmarked([]string{f.marked.Date})
+		} else if f.exc != nil && e.OnExceptionRemove != nil {
+			e.OnExceptionRemove(f.exc.ID)
+		}
+		e.sel.Set("")
+	})
+	return box.Child(revert)
+}
+
+// buildCloseAction: la fecha SÍ está en el patrón. Lo primario es cerrarla; lo
+// secundario, atenderla en otro horario. Bloquear un rango a mitad del día no
+// se ofrece acá: eso es tapar un hueco en una agenda ya definida, no definirla,
+// y su etiqueta no lo distinguía de "horario especial" para nadie.
+func (e *ScheduleEditor) buildCloseAction() *Element {
+	box := Div().Set(clsExcAction.AsAttr()).
+		BindStateFunc(widget.Open, func() bool {
+			f := e.factsFor(e.sel.Get())
+			return f.covered && f.exc == nil && f.marked == nil
+		})
 
 	notes := Input("text").Set(clsExcNotes.AsAttr()).
 		Attr("name", "scheduleeditor-notes").
-		Attr("placeholder", lang.Translate("Notes").String()).
+		Attr("placeholder", lang.Translate("Reason").String()).
 		Bind(e.excNote)
 
-	add := Button().Set(clsExcAdd.AsAttr()).
+	closeBtn := Button().Set(clsExcAdd.AsAttr()).
 		Attr("type", "button").
-		Text(lang.Translate("Add").String())
-	add.OnClick(func(Event) { e.addException() })
+		Text(lang.Translate("I do not work that day").String())
+	closeBtn.OnClick(func(Event) {
+		e.excType.Set(ExcHoliday)
+		e.addException()
+	})
 
-	dateRow := Div().Child(Span().Text(lang.Translate("Date").String())).
-		Child(Span().BindText(e.sel))
+	box.Child(notes).Child(closeBtn)
 
-	return form.
-		Child(dateRow).
-		Child(typeRow).
-		Child(hoursRow).
-		Child(notes).
-		Child(add)
+	box.Child(Span().Set(clsExcHint.AsAttr()).
+		Text(lang.Translate("or work different hours that day").String()))
+	box.Child(Div().Set(clsExcHours.AsAttr()).
+		Child(boundTimePick(PartExcHours, "exc-from", e.excFrom, e.Bounds)).
+		Child(boundTimePick(PartExcHours, "exc-to", e.excTo, e.Bounds)))
+
+	special := Button().Set(clsExcAdd.AsAttr()).
+		Attr("type", "button").
+		Text(lang.Translate("Save these hours").String())
+	special.OnClick(func(Event) {
+		e.excType.Set(ExcSpecialHours)
+		e.addException()
+	})
+	return box.Child(special)
+}
+
+// buildOpenAction: la fecha NO está en el patrón, así que lo único que tiene
+// sentido es abrirla — un día suelto que se atiende fuera de la semana tipo.
+func (e *ScheduleEditor) buildOpenAction() *Element {
+	box := Div().Set(clsExcAction.AsAttr()).
+		BindStateFunc(widget.Open, func() bool {
+			f := e.factsFor(e.sel.Get())
+			return !f.covered && f.exc == nil && f.marked == nil
+		})
+
+	box.Child(Span().Set(clsExcHint.AsAttr()).
+		Text(lang.Translate("You do not work this weekday").String()))
+	box.Child(Div().Set(clsExcHours.AsAttr()).
+		Child(boundTimePick(PartExcHours, "exc-from", e.excFrom, e.Bounds)).
+		Child(boundTimePick(PartExcHours, "exc-to", e.excTo, e.Bounds)))
+
+	open := Button().Set(clsExcAdd.AsAttr()).
+		Attr("type", "button").
+		Text(lang.Translate("Work that day").String())
+	open.OnClick(func(Event) {
+		// SPECIAL_HOURS, no un "día extra": el backend resuelve esta excepción
+		// ANTES de mirar los bloques semanales (service.go:564), así que abre
+		// un día que el patrón no cubre. Y es la única vía que el cliente
+		// expone — AddException existe, un guardado de bloques por fecha no.
+		// El camino de MarkedDay quedaba en un callback que ningún host
+		// cableaba, así que "Atender ese día" no hacía absolutamente nada.
+		e.excType.Set(ExcSpecialHours)
+		e.addException()
+	})
+	return box.Child(open)
 }
 
 func (e *ScheduleEditor) addException() {
@@ -702,14 +882,6 @@ func (e *ScheduleEditor) addException() {
 	}
 	e.sel.Set("")
 	e.excNote.Set("")
-}
-
-func exceptionTypes() []fmt.KeyValue {
-	return []fmt.KeyValue{
-		{Key: ExcHoliday, Value: lang.Translate("Closed").String()},
-		{Key: ExcSpecialHours, Value: lang.Translate("Special hours").String()},
-		{Key: ExcBlocked, Value: lang.Translate("Blocked").String()},
-	}
 }
 
 func signalMinutes(s *SignalString) int {
@@ -737,46 +909,109 @@ func boundTimePick(part widget.Part, name string, sig *SignalString, b Bounds) *
 	return sel
 }
 
+// dateEntry es una fila de la lista unificada: un día extra o una excepción.
+// Existe para poder ordenar LAS DOS por fecha en una sola pasada — una lista
+// que el usuario lee como una sola tiene que estar ordenada como una sola.
+type dateEntry struct {
+	Date   string
+	Marked *MarkedDay
+	Exc    *Exception
+}
+
+// buildExceptionList lista TODA fecha que se aparta de la semana tipo: los
+// días extra (MarkedDay) y las excepciones (Exception), juntos y ordenados por
+// fecha. Juntos porque el usuario no distingue "marcar" de "exceptuar" — ve
+// una lista de fechas especiales — y porque separarlos es lo que dejaba a los
+// días extra sin forma de quitarse cuando ambas secciones se fundieron.
 func (e *ScheduleEditor) buildExceptionList() *Element {
 	list := Ul().Set(clsExcList.AsAttr())
-	items := sortedExceptions(e.Exceptions)
 
-	if len(items) == 0 && len(e.Holidays) == 0 {
+	if len(e.Exceptions) == 0 && len(e.Marked) == 0 && len(e.Holidays) == 0 {
 		list.Child(Li().Set(clsExcItem.AsAttr()).
-			Text(lang.Translate("No exceptions").String()))
+			Text(lang.Translate("No specific dates yet").String()))
 		return list
 	}
 
-	for _, ex := range items {
-		isHoliday := containsDate(e.Holidays, ex.Date)
-		row := Li().Set(clsExcItem.AsAttr()).Key(ex.Date + "/" + ex.Type)
-
-		row.Child(Span().Text(ex.Date)).
-			Child(Span().Text(exceptionLabel(ex.Type)))
-		if hours, ok := exceptionHoursText(ex); ok {
-			row.Child(Span().Text(hours))
+	for _, entry := range e.sortedDateEntries() {
+		if entry.Marked != nil {
+			list.Child(e.buildMarkedItem(*entry.Marked))
+			continue
 		}
-		if ex.Notes != "" {
-			row.Child(Span().Set(clsExcNotes.AsAttr()).Text(ex.Notes))
-		}
-
-		if isHoliday {
-			row.Set(clsExcHoliday.AsAttr())
-		} else {
-			remove := Button().Set(clsExcRemove.AsAttr()).
-				Attr("type", "button").
-				Text(lang.Translate("Remove").String())
-			id := ex.ID
-			remove.OnClick(func(Event) {
-				if e.OnExceptionRemove != nil {
-					e.OnExceptionRemove(id)
-				}
-			})
-			row.Child(remove)
-		}
-		list.Child(row)
+		list.Child(e.buildExceptionItem(*entry.Exc))
 	}
 	return list
+}
+
+// sortedDateEntries funde ambas listas y las ordena por fecha (ISO, así que el
+// orden lexicográfico ES el cronológico).
+func (e *ScheduleEditor) sortedDateEntries() []dateEntry {
+	out := make([]dateEntry, 0, len(e.Marked)+len(e.Exceptions))
+	for i := range e.Marked {
+		md := e.Marked[i]
+		out = append(out, dateEntry{Date: md.Date, Marked: &md})
+	}
+	for _, ex := range sortedExceptions(e.Exceptions) {
+		exc := ex
+		out = append(out, dateEntry{Date: exc.Date, Exc: &exc})
+	}
+	for i := 0; i < len(out); i++ {
+		min := i
+		for j := i + 1; j < len(out); j++ {
+			if out[j].Date < out[min].Date {
+				min = j
+			}
+		}
+		out[i], out[min] = out[min], out[i]
+	}
+	return out
+}
+
+func (e *ScheduleEditor) buildMarkedItem(md MarkedDay) *Element {
+	row := Li().Set(clsExcItem.AsAttr()).Key("marked/" + md.Date)
+	row.Child(dateCell(md.Date)).
+		Child(Span().Text(lang.Translate("Extra day").String())).
+		Child(Span().Text(hhmm(md.StartMin) + "–" + hhmm(md.EndMin)))
+
+	remove := Button().Set(clsExcRemove.AsAttr()).
+		Attr("type", "button").
+		Text(lang.Translate("Remove").String())
+	remove.OnClick(func(Event) {
+		if e.OnDaysUnmarked != nil {
+			e.OnDaysUnmarked([]string{md.Date})
+		}
+	})
+	return row.Child(remove)
+}
+
+func (e *ScheduleEditor) buildExceptionItem(ex Exception) *Element {
+	isHoliday := containsDate(e.Holidays, ex.Date)
+	row := Li().Set(clsExcItem.AsAttr()).Key(ex.Date + "/" + ex.Type)
+
+	row.Child(dateCell(ex.Date)).
+		Child(Span().Text(exceptionLabel(ex.Type)))
+	if hours, ok := exceptionHoursText(ex); ok {
+		row.Child(Span().Text(hours))
+	}
+	if ex.Notes != "" {
+		row.Child(Span().Set(clsExcNotes.AsAttr()).Text(ex.Notes))
+	}
+
+	// Un feriado lo pone el establecimiento, no el profesional: se muestra
+	// pero no se puede quitar desde acá.
+	if isHoliday {
+		row.Set(clsExcHoliday.AsAttr())
+		return row
+	}
+	remove := Button().Set(clsExcRemove.AsAttr()).
+		Attr("type", "button").
+		Text(lang.Translate("Remove").String())
+	id := ex.ID
+	remove.OnClick(func(Event) {
+		if e.OnExceptionRemove != nil {
+			e.OnExceptionRemove(id)
+		}
+	})
+	return row.Child(remove)
 }
 
 func sortedExceptions(excs []Exception) []Exception {
@@ -815,6 +1050,42 @@ func exceptionHoursText(ex Exception) (string, bool) {
 	return hhmm(ex.StartMin) + "–" + hhmm(ex.EndMin), true
 }
 
+// containsInt informa si el día d está en la lista de días de una PatternRow.
+func containsInt(list []int, v int) bool {
+	for _, x := range list {
+		if x == v {
+			return true
+		}
+	}
+	return false
+}
+
+// dateCell es la fecha de una fila: <time datetime="2026-09-17">17 de
+// septiembre…</time>. El elemento que HTML tiene exactamente para esto, y que
+// resuelve la tensión entera — la persona lee el texto, y la máquina (un
+// lector de pantalla, un test, cualquier cosa que raspe la página) sigue
+// teniendo el valor sin ambigüedad en el atributo.
+func dateCell(key string) *Element {
+	return NewElement("time").
+		Set(clsExcDate.AsAttr()).
+		Attr("datetime", key).
+		Text(humanDate(key))
+}
+
+// humanDate escribe una fecha como se lee, no como se guarda. "2026-09-17" es
+// un identificador: sirve para ordenar y comparar, y es ilegible en una lista
+// que alguien recorre con la vista. La forma es la misma que usa el campo
+// colapsado de calendarslider, para que la misma fecha se lea igual en las dos
+// pantallas; las palabras las pone el diccionario de la app.
+func humanDate(key string) string {
+	y, m, d := date.ParseDateKey(key)
+	if y == 0 {
+		return key
+	}
+	weekday := date.WeekdayName(date.Weekday(y, m, d))
+	return lang.Translate(weekday, d, date.MonthName(m), y).String()
+}
+
 func containsDate(list []string, date string) bool {
 	for _, d := range list {
 		if d == date {
@@ -827,6 +1098,5 @@ func containsDate(list []string, date string) bool {
 func (e *ScheduleEditor) Render() *Element {
 	return Div().Set(clsRoot.AsAttr()).
 		Child(e.buildPattern()).
-		Child(e.buildMarker()).
 		Child(e.buildExceptions())
 }
