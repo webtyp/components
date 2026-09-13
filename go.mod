@@ -10,7 +10,7 @@ require (
 	webtyp.com/html v0.0.23
 	webtyp.com/image v0.1.3
 	webtyp.com/js v0.0.10
-	webtyp.com/svg v0.3.11
+	webtyp.com/svg v0.3.14
 	webtyp.com/time v0.5.5
 	webtyp.com/view v0.5.10
 	webtyp.com/widget v0.6.30
