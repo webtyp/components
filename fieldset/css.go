@@ -128,11 +128,8 @@ func (f *Fieldset) RenderCSS() *css.Stylesheet {
 		// was the one piece of every form (login included) that still read
 		// as unfinished.
 		Part(widget.PartSubmit,
-			style.As(style.Primary),
-			style.Pad(style.Space3),
-			style.Round(style.RadiusMd),
+			style.Button(style.Primary),
 			style.Width(style.Full),
-			style.ControlBox(),
 			style.CenterContent(),
 		).
 		// Locked repaints the INPUT, not the field root — historically the
