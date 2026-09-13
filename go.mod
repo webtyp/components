@@ -13,7 +13,7 @@ require (
 	webtyp.com/svg v0.3.11
 	webtyp.com/time v0.5.5
 	webtyp.com/view v0.5.10
-	webtyp.com/widget v0.6.29
+	webtyp.com/widget v0.6.30
 )
 
 require (
@@ -26,5 +26,3 @@ require (
 	webtyp.com/model v0.1.9 // indirect
 	webtyp.com/router v0.1.37 // indirect
 )
-
-replace webtyp.com/widget => ../widget
