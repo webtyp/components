@@ -13,7 +13,7 @@ require (
 	webtyp.com/svg v0.3.14
 	webtyp.com/time v0.5.5
 	webtyp.com/view v0.5.10
-	webtyp.com/widget v0.6.31
+	webtyp.com/widget v0.6.32
 )
 
 require (
