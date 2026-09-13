@@ -65,6 +65,20 @@ func (m *UserMenu) RenderCSS() *css.Stylesheet {
 		Part(PartActions,
 			style.Row(style.Space1),
 		).
+		// Secondary, not Primary: a menu action is a quiet exit, and the
+		// gradient every primary control in the app wears would make logging
+		// out the loudest thing on screen. Button() supplies the control box,
+		// the surface's own radius and the hover/focus/press treatment — the
+		// same recipe the app's other buttons use, which is the whole point of
+		// tagging the slot's control with a part instead of leaving it bare.
+		//
+		// Full width because the panel is a narrow column: a shrink-wrapped
+		// button floating in it reads as a stray label, not an action.
+		Within(PartActions, PartAction,
+			style.Button(style.Secondary),
+			style.Width(style.Full),
+			style.CenterContent(),
+		).
 		// Keeping its size is a HEADER concern: there the menu shares a row with
 		// a message slot that will happily squeeze it. On a phone the menu sits
 		// in a drawer narrower than its own content, and refusing to shrink

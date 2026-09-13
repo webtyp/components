@@ -20,7 +20,20 @@ const (
 	PartPanel    = widget.Part("panel")
 	PartRoles    = widget.Part("roles")
 	PartRole     = widget.Part("role")
-	PartActions  = widget.Part("actions")
+	PartActions = widget.Part("actions")
+
+	// PartAction is what a control placed in the actions slot wears. The slot
+	// takes a Component the consumer builds — this package never sees it — so
+	// without a part to carry, that control arrives with no class this sheet
+	// can reach and renders as bare text in the middle of a panel: the shell
+	// that shipped a "Cerrar Sesión" button styled nothing at all, because the
+	// class it invented existed in no stylesheet anywhere.
+	//
+	// Tag the control with it and the menu's own button treatment applies:
+	//
+	//	Button().Text("Log out").Class(string(usermenu.NameUserMenu.Class(usermenu.PartAction)))
+	PartAction = widget.Part("action")
+
 	PartBackdrop = widget.Part("backdrop")
 )
 
