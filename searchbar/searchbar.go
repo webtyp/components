@@ -2,6 +2,7 @@ package searchbar
 
 import (
 	. "webtyp.com/dom"
+	"webtyp.com/fmt/lang"
 	. "webtyp.com/html"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
@@ -73,9 +74,12 @@ func (s *SearchBar) Render() *Element {
 	root.Child(Label().Set(clsIcon.AsAttr()).
 		Child(iconMagnifier.Render()))
 
+	// The host's own placeholder is parameterized input and is rendered as
+	// given; only the DEFAULT is this library's text, so only the default goes
+	// through lang — the same split every other component here follows.
 	placeholder := s.Placeholder
 	if placeholder == "" {
-		placeholder = defaultPlaceholder
+		placeholder = lang.Translate(defaultPlaceholder).String()
 	}
 
 	// size="1" collapses the input's intrinsic width (the UA default is 20

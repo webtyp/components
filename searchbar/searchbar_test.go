@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"webtyp.com/fmt/lang"
 	"webtyp.com/widget"
 )
 
@@ -43,6 +44,29 @@ func TestSearchBar_DefaultPlaceholder(t *testing.T) {
 	}
 	if strings.Contains(html, "Search…") {
 		t.Errorf("custom placeholder must not leak the default\n%s", html)
+	}
+}
+
+// TestSearchBar_DefaultPlaceholderIsTranslatable: the default is THIS library's
+// own chrome text, so it goes through lang like every other label here — a bar
+// that reads "Search…" inside a Spanish app is the one English word left on the
+// screen. The host's own Placeholder is parameterized input and stays verbatim:
+// translating what the app passed in would be this library deciding the app's
+// language. Registering a dictionary from a test is how a consumer is simulated
+// (see layout/AGENTS.md — a library never calls RegisterWords in production).
+func TestSearchBar_DefaultPlaceholderIsTranslatable(t *testing.T) {
+	lang.RegisterWords([]lang.DictEntry{{EN: "Search…", ES: "Buscar…"}})
+	lang.OutLang(lang.ES)
+	defer lang.OutLang(lang.EN)
+
+	html := (&SearchBar{}).Render().String()
+	if !strings.Contains(html, "placeholder='Buscar…'") {
+		t.Errorf("the default placeholder must render through the consumer's dictionary, got\n%s", html)
+	}
+
+	html = (&SearchBar{Placeholder: "Filtrar por RUT"}).Render().String()
+	if !strings.Contains(html, "placeholder='Filtrar por RUT'") {
+		t.Errorf("a host-supplied placeholder is parameterized input and must render verbatim, got\n%s", html)
 	}
 }
 
