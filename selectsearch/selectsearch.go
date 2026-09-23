@@ -3,6 +3,7 @@ package selectsearch
 import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
+	"webtyp.com/fmt/lang"
 	. "webtyp.com/html"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
@@ -10,6 +11,14 @@ import (
 
 // NameSelectSearch is the widget name.
 const NameSelectSearch = widget.Name("selectsearch")
+
+// searchPlaceholder is what the OPEN panel's search field says. It is this
+// library's own chrome, so it goes through lang — and it is the same key
+// components/searchbar uses on purpose: two spellings of one word would make
+// every consuming app register the same translation twice. The host-supplied
+// Placeholder (the CLOSED field, below) is parameterized input and is never
+// translated.
+const searchPlaceholder = "Search…"
 
 const (
 	PartToggle      = widget.Part("toggle")
@@ -189,7 +198,7 @@ func (c *SelectSearch) Render() *Element {
 	searchInput := Input("search").
 		Set(ClsSsSearch.AsAttr()).
 		Key("search").
-		Attr("placeholder", "Search...").
+		Attr("placeholder", lang.Translate(searchPlaceholder).String()).
 		Attr("role", "combobox").
 		BindAttrBool("aria-expanded", c.isOpen).
 		Bind(c.query)

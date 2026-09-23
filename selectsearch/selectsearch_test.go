@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"webtyp.com/fmt"
+	"webtyp.com/fmt/lang"
 	"webtyp.com/widget"
 )
 
@@ -328,5 +329,24 @@ func TestSelectSearch_OnSelect_StillFiresAlongsideFilterable(t *testing.T) {
 
 	if gotID != "p1" || gotDesc != "09:00" {
 		t.Fatalf("expected OnSelect(%q, %q), got (%q, %q)", "p1", "09:00", gotID, gotDesc)
+	}
+}
+
+// TestSelectSearch_SearchPlaceholderIsTranslatable: the open panel's search
+// field is this library's own chrome and must read in the consumer's language —
+// a picker that says "Search…" inside a Spanish app is the one English word on
+// screen. It deliberately shares components/searchbar's key so an app registers
+// the translation once, not once per component.
+func TestSelectSearch_SearchPlaceholderIsTranslatable(t *testing.T) {
+	lang.RegisterWords([]lang.DictEntry{{EN: "Search…", ES: "Buscar…"}})
+	lang.OutLang(lang.ES)
+	defer lang.OutLang(lang.EN)
+
+	html := (&SelectSearch{Placeholder: "Seleccione un paciente"}).Render().String()
+	if !strings.Contains(html, "placeholder='Buscar…'") {
+		t.Errorf("the panel's search placeholder must render through the dictionary, got\n%s", html)
+	}
+	if !strings.Contains(html, "Seleccione un paciente") {
+		t.Errorf("the host-supplied Placeholder is parameterized input and must survive verbatim, got\n%s", html)
 	}
 }
