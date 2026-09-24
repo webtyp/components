@@ -52,6 +52,38 @@ var (
 // LeadTop/Main/Bottom.
 type Item = view.Item
 
+// rowState holds the per-record reactive text of one row. The reconciler
+// reuses row nodes by key across SetItems, so static Text() at build time
+// froze the first render's words into surviving nodes. Binding the words to
+// signals the widget rewrites on every SetItems keeps them current while the
+// node — and its listeners — survives. The id never changes for a node, so
+// selection derives and the click path stay keyed on it, not on the words.
+type rowState struct {
+	id                    string
+	label, desc           *SignalString
+	top, main, bottom     *SignalString
+}
+
+func newRowState(it Item) *rowState {
+	return &rowState{
+		id:     it.ID,
+		label:  NewString(it.Label),
+		desc:   NewString(it.Description),
+		top:    NewString(it.LeadTop),
+		main:   NewString(it.LeadMain),
+		bottom: NewString(it.LeadBottom),
+	}
+}
+
+// set refreshes the words of a retained row to the latest record.
+func (r *rowState) set(it Item) {
+	r.label.Set(it.Label)
+	r.desc.Set(it.Description)
+	r.top.Set(it.LeadTop)
+	r.main.Set(it.LeadMain)
+	r.bottom.Set(it.LeadBottom)
+}
+
 // TargetDate is a selectable list of records with a prominent leading badge
 // (LeadTop/Main/Bottom) instead of a plain label lead-in.
 type TargetDate struct {
@@ -64,6 +96,8 @@ type TargetDate struct {
 	items []Item
 	rows  *SignalNodes
 	sel   listselect.Mode
+
+	rowStates []*rowState // one per live record id, pruned on every SetItems
 }
 
 func (t *TargetDate) WidgetName() widget.Name { return NameTargetDate }
@@ -107,11 +141,45 @@ func (t *TargetDate) CheckedIDs() []string {
 func (t *TargetDate) SetItems(items []Item) {
 	t.ensure()
 	t.items = items
+	// Retained states, pruned to the live ids: a dropped record's signals go
+	// with it (its node is unmounted by the reconciler), so nothing leaks
+	// across reloads and no closure outlives its record.
+	var kept []*rowState
 	nodes := make([]*Element, 0, len(items))
 	for _, it := range items {
-		nodes = append(nodes, t.buildRow(it))
+		st := t.stateFor(it)
+		kept = append(kept, st)
+		nodes = append(nodes, t.buildRowEl(st))
 	}
+	t.rowStates = kept
 	t.rows.Set(nodes)
+}
+
+// stateFor returns the retained row state for id, refreshing its words — or
+// mints it for a record the list has never shown. Linear scan, no map: a
+// projected list holds tens of rows.
+func (t *TargetDate) stateFor(it Item) *rowState {
+	for _, r := range t.rowStates {
+		if r.id == it.ID {
+			r.set(it)
+			return r
+		}
+	}
+	return newRowState(it)
+}
+
+// itemByID resolves the CURRENT record for a row click. A reused node's
+// closure must not ship the struct its node was built with — the words may
+// have moved on while the node survived. The id is immutable per node, so it
+// is the lookup key; the fallback keeps the total function honest for an id
+// with no row (unreachable: clicks only fire for rendered rows).
+func (t *TargetDate) itemByID(id string) Item {
+	for _, it := range t.items {
+		if it.ID == id {
+			return it
+		}
+	}
+	return Item{ID: id}
 }
 
 func (t *TargetDate) Items() []Item { return t.items }
@@ -126,10 +194,14 @@ func (t *TargetDate) Render() *Element {
 }
 
 func (t *TargetDate) buildRow(it Item) *Element {
-	id := it.ID
+	return t.buildRowEl(t.stateFor(it))
+}
+
+func (t *TargetDate) buildRowEl(st *rowState) *Element {
+	id := st.id
 	key := "td-" + id
 
-	// RowOf owns the per-row selection wiring: the narrow Edit/Danger derives
+	// RowOf owns the per-field selection wiring: the narrow Edit/Danger derives
 	// and the check box. isSel widens Edit with the normal-mode highlight for
 	// the ROW only; the box binds RowOf's narrow ones, so a row merely loaded
 	// in normal mode reveals no glyph. See targetlist.buildRow.
@@ -156,15 +228,19 @@ func (t *TargetDate) buildRow(it Item) *Element {
 			return
 		}
 		if t.OnSelect != nil {
-			t.OnSelect(it)
+			t.OnSelect(t.itemByID(id))
 		}
 	})
 
+	// Words ride signals, not static text: this shell may be discarded by the
+	// reconciler in favour of a surviving node bound to the same signals, or
+	// survive itself into the next render — either way the strings stay
+	// current because only the signals carry them.
 	lead := Div().Set(clsLead.AsAttr()).Child(
 		Div().Set(clsLeadStack.AsAttr()).Child(
-			Span().Set(clsLeadTop.AsAttr()).Text(it.LeadTop),
-			Span().Set(clsLeadMain.AsAttr()).Text(it.LeadMain),
-			Span().Set(clsLeadBottom.AsAttr()).Text(it.LeadBottom),
+			Span().Set(clsLeadTop.AsAttr()).BindText(st.top),
+			Span().Set(clsLeadMain.AsAttr()).BindText(st.main),
+			Span().Set(clsLeadBottom.AsAttr()).BindText(st.bottom),
 		),
 	)
 
@@ -173,12 +249,18 @@ func (t *TargetDate) buildRow(it Item) *Element {
 	// mode by RowOf. Nothing here hangs off the ROW's state.
 	content := Div().Set(clsContent.AsAttr()).
 		Child(r.Check).
-		Child(Span().Set(clsLabel.AsAttr()).Text(it.Label))
-	if it.Description != "" {
-		content.Child(Span().Set(clsBadge.AsAttr()).
-			Attr("title", it.Description).
-			Text(fmt.Convert(it.Description).Truncate(badgeChars).String()))
-	}
+		Child(Span().Set(clsLabel.AsAttr()).BindText(st.label))
+	// The badge mounts once and hides on empty, instead of existing
+	// conditionally: a conditional would need a new node exactly when the
+	// description flips empty↔set (a reservation confirming), which is the
+	// same staleness this change removes. Show() keeps it mounted and merely
+	// unhides it.
+	content.Child(Show(DeriveBool(func() bool { return st.desc.Get() != "" }),
+		Span().Set(clsBadge.AsAttr()).
+			BindAttr("title", st.desc).
+			BindText(DeriveString(func() string {
+				return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
+			}))))
 
 	row.Child(lead)
 	row.Child(content)
