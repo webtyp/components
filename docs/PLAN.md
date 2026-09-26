@@ -3,6 +3,8 @@ PLAN: "feat(components): inboxlist, bubblethread, composebar, presencelist — t
 TAG: v0.7.0
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 691779713403378960
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
