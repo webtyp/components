@@ -18,7 +18,7 @@ func testEditor() *ScheduleEditor {
 			{StartMin: 900, EndMin: 1140, Days: []int{1, 3, 5}},
 		},
 		Marked: []MarkedDay{
-			{Date: "2026-09-19", StartMin: 540, EndMin: 780},
+			{Date: sat, StartMin: 540, EndMin: 780},
 		},
 		Bounds: Bounds{OpenMin: 480, CloseMin: 1200},
 	}
@@ -76,7 +76,7 @@ func TestEmptyPatternWithMarkedDaysIsValid(t *testing.T) {
 	e := &ScheduleEditor{
 		Pattern: []PatternRow{},
 		Marked: []MarkedDay{
-			{Date: "2026-09-19", StartMin: 540, EndMin: 780},
+			{Date: sat, StartMin: 540, EndMin: 780},
 		},
 	}
 	e.Init(&emptyCtx{})
@@ -87,10 +87,10 @@ func TestEmptyPatternWithMarkedDaysIsValid(t *testing.T) {
 	}
 	// Legible, no el identificador: "2026-09-19" sirve para ordenar y
 	// comparar, y es ilegible en una lista que alguien recorre con la vista.
-	if !strings.Contains(html, "19 September 2026") {
+	if !strings.Contains(html, readableDate(sat)) {
 		t.Errorf("el día extra debería mostrar la fecha legible:\n%s", html)
 	}
-	if strings.Contains(html, ">2026-09-19<") {
+	if strings.Contains(html, ">"+sat+"<") {
 		t.Errorf("la fecha ISO cruda no debería llegar a la pantalla:\n%s", html)
 	}
 }
@@ -112,14 +112,14 @@ func TestOpeningAClosedDayGoesThroughAddException(t *testing.T) {
 	var got Exception
 	e.OnExceptionAdd = func(ex Exception) { got = ex }
 
-	e.sel.Set("2026-09-20")
+	e.sel.Set(sun)
 	e.excType.Set(ExcSpecialHours)
 	e.excFrom.Set("480")
 	e.excTo.Set("960")
 	e.addException()
 
-	if got.Date != "2026-09-20" || got.Type != ExcSpecialHours {
-		t.Fatalf("se esperaba SPECIAL_HOURS en 2026-09-20, llegó %+v", got)
+	if got.Date != sun || got.Type != ExcSpecialHours {
+		t.Fatalf("se esperaba SPECIAL_HOURS en %s, llegó %+v", sun, got)
 	}
 	if got.StartMin != 480 || got.EndMin != 960 {
 		t.Errorf("horas = (%d, %d), se esperaba (480, 960)", got.StartMin, got.EndMin)
@@ -132,13 +132,13 @@ func TestOpeningAClosedDayGoesThroughAddException(t *testing.T) {
 func TestMarkedDayCanDivergeFromTheCommonWindow(t *testing.T) {
 	e := &ScheduleEditor{
 		Marked: []MarkedDay{
-			{Date: "2026-09-19", StartMin: 480, EndMin: 720},
+			{Date: sat, StartMin: 480, EndMin: 720},
 		},
 	}
 	e.Init(&emptyCtx{})
 	html := e.Render().String()
 
-	if !strings.Contains(html, "19 September 2026") {
+	if !strings.Contains(html, readableDate(sat)) {
 		t.Fatalf("la lista debería mostrar la fecha legible:\n%s", html)
 	}
 	// La lista unificada muestra el horario del día extra como texto: es una
@@ -170,7 +170,7 @@ func TestUnmarkingADayFiresOnDaysUnmarked(t *testing.T) {
 	// Quitar un día extra ocurre desde la lista unificada de fechas, que es
 	// la única forma de sacarlo desde que las dos secciones se fundieron.
 	e := &ScheduleEditor{
-		Marked: []MarkedDay{{Date: "2026-09-20", StartMin: 540, EndMin: 780}},
+		Marked: []MarkedDay{{Date: sun, StartMin: 540, EndMin: 780}},
 	}
 	e.Init(&emptyCtx{})
 
@@ -180,13 +180,13 @@ func TestUnmarkingADayFiresOnDaysUnmarked(t *testing.T) {
 	}
 
 	html := e.buildExceptionList().String()
-	if !strings.Contains(html, "20 September 2026") {
+	if !strings.Contains(html, readableDate(sun)) {
 		t.Fatalf("el día extra debería aparecer en la lista de fechas:\n%s", html)
 	}
-	e.OnDaysUnmarked([]string{"2026-09-20"})
+	e.OnDaysUnmarked([]string{sun})
 
-	if len(gotUnmarked) != 1 || gotUnmarked[0] != "2026-09-20" {
-		t.Fatalf("OnDaysUnmarked recibió %v, se esperaba ['2026-09-20']", gotUnmarked)
+	if len(gotUnmarked) != 1 || gotUnmarked[0] != sun {
+		t.Fatalf("OnDaysUnmarked recibió %v, se esperaba [%s]", gotUnmarked, sun)
 	}
 }
 
@@ -229,12 +229,12 @@ func TestZeroBoundsFallBackToFullDay(t *testing.T) {
 
 func TestHolidayIsNotSelectableInTheMarker(t *testing.T) {
 	e := &ScheduleEditor{
-		Holidays: []string{"2026-09-18"},
+		Holidays: []string{fri},
 	}
 	e.Init(&emptyCtx{})
 	html := e.Render().String()
 
-	if strings.Contains(html, "data-date='2026-09-18' class='calendarslider__day calendarslider__day-selectable") {
+	if strings.Contains(html, "data-date='"+fri+"' class='calendarslider__day calendarslider__day-selectable") {
 		t.Errorf("holiday should not be marked selectable in calendar:\n%s", html)
 	}
 }
@@ -267,7 +267,7 @@ func TestRevealedStatesAreWrittenByTheMarkup(t *testing.T) {
 		},
 	}
 	e.Init(&emptyCtx{})
-	e.sel.Set("2026-09-19")
+	e.sel.Set(sat)
 	html := e.Render().String()
 
 	for _, kv := range e.sheet().StateAttrs() {
@@ -280,9 +280,9 @@ func TestRevealedStatesAreWrittenByTheMarkup(t *testing.T) {
 func TestExceptions_ListSorted(t *testing.T) {
 	e := testEditor()
 	e.Exceptions = []Exception{
-		{ID: "b", Date: "2026-09-20", Type: ExcBlocked},
-		{ID: "a", Date: "2026-09-18", Type: ExcHoliday},
-		{ID: "c", Date: "2026-09-19", Type: ExcSpecialHours, StartMin: 540, EndMin: 600},
+		{ID: "b", Date: sun, Type: ExcBlocked},
+		{ID: "a", Date: fri, Type: ExcHoliday},
+		{ID: "c", Date: sat, Type: ExcSpecialHours, StartMin: 540, EndMin: 600},
 	}
 	e.Init(&emptyCtx{})
 	list := e.buildExceptionList()
@@ -308,7 +308,7 @@ func TestExceptions_ListSorted(t *testing.T) {
 }
 
 func extractDate(s string) string {
-	quote := strings.Index(s, "2026-09-")
+	quote := strings.Index(s, sun[:8])
 	if quote < 0 {
 		return ""
 	}
@@ -317,9 +317,9 @@ func extractDate(s string) string {
 
 func TestExceptions_HolidayReadonly(t *testing.T) {
 	e := testEditor()
-	e.Holidays = []string{"2026-09-18"}
+	e.Holidays = []string{fri}
 	e.Exceptions = []Exception{
-		{ID: "a", Date: "2026-09-18", Type: ExcHoliday},
+		{ID: "a", Date: fri, Type: ExcHoliday},
 	}
 	e.Init(&emptyCtx{})
 

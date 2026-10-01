@@ -42,7 +42,7 @@ func TestDayStateChoosesTheAction(t *testing.T) {
 			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
 		},
 		Exceptions: []scheduleeditor.Exception{
-			{ID: "x1", Date: "2026-09-18", Type: scheduleeditor.ExcHoliday},
+			{ID: "x1", Date: fri, Type: scheduleeditor.ExcHoliday},
 		},
 		Holidays: []string{},
 	}
@@ -54,7 +54,7 @@ func TestDayStateChoosesTheAction(t *testing.T) {
 	}
 
 	// 1. Un día que el patrón cubre y no tiene excepción: se ofrece cerrarlo.
-	query(t, "[data-date='2026-09-17'] .calendarslider__day-button").Call("click")
+	query(t, "[data-date='"+thu+"'] .calendarslider__day-button").Call("click")
 	form := query(t, ".scheduleeditor__exc-form")
 	if v := form.Call("getAttribute", "data-open"); v.IsNull() || v.IsUndefined() {
 		t.Fatal("elegir un día debería abrir el panel de acción")
@@ -66,7 +66,7 @@ func TestDayStateChoosesTheAction(t *testing.T) {
 	var added scheduleeditor.Exception
 	se.OnExceptionAdd = func(ex scheduleeditor.Exception) { added = ex }
 	act.Call("querySelector", ".scheduleeditor__exc-add").Call("click")
-	if added.Date != "2026-09-17" || added.Type != scheduleeditor.ExcHoliday {
+	if added.Date != thu || added.Type != scheduleeditor.ExcHoliday {
 		t.Fatalf("cerrar un día laborable debería emitir HOLIDAY en su fecha, llegó %+v", added)
 	}
 
@@ -74,7 +74,7 @@ func TestDayStateChoosesTheAction(t *testing.T) {
 	//    volvía a abrir el alta y se podían apilar dos sobre la misma fecha.
 	var removed string
 	se.OnExceptionRemove = func(id string) { removed = id }
-	query(t, "[data-date='2026-09-18'] .calendarslider__day-button").Call("click")
+	query(t, "[data-date='"+fri+"'] .calendarslider__day-button").Call("click")
 	act = openAction()
 	if act.IsNull() {
 		t.Fatal("un día con excepción debería ofrecer volver al horario normal")
