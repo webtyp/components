@@ -18,7 +18,7 @@ func (l *PresenceList) RenderCSS() *css.Stylesheet {
 			style.Stack(style.Space1),
 		).
 		Part(PartRow,
-			style.Button(style.Page),
+			style.Button(style.Panel),
 			style.Row(style.Space2),
 			style.Pad(style.Space2),
 			style.Round(style.RadiusMd),

@@ -14,10 +14,12 @@ func (c *ComposeBar) RenderCSS() *css.Stylesheet {
 			style.Row(style.Space2),
 			style.Pad(style.Space2),
 			style.As(style.Panel),
+			style.KeepSize(),
 		).
 		Part(PartInput,
 			style.Grow(),
 			style.ControlBox(),
+			style.As(style.Inset),
 			style.Pad(style.Space2),
 			style.Round(style.RadiusMd),
 		).

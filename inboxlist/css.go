@@ -20,7 +20,7 @@ func (l *InboxList) RenderCSS() *css.Stylesheet {
 		).
 		Part(PartRow,
 			style.Anchor(),
-			style.Button(style.Page),
+			style.Button(style.Panel),
 			style.Pad(style.Space3),
 			style.Round(style.RadiusMd),
 			style.Stack(style.Space1),
