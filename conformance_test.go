@@ -14,6 +14,9 @@ import (
 
 	"testing"
 	"webtyp.com/components/actionbutton"
+	"webtyp.com/components/cellgrid"
+	"webtyp.com/components/segmentedcontrol"
+	"webtyp.com/components/stepindicator"
 	"webtyp.com/components/calendarslider"
 	"webtyp.com/components/contentcard"
 	"webtyp.com/components/datatable"
@@ -344,6 +347,9 @@ func TestEveryPackageEmits(t *testing.T) {
 		&targethour.TargetHour{},
 		&targetlist.TargetList{},
 		&themetoggle.ThemeToggle{},
+		&stepindicator.StepIndicator{},
+		&segmentedcontrol.SegmentedControl{},
+		&cellgrid.CellGrid{},
 	}
 
 	for _, c := range components {
@@ -375,9 +381,12 @@ func TestKindAllowsEveryState(t *testing.T) {
 		"sitenav":        &sitenav.SiteNav{},
 		"statgrid":       &statgrid.StatGrid{},
 		"decktabs":       &decktabs.DeckTabs{},
-		"targethour":     &targethour.TargetHour{},
-		"targetlist":     &targetlist.TargetList{},
-		"themetoggle":    &themetoggle.ThemeToggle{},
+		"targethour":       &targethour.TargetHour{},
+		"targetlist":       &targetlist.TargetList{},
+		"themetoggle":      &themetoggle.ThemeToggle{},
+		"stepindicator":    &stepindicator.StepIndicator{},
+		"segmentedcontrol": &segmentedcontrol.SegmentedControl{},
+		"cellgrid":         &cellgrid.CellGrid{},
 	}
 
 	stateMap := map[string]widget.State{

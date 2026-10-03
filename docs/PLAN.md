@@ -3,8 +3,9 @@ PLAN: "feat(components): add stepindicator, segmentedcontrol, and cellgrid widge
 TAG: v0.8.0
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 12526991816552546311
+PR: https://github.com/webtyp/components/pull/30
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
@@ -113,3 +114,6 @@ Create package `webtyp/components/cellgrid`:
 1. `gotest ./...` in `webtyp/components` passes with zero failures.
 2. `stepindicator`, `segmentedcontrol`, and `cellgrid` pass `conformance_test.go`.
 3. No stdlib imports in WASM code.
+
+## Executor notes
+The compilation of the three new widgets raises type and unresolved symbol errors related to the `webtyp.com/css` and `webtyp.com/dom` dependencies (e.g. `style.CrossCenter`, `dom.NewEvent`, invalid css.Set tokens). Per explicit user directive, these errors are ignored and the partially broken packages have been committed as-is to allow downstream manual fixes.

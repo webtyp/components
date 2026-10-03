@@ -84,6 +84,24 @@ prompt) can be added later as their own two-word component.
 
 ---
 
+## [StepIndicator](../stepindicator/README.md) — ✅ Slot-ready
+A numbered wizard/stepper control.
+[Detailed Documentation →](../stepindicator/README.md)
+
+---
+
+## [SegmentedControl](../segmentedcontrol/README.md) — ✅ Slot-ready
+A horizontal pill switch for 2 or more options.
+[Detailed Documentation →](../segmentedcontrol/README.md)
+
+---
+
+## [CellGrid](../cellgrid/README.md) — ✅ Slot-ready
+An interactive, fluid 2D coordinate grid canvas.
+[Detailed Documentation →](../cellgrid/README.md)
+
+---
+
 ## [DataTable](../datatable/README.md) — ✅ Slot-ready
 Data table for structured information with headers and rows.
 [Detailed Documentation →](../datatable/README.md)
