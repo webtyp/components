@@ -12,56 +12,38 @@ import (
 func (c *StepIndicator) RenderCSS() *css.Stylesheet {
 	return style.For(c).
 		Root(
-			style.Row(style.Space4), // Using valid layout token Space4 based on "have (), want (style.Space)"
-			style.CrossCenter(),
+			style.Row(style.Space4),
+			style.CenterContent(),
 			style.KeepSize(),
 		).
 		Part(PartStep,
-			style.Button(style.Surface),
+			style.Button(style.Bare),
 			style.Row(style.Space2),
-			style.CrossCenter(),
+			style.CenterContent(),
+			style.KeepSize(),
 		).
 		Part(PartBadge,
+			style.IconBox(style.IconMd),
 			style.CenterContent(),
-			css.Set("width", "1.5rem"),
-			css.Set("height", "1.5rem"),
-			css.Set("border-radius", "var(--radius-full)"),
-			css.Set("border", "1px solid var(--color-outline)"),
-			css.Set("background-color", "var(--color-surface)"),
-			css.Set("color", "var(--color-muted)"),
-			css.Set("font-size", "var(--text-sm)"),
-			css.Set("font-weight", "var(--font-weight-medium)"),
+			style.Round(style.RadiusFull),
+			style.As(style.Panel),
+			style.FontSize(style.TextSm),
 		).
 		Part(PartLabel,
-			css.Set("color", "var(--color-on-surface)"),
-			css.Set("white-space", "nowrap"),
+			style.FontSize(style.TextSm),
 		).
 		Part(PartLine,
 			style.Grow(),
-			css.Set("height", "1px"),
-			css.Set("background-color", "var(--color-outline)"),
+			style.DividerBelow(),
 		).
-		// styling for active step
-		Rule(
-			css.Class(string(clsStep)).When(widget.Current).Descendant(css.Class(string(clsLabel))),
-			css.Set("font-weight", "var(--font-weight-bold)"),
+		When(widget.Current, PartStep,
+			style.FontWeight(style.WeightBold),
 		).
-		Rule(
-			css.Class(string(clsStep)).When(widget.Current).Descendant(css.Class(string(clsBadge))),
-			css.Set("background-color", "var(--color-primary)"),
-			css.Set("color", "var(--color-on-primary)"),
-			css.Set("border-color", "var(--color-primary)"),
+		WhenWithin(widget.Current, PartStep, PartBadge,
+			style.As(style.Primary),
 		).
-		// styling for done step
-		Rule(
-			css.Class(string(clsStep)).When(widget.Selected).Descendant(css.Class(string(clsBadge))),
-			css.Set("background-color", "var(--color-primary)"),
-			css.Set("color", "var(--color-on-primary)"),
-			css.Set("border-color", "var(--color-primary)"),
-		).
-		Rule(
-			css.Class(string(clsLine)).When(widget.Current),
-			css.Set("background-color", "var(--color-primary)"),
+		WhenWithin(widget.Selected, PartStep, PartBadge,
+			style.As(style.AccentInverse),
 		).
 		Stylesheet()
 }

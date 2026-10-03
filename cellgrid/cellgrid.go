@@ -1,9 +1,9 @@
 package cellgrid
 
 import (
-	. "webtyp.com/dom"
-	. "webtyp.com/html"
+	"webtyp.com/dom"
 	"webtyp.com/fmt"
+	"webtyp.com/html"
 	"webtyp.com/widget"
 )
 
@@ -13,7 +13,6 @@ const NameCellGrid = widget.Name("cellgrid")
 const (
 	PartContainer = widget.Part("container")
 	PartCell      = widget.Part("cell")
-	PartActive    = widget.Part("active")
 )
 
 var (
@@ -37,28 +36,26 @@ func ColName(col int) string {
 }
 
 type CellGrid struct {
-	Element
-	Cols        int
-	Rows        int
-	SparseCells []CellCoord
-	IsActive    func(r, c int) bool
-	OnCellClick func(r, c int)
+	dom.Element
+	Cols          int
+	Rows          int
+	SparseCells   []CellCoord
+	IsActive      func(r, c int) bool
+	OnCellClick   func(r, c int)
 	OnPaintStroke func(cells []CellCoord, on bool)
 }
 
 func (c *CellGrid) WidgetName() widget.Name { return NameCellGrid }
-func (c *CellGrid) WidgetKind() widget.Kind { return widget.Combobox }
+func (c *CellGrid) WidgetKind() widget.Kind { return widget.Grid }
 
-func (c *CellGrid) Init(_ Ctx) {}
+func (c *CellGrid) Init(_ dom.Ctx) {}
 
-func (c *CellGrid) Render() *Element {
-	grid := Div().
+func (c *CellGrid) Render() *dom.Element {
+	grid := html.Div().
 		Set(clsGrid.AsAttr())
 
-	// Grid inline style for columns and rows
-	grid.Attr("style", fmt.Sprint("grid-template-columns: repeat(", c.Cols, ", 1fr); grid-template-rows: repeat(", c.Rows, ", 1fr);"))
+	grid.Attr("style", fmt.Sprintf("display: grid; grid-template-columns: repeat(%d, 1fr); grid-template-rows: repeat(%d, 1fr);", c.Cols, c.Rows))
 
-	// Sparse or full render
 	if len(c.SparseCells) > 0 {
 		for _, cell := range c.SparseCells {
 			grid.Child(c.renderCell(cell.R, cell.C))
@@ -74,17 +71,17 @@ func (c *CellGrid) Render() *Element {
 	return grid
 }
 
-func (c *CellGrid) renderCell(r, col int) *Element {
+func (c *CellGrid) renderCell(r, col int) *dom.Element {
 	active := false
 	if c.IsActive != nil {
 		active = c.IsActive(r, col)
 	}
 
-	el := Div().
+	el := html.Div().
 		Set(clsCell.AsAttr()).
 		BindStateFunc(widget.Selected, func() bool { return active }).
-		Attr("style", fmt.Sprint("grid-row: ", r+2, "; grid-column: ", col+2, ";")).
-		OnClick(func(Event) {
+		Attr("style", fmt.Sprintf("grid-row: %d; grid-column: %d;", r+1, col+1)).
+		OnClick(func(dom.Event) {
 			if c.OnCellClick != nil {
 				c.OnCellClick(r, col)
 			}
@@ -93,7 +90,7 @@ func (c *CellGrid) renderCell(r, col int) *Element {
 	return el
 }
 
-func bresenham(r0, c0, r1, c1 int) []CellCoord {
+func Bresenham(r0, c0, r1, c1 int) []CellCoord {
 	var res []CellCoord
 	dr := r1 - r0
 	if dr < 0 {
@@ -103,29 +100,34 @@ func bresenham(r0, c0, r1, c1 int) []CellCoord {
 	if dc < 0 {
 		dc = -dc
 	}
-	sr, sc := 1, 1
+
+	sr := 1
 	if r0 > r1 {
 		sr = -1
 	}
+	sc := 1
 	if c0 > c1 {
 		sc = -1
 	}
+
 	err := dr - dc
+	currR, currC := r0, c0
 
 	for {
-		res = append(res, CellCoord{R: r0, C: c0})
-		if r0 == r1 && c0 == c1 {
+		res = append(res, CellCoord{R: currR, C: currC})
+		if currR == r1 && currC == c1 {
 			break
 		}
 		e2 := 2 * err
 		if e2 > -dc {
 			err -= dc
-			r0 += sr
+			currR += sr
 		}
 		if e2 < dr {
 			err += dr
-			c0 += sc
+			currC += sc
 		}
 	}
+
 	return res
 }

@@ -1,8 +1,8 @@
 package segmentedcontrol
 
 import (
-	. "webtyp.com/dom"
-	. "webtyp.com/html"
+	"webtyp.com/dom"
+	"webtyp.com/html"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
 )
@@ -11,7 +11,7 @@ import (
 const NameSegmentedControl = widget.Name("segmentedcontrol")
 
 const (
-	PartPill = widget.Part("pill")
+	PartPill  = widget.Part("pill")
 	PartTrack = widget.Part("track")
 )
 
@@ -27,61 +27,59 @@ type Option struct {
 }
 
 type SegmentedControl struct {
-	Element
+	dom.Element
 	Options  []Option
 	Selected string
 	OnChange func(value string)
 
-	selectedSig *SignalString
+	selectedSig *dom.SignalString
 }
 
 func (c *SegmentedControl) WidgetName() widget.Name { return NameSegmentedControl }
-func (c *SegmentedControl) WidgetKind() widget.Kind { return widget.Combobox }
+func (c *SegmentedControl) WidgetKind() widget.Kind { return widget.Tabs }
 
-func (c *SegmentedControl) Init(_ Ctx) {
-	c.selectedSig = NewString(c.Selected)
+func (c *SegmentedControl) Init(_ dom.Ctx) {
+	c.selectedSig = dom.NewString(c.Selected)
 }
 
-func (c *SegmentedControl) Render() *Element {
-	track := Div().
+func (c *SegmentedControl) Render() *dom.Element {
+	if c.selectedSig == nil {
+		c.Init(nil)
+	}
+
+	track := html.Div().
 		Set(clsTrack.AsAttr()).
 		Attr("role", "tablist")
 
 	for i, opt := range c.Options {
-		val := opt.Value // capture
+		val := opt.Value
 		idx := i
 
-		isCurrent := DeriveBool(func() bool { return c.selectedSig.Get() == val })
+		isCurrent := dom.DeriveBool(func() bool { return c.selectedSig.Get() == val })
 
-		pill := Button().
+		pill := html.Button().
 			Set(clsPill.AsAttr()).
 			BindState(widget.Selected, isCurrent).
 			Attr("role", "tab").
 			Attr("type", "button").
-			OnClick(func(Event) {
+			OnClick(func(dom.Event) {
 				c.selectedSig.Set(val)
 				if c.OnChange != nil {
 					c.OnChange(val)
 				}
 			})
 
-		// Append icon if present
-		if opt.Icon != nil {
-			// Using basic svg icon component correctly if possible, otherwise just text fallback
-			// Since we just have the svg.Icon struct, its API might not be exposed this way. Let's just avoid panicking.
-		}
-		pill.Child(Span().Text(opt.Label))
+		pill.Child(html.Span().Text(opt.Label))
 
-		// Keyboard navigation logic
-		pill.OnKeyDown(func(e Event) {
-			if e.TargetValue() == "ArrowRight" {
+		pill.OnKeyDown(func(e dom.KeyEvent) {
+			if e.Key() == dom.KeyArrowRight {
 				nextIdx := (idx + 1) % len(c.Options)
 				nextVal := c.Options[nextIdx].Value
 				c.selectedSig.Set(nextVal)
 				if c.OnChange != nil {
 					c.OnChange(nextVal)
 				}
-			} else if e.TargetValue() == "ArrowLeft" {
+			} else if e.Key() == dom.KeyArrowLeft {
 				nextIdx := (idx - 1 + len(c.Options)) % len(c.Options)
 				nextVal := c.Options[nextIdx].Value
 				c.selectedSig.Set(nextVal)

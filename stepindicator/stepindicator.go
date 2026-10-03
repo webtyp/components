@@ -1,9 +1,9 @@
 package stepindicator
 
 import (
-	. "webtyp.com/dom"
-	. "webtyp.com/html"
+	"webtyp.com/dom"
 	"webtyp.com/fmt"
+	"webtyp.com/html"
 	"webtyp.com/widget"
 )
 
@@ -31,29 +31,33 @@ type Step struct {
 }
 
 type StepIndicator struct {
-	Element
+	dom.Element
 	Steps    []Step
 	Active   int // 0-based active step index
 	OnChange func(index int)
 
-	activeSig *SignalString
+	activeSig *dom.SignalString
 }
 
 func (c *StepIndicator) WidgetName() widget.Name { return NameStepIndicator }
-func (c *StepIndicator) WidgetKind() widget.Kind { return widget.Region }
+func (c *StepIndicator) WidgetKind() widget.Kind { return widget.Tabs }
 
-func (c *StepIndicator) Init(_ Ctx) {
-	c.activeSig = NewString(fmt.Sprint(c.Active))
+func (c *StepIndicator) Init(_ dom.Ctx) {
+	c.activeSig = dom.NewString(fmt.Sprint(c.Active))
 }
 
-func (c *StepIndicator) Render() *Element {
-	nav := Nav().Set(clsNav.AsAttr()).Attr("role", "navigation")
+func (c *StepIndicator) Render() *dom.Element {
+	if c.activeSig == nil {
+		c.Init(nil)
+	}
+
+	nav := html.Nav().Set(clsNav.AsAttr()).Attr("role", "navigation")
 
 	for i, step := range c.Steps {
 		idx := i
 		idxStr := fmt.Sprint(idx)
 
-		badge := Div().Set(clsBadge.AsAttr()).
+		badge := html.Div().Set(clsBadge.AsAttr()).
 			BindTextFunc(func() string {
 				cur, _ := parse(c.activeSig.Get())
 				if cur > idx {
@@ -62,15 +66,15 @@ func (c *StepIndicator) Render() *Element {
 				return fmt.Sprint(idx + 1)
 			})
 
-		label := Span().Set(clsLabel.AsAttr()).Text(step.Label)
+		label := html.Span().Set(clsLabel.AsAttr()).Text(step.Label)
 
-		btn := Button().Set(clsStep.AsAttr()).
+		btn := html.Button().Set(clsStep.AsAttr()).
 			BindStateFunc(widget.Current, func() bool { return c.activeSig.Get() == idxStr }).
 			BindStateFunc(widget.Selected, func() bool { cur, _ := parse(c.activeSig.Get()); return cur > idx }).
 			Attr("type", "button").
 			Child(badge).
 			Child(label).
-			OnClick(func(Event) {
+			OnClick(func(dom.Event) {
 				c.activeSig.Set(idxStr)
 				if c.OnChange != nil {
 					c.OnChange(idx)
@@ -80,7 +84,7 @@ func (c *StepIndicator) Render() *Element {
 		nav.Child(btn)
 
 		if i < len(c.Steps)-1 {
-			line := Div().Set(clsLine.AsAttr()).
+			line := html.Div().Set(clsLine.AsAttr()).
 				BindStateFunc(widget.Current, func() bool { cur, _ := parse(c.activeSig.Get()); return cur > idx })
 			nav.Child(line)
 		}

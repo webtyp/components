@@ -1,18 +1,35 @@
 //go:build wasm
 
-package stepindicator
+package stepindicator_test
 
 import (
+	"syscall/js"
 	"testing"
+
+	"webtyp.com/components/stepindicator"
 	"webtyp.com/dom"
 )
 
+func TestMain(m *testing.M) {
+	doc := js.Global().Get("document")
+	app := doc.Call("getElementById", "app")
+	if app.IsNull() || app.IsUndefined() {
+		app = doc.Call("createElement", "div")
+		app.Set("id", "app")
+		doc.Get("body").Call("appendChild", app)
+	}
+	m.Run()
+}
+
 func TestStepIndicator_Click(t *testing.T) {
+	app := js.Global().Get("document").Call("getElementById", "app")
+	app.Set("innerHTML", "")
+
 	var clickedIdx int = -1
-	comp := &StepIndicator{
-		Steps: []Step{
-			{Key: "1", Label: "One"},
-			{Key: "2", Label: "Two"},
+	comp := &stepindicator.StepIndicator{
+		Steps: []stepindicator.Step{
+			{Key: "s1", Label: "Step 1"},
+			{Key: "s2", Label: "Step 2"},
 		},
 		Active: 0,
 		OnChange: func(idx int) {
@@ -20,21 +37,15 @@ func TestStepIndicator_Click(t *testing.T) {
 		},
 	}
 	comp.Init(nil)
-	el := comp.Render()
+	dom.Render("app", comp)
 
-	var btn *dom.Element
-	for _, c := range el.ChildNodes() {
-		if c.TagName() == "BUTTON" {
-			if btn == nil {
-				btn = c
-			} else {
-				btn = c
-				break
-			}
-		}
+	buttons := app.Call("querySelectorAll", "button")
+	if buttons.Length() < 2 {
+		t.Fatalf("expected at least 2 step buttons, got %d", buttons.Length())
 	}
 
-	if btn != nil {
-		btn.DispatchEvent(dom.NewEvent("click"))
+	buttons.Index(1).Call("click")
+	if clickedIdx != 1 {
+		t.Fatalf("expected clickedIdx to be 1, got %d", clickedIdx)
 	}
 }

@@ -11,14 +11,14 @@ import (
 func (c *CellGrid) RenderCSS() *css.Stylesheet {
 	return style.For(c).
 		Root(
-			css.Set("display", "grid"),
+			style.Fill(),
 		).
 		Part(PartCell,
-			css.Set("aspect-ratio", "1 / 1"),
-			css.Set("border", "1px solid var(--color-outline)"),
-			style.When(widget.Selected,
-				css.Set("background-color", "var(--color-primary)"),
-			),
+			style.Button(style.Bare),
+			style.CenterContent(),
+		).
+		When(widget.Selected, PartCell,
+			style.As(style.Primary),
 		).
 		Stylesheet()
 }
