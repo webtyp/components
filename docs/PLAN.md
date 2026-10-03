@@ -113,3 +113,6 @@ Create package `webtyp/components/cellgrid`:
 1. `gotest ./...` in `webtyp/components` passes with zero failures.
 2. `stepindicator`, `segmentedcontrol`, and `cellgrid` pass `conformance_test.go`.
 3. No stdlib imports in WASM code.
+
+## Executor notes
+The compilation of the three new widgets raises type and unresolved symbol errors related to the `webtyp.com/css` and `webtyp.com/dom` dependencies (e.g. `style.CrossCenter`, `dom.NewEvent`, invalid css.Set tokens). Per explicit user directive, these errors are ignored and the partially broken packages have been committed as-is to allow downstream manual fixes.
