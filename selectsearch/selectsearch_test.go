@@ -252,6 +252,7 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 	ss.Init(nil)
 	ss.isOpen.Set(true)
 	ss.SetOptions([]SsOption{{ID: "1", Label: "A", Sublabel: "C", Description: "B"}})
+	ss.searchShown.Set(true)
 	html := ss.Render().String()
 	// Render option row too
 	html += ss.buildRows("")[0].String()
@@ -342,7 +343,11 @@ func TestSelectSearch_SearchPlaceholderIsTranslatable(t *testing.T) {
 	lang.OutLang(lang.ES)
 	defer lang.OutLang(lang.EN)
 
-	html := (&SelectSearch{Placeholder: "Seleccione un paciente"}).Render().String()
+	ss := &SelectSearch{Placeholder: "Seleccione un paciente"}
+	ss.Init(nil)
+	ss.isOpen.Set(true)
+	ss.searchShown.Set(true)
+	html := ss.Render().String()
 	if !strings.Contains(html, "placeholder='Buscar…'") {
 		t.Errorf("the panel's search placeholder must render through the dictionary, got\n%s", html)
 	}

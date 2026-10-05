@@ -79,7 +79,7 @@ func (m *ModalDialog) Render() *Element {
 		Child(modalContent)
 
 	modalContent.OnClick(func(e Event) { e.StopPropagation() })
-	return Show(m.visible, modal)
+	return Show(m.visible, func() *Element { return modal })
 }
 
 func (m *ModalDialog) Open() {

@@ -86,7 +86,7 @@ func (l *InboxList) Render() *Element {
 	emptyShow := Show(DeriveBool(func() bool {
 		_ = l.rows.Get()
 		return len(l.items) == 0 && l.Empty != ""
-	}), Div().Set(clsEmpty.AsAttr()).Text(l.Empty))
+	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(l.Empty) })
 
 	return Div().Set(clsListWrap.AsAttr()).
 		Child(list).

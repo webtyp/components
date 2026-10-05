@@ -133,7 +133,7 @@ func (t *BubbleThread) Render() *Element {
 	emptyShow := Show(DeriveBool(func() bool {
 		_ = t.nodes.Get()
 		return len(t.bubbles) == 0 && t.Empty != ""
-	}), Div().Set(clsEmpty.AsAttr()).Text(t.Empty))
+	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(t.Empty) })
 
 	return Div().Set(clsThreadWrap.AsAttr()).
 		Child(thread).

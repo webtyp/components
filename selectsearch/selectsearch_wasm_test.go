@@ -40,7 +40,8 @@ func TestTwoInstancesShareAPage(t *testing.T) {
 		t.Fatalf("expected 2 selectsearches in DOM, got %d", pickers.Get("length").Int())
 	}
 
-	// Click Option A in picker 1
+	// Open picker 1 and click Option A
+	pickers.Call("item", 0).Call("querySelector", ".selectsearch__toggle").Call("click")
 	item1 := pickers.Call("item", 0).Call("querySelector", "[role='option']")
 	if item1.IsNull() || item1.IsUndefined() {
 		t.Fatal("option item 1 not found")

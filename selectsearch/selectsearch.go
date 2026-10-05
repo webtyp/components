@@ -241,12 +241,12 @@ func (c *SelectSearch) Render() *Element {
 	// the header cannot drift from the row it echoes.
 	pickedText := Div().Set(ClsSsText.AsAttr()).
 		Child(Span().Set(ClsSsLabel.AsAttr()).BindText(c.selectedLabel)).
-		Child(Show(hasSublabel, Span().Set(ClsSsSublabel.AsAttr()).BindText(c.selectedSublabel)))
+		Child(Show(hasSublabel, func() *Element { return Span().Set(ClsSsSublabel.AsAttr()).BindText(c.selectedSublabel) }))
 
 	headerBody := Div().Set(ClsSsHeaderBody.AsAttr()).
-		Child(Show(noSelection, Span().Set(ClsSsPlaceholder.AsAttr()).Text(placeholderText))).
-		Child(Show(hasSelection, pickedText)).
-		Child(Show(hasDesc, Span().Set(ClsSsDesc.AsAttr()).BindText(c.selectedDesc)))
+		Child(Show(noSelection, func() *Element { return Span().Set(ClsSsPlaceholder.AsAttr()).Text(placeholderText) })).
+		Child(Show(hasSelection, func() *Element { return pickedText })).
+		Child(Show(hasDesc, func() *Element { return Span().Set(ClsSsDesc.AsAttr()).BindText(c.selectedDesc) }))
 
 	header := Label().Set(ClsSsHeader.AsAttr()).
 		For(toggle).
@@ -284,7 +284,7 @@ func (c *SelectSearch) Render() *Element {
 		})
 
 	dropdown := Div().Set(ClsSsDropdown.AsAttr()).
-		Child(Show(c.searchShown, searchInput)).
+		Child(Show(c.searchShown, func() *Element { return searchInput })).
 		Child(optList)
 
 	// The backdrop is the full-viewport scrim behind an open dropdown:
@@ -307,8 +307,8 @@ func (c *SelectSearch) Render() *Element {
 		BindState(widget.Open, c.isOpen).
 		Child(toggle).
 		Child(header).
-		Child(Show(c.isOpen, backdrop)).
-		Child(Show(c.isOpen, dropdown))
+		Child(Show(c.isOpen, func() *Element { return backdrop })).
+		Child(Show(c.isOpen, func() *Element { return dropdown }))
 }
 
 // selectOption is the single place an option becomes "chosen" — today only

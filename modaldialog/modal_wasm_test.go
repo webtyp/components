@@ -33,7 +33,7 @@ func TestModalClickContract(t *testing.T) {
 	doc := js.Global().Get("document")
 	visible := func() bool {
 		dl := doc.Call("querySelector", ".modaldialog")
-		return dl.Get("parentElement").Get("style").Get("display").String() != "none"
+		return !dl.IsNull() && !dl.IsUndefined()
 	}
 
 	if visible() {

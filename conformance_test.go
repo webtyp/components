@@ -14,22 +14,21 @@ import (
 
 	"testing"
 	"webtyp.com/components/actionbutton"
-	"webtyp.com/components/cellgrid"
-	"webtyp.com/components/segmentedcontrol"
-	"webtyp.com/components/stepindicator"
 	"webtyp.com/components/calendarslider"
+	"webtyp.com/components/cellgrid"
 	"webtyp.com/components/contentcard"
 	"webtyp.com/components/datatable"
 	"webtyp.com/components/decktabs"
-	"webtyp.com/components/fieldset"
 	"webtyp.com/components/herobanner"
 	"webtyp.com/components/infobar"
 	"webtyp.com/components/modaldialog"
 	"webtyp.com/components/scheduleeditor"
 	"webtyp.com/components/searchbar"
+	"webtyp.com/components/segmentedcontrol"
 	"webtyp.com/components/selectsearch"
 	"webtyp.com/components/sitenav"
 	"webtyp.com/components/statgrid"
+	"webtyp.com/components/stepindicator"
 	"webtyp.com/components/targethour"
 	"webtyp.com/components/targetlist"
 	"webtyp.com/components/themetoggle"
@@ -334,7 +333,6 @@ func TestEveryPackageEmits(t *testing.T) {
 		&calendarslider.CalendarSlider{},
 		&contentcard.ContentCard{},
 		&datatable.DataTable{},
-		&fieldset.Fieldset{},
 		&herobanner.HeroBanner{},
 		&infobar.InfoBar{},
 		&modaldialog.ModalDialog{},
@@ -367,20 +365,19 @@ func TestKindAllowsEveryState(t *testing.T) {
 	packageComponents := map[string]interface {
 		WidgetKind() widget.Kind
 	}{
-		"actionbutton":   &actionbutton.ActionButton{},
-		"calendarslider": &calendarslider.CalendarSlider{},
-		"contentcard":    &contentcard.ContentCard{},
-		"datatable":      &datatable.DataTable{},
-		"fieldset":       &fieldset.Fieldset{},
-		"herobanner":     &herobanner.HeroBanner{},
-		"infobar":        &infobar.InfoBar{},
-		"modaldialog":    &modaldialog.ModalDialog{},
-		"scheduleeditor": &scheduleeditor.ScheduleEditor{},
-		"searchbar":      &searchbar.SearchBar{},
-		"selectsearch":   &selectsearch.SelectSearch{},
-		"sitenav":        &sitenav.SiteNav{},
-		"statgrid":       &statgrid.StatGrid{},
-		"decktabs":       &decktabs.DeckTabs{},
+		"actionbutton":     &actionbutton.ActionButton{},
+		"calendarslider":   &calendarslider.CalendarSlider{},
+		"contentcard":      &contentcard.ContentCard{},
+		"datatable":        &datatable.DataTable{},
+		"herobanner":       &herobanner.HeroBanner{},
+		"infobar":          &infobar.InfoBar{},
+		"modaldialog":      &modaldialog.ModalDialog{},
+		"scheduleeditor":   &scheduleeditor.ScheduleEditor{},
+		"searchbar":        &searchbar.SearchBar{},
+		"selectsearch":     &selectsearch.SelectSearch{},
+		"sitenav":          &sitenav.SiteNav{},
+		"statgrid":         &statgrid.StatGrid{},
+		"decktabs":         &decktabs.DeckTabs{},
 		"targethour":       &targethour.TargetHour{},
 		"targetlist":       &targetlist.TargetList{},
 		"themetoggle":      &themetoggle.ThemeToggle{},

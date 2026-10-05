@@ -267,11 +267,13 @@ func (t *TargetHour) buildRowEl(st *rowState) *Element {
 	// The badge mounts once and hides on empty — see targetdate.buildRow for
 	// why a conditional would reintroduce the staleness this removes.
 	content.Child(Show(DeriveBool(func() bool { return st.desc.Get() != "" }),
-		Span().Set(clsBadge.AsAttr()).
-			BindAttr("title", st.desc).
-			BindText(DeriveString(func() string {
-				return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
-			}))))
+		func() *Element {
+			return Span().Set(clsBadge.AsAttr()).
+				BindAttr("title", st.desc).
+				BindText(DeriveString(func() string {
+					return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
+				}))
+		}))
 
 	row.Child(content)
 	return row

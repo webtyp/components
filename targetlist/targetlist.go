@@ -231,11 +231,13 @@ func (t *TargetList) buildRowEl(st *rowState) *Element {
 	// description flips empty↔set, which is the same staleness this change
 	// removes. Show() keeps it mounted and merely unhides it.
 	row.Child(Show(DeriveBool(func() bool { return st.desc.Get() != "" }),
-		Span().Set(clsBadge.AsAttr()).
-			BindAttr("title", st.desc).
-			BindText(DeriveString(func() string {
-				return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
-			}))))
+		func() *Element {
+			return Span().Set(clsBadge.AsAttr()).
+				BindAttr("title", st.desc).
+				BindText(DeriveString(func() string {
+					return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
+				}))
+		}))
 
 	return row
 }

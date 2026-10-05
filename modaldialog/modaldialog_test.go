@@ -49,14 +49,11 @@ func TestModal_Render(t *testing.T) {
 		t.Error("expected content")
 	}
 
-	// Test hidden — content is still serialized, container carries display:none.
+	// Test hidden — with lazy Show, content is unmounted when not visible.
 	m.visible.Set(false)
 	htmlHidden := m.Render().String()
-	if htmlHidden == "" {
-		t.Error("expected container in DOM when not visible, not empty string")
-	}
-	if !Contains(htmlHidden, "display:none") {
-		t.Error("expected display:none when not visible")
+	if Contains(htmlHidden, "<h2>My Modal</h2>") {
+		t.Error("expected content to be unmounted when not visible")
 	}
 }
 

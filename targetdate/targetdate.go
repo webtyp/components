@@ -256,11 +256,13 @@ func (t *TargetDate) buildRowEl(st *rowState) *Element {
 	// same staleness this change removes. Show() keeps it mounted and merely
 	// unhides it.
 	content.Child(Show(DeriveBool(func() bool { return st.desc.Get() != "" }),
-		Span().Set(clsBadge.AsAttr()).
-			BindAttr("title", st.desc).
-			BindText(DeriveString(func() string {
-				return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
-			}))))
+		func() *Element {
+			return Span().Set(clsBadge.AsAttr()).
+				BindAttr("title", st.desc).
+				BindText(DeriveString(func() string {
+					return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
+				}))
+		}))
 
 	row.Child(lead)
 	row.Child(content)
