@@ -95,6 +95,32 @@ func (t *DeckTabs) activate(id string) {
 	if t.OnChange != nil {
 		t.OnChange(id)
 	}
+	for _, item := range t.Items {
+		if item.ID == id {
+			if act, ok := item.Panel.(interface{ Activate() }); ok {
+				act.Activate()
+			}
+			break
+		}
+	}
+}
+
+// Activate propagates activation to the currently active tab's panel.
+func (t *DeckTabs) Activate() {
+	activeID := ""
+	if t.Active != nil {
+		activeID = t.Active.Get()
+	} else if len(t.Items) > 0 {
+		activeID = t.Items[0].ID
+	}
+	for _, item := range t.Items {
+		if item.ID == activeID {
+			if act, ok := item.Panel.(interface{ Activate() }); ok {
+				act.Activate()
+			}
+			break
+		}
+	}
 }
 
 // isActive is the predicate both the tab and its panel bind widget.Current to,
