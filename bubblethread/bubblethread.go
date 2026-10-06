@@ -3,6 +3,7 @@ package bubblethread
 import (
 	. "webtyp.com/dom"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -44,7 +45,8 @@ type Bubble struct {
 type BubbleThread struct {
 	Element
 	ReadLabel string // text under a Mine && Read bubble, e.g. "Leído"; "" renders nothing
-	Empty     string // text shown with no bubbles; "" renders nothing
+	// English; translated in Render.
+	Empty     lang.Text // text shown with no bubbles; "" renders nothing
 
 	bubbles []Bubble
 	nodes   *SignalNodes
@@ -133,7 +135,7 @@ func (t *BubbleThread) Render() *Element {
 	emptyShow := Show(DeriveBool(func() bool {
 		_ = t.nodes.Get()
 		return len(t.bubbles) == 0 && t.Empty != ""
-	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(t.Empty) })
+	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(lang.Translate(t.Empty).String()) })
 
 	return Div().Set(clsThreadWrap.AsAttr()).
 		Child(thread).

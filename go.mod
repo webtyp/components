@@ -19,6 +19,7 @@ require (
 require (
 	webtyp.com/escape v0.1.0 // indirect
 	webtyp.com/filepath v0.1.0 // indirect
+	webtyp.com/lang v0.1.3 // indirect
 )
 
 require (

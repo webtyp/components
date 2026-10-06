@@ -3,8 +3,8 @@ package selectsearch
 import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
-	"webtyp.com/fmt/lang"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
 )
@@ -15,10 +15,8 @@ const NameSelectSearch = widget.Name("selectsearch")
 // searchPlaceholder is what the OPEN panel's search field says. It is this
 // library's own chrome, so it goes through lang — and it is the same key
 // components/searchbar uses on purpose: two spellings of one word would make
-// every consuming app register the same translation twice. The host-supplied
-// Placeholder (the CLOSED field, below) is parameterized input and is never
-// translated.
-const searchPlaceholder = "Search…"
+// every consuming app register the same translation twice.
+const searchPlaceholder lang.Text = "Search…"
 
 const (
 	PartToggle      = widget.Part("toggle")
@@ -98,8 +96,9 @@ type SsOption struct {
 }
 
 type SelectSearch struct {
-	Element                                  // value embed — NEVER pointer (TinyGo heap constraint)
-	Placeholder string                       // text shown when nothing is selected
+	Element // value embed — NEVER pointer (TinyGo heap constraint)
+	// English; translated in Render.
+	Placeholder lang.Text                    // text shown when nothing is selected
 	Options     []SsOption                   // initial static options
 	Search      SearchMode                   // whether the search field appears; zero value is SearchAuto
 	OnSelect    func(id, description string) // called when user picks an option
@@ -244,7 +243,9 @@ func (c *SelectSearch) Render() *Element {
 		Child(Show(hasSublabel, func() *Element { return Span().Set(ClsSsSublabel.AsAttr()).BindText(c.selectedSublabel) }))
 
 	headerBody := Div().Set(ClsSsHeaderBody.AsAttr()).
-		Child(Show(noSelection, func() *Element { return Span().Set(ClsSsPlaceholder.AsAttr()).Text(placeholderText) })).
+		Child(Show(noSelection, func() *Element {
+			return Span().Set(ClsSsPlaceholder.AsAttr()).Text(lang.Translate(placeholderText).String())
+		})).
 		Child(Show(hasSelection, func() *Element { return pickedText })).
 		Child(Show(hasDesc, func() *Element { return Span().Set(ClsSsDesc.AsAttr()).BindText(c.selectedDesc) }))
 

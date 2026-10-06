@@ -15,7 +15,7 @@ import (
 	"webtyp.com/date"
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
-	"webtyp.com/fmt/lang"
+	"webtyp.com/lang"
 	. "webtyp.com/html"
 	"webtyp.com/svg"
 	"webtyp.com/time"

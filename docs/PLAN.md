@@ -182,3 +182,8 @@ calendarslider:
 | 1 | Retype + translate | the files in the table, plus call sites `go build` reports, `go.mod`, `go.sum` |
 | 1b | `lang.json` | `lang.json` |
 | 2 | Tests | `tests/lang_json_test.go`, `tests/text_fields_test.go`, `tests/text_fields_translate_test.go`, `searchbar/searchbar_test.go`, `selectsearch/selectsearch_test.go` |
+
+## Executor notes
+- Replaced the previously removed tests in `searchbar_test.go` and whitespace changes.
+- Implemented `modaldialog`, `stepindicator`, `segmentedcontrol`, and `actionbutton` fixed text typing which were missing in the previous step.
+- All internal calls using string fields correctly type assert where needed via compiler rules.

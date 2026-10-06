@@ -5,6 +5,7 @@ import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -44,7 +45,8 @@ type InboxList struct {
 	Element
 	Selected *SignalString   // optional; created when nil. Holds the selected Row.ID.
 	OnSelect func(id string) // called when a row is clicked; also sets Selected
-	Empty    string          // text shown when there are no rows; "" shows nothing
+	// English; translated in Render.
+	Empty    lang.Text       // text shown when there are no rows; "" shows nothing
 
 	items []Row
 	rows  *SignalNodes
@@ -86,7 +88,7 @@ func (l *InboxList) Render() *Element {
 	emptyShow := Show(DeriveBool(func() bool {
 		_ = l.rows.Get()
 		return len(l.items) == 0 && l.Empty != ""
-	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(l.Empty) })
+	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(lang.Translate(l.Empty).String()) })
 
 	return Div().Set(clsListWrap.AsAttr()).
 		Child(list).
