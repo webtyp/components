@@ -3,6 +3,7 @@ package decktabs
 import (
 	. "webtyp.com/dom"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
 )
@@ -35,9 +36,9 @@ type Item struct {
 	// attributes link by, so it must be unique within one DeckTabs and stable
 	// across renders.
 	ID string
-	// Label is the text on the tab. Supplied by the consumer already in the
-	// reader's language — this component translates nothing.
-	Label string
+	// Label is the text on the tab.
+	// English; translated in Render.
+	Label lang.Text
 	// Icon is optional; the empty Icon renders none.
 	Icon svg.Icon
 	// Panel is the content revealed when this tab is active. It stays mounted
@@ -67,7 +68,8 @@ type DeckTabs struct {
 	Active *SignalString
 	// Label, when set, becomes the tab strip's aria-label. A screen reader
 	// announces it as the name of the tab set.
-	Label string
+	// English; translated in Render.
+	Label lang.Text
 	// OnChange fires after Active changes, never when the active tab is
 	// re-clicked.
 	OnChange func(id string)
@@ -141,7 +143,7 @@ func (t *DeckTabs) Render() *Element {
 
 	strip := Nav().Set(clsList.AsAttr()).Attr("role", "tablist")
 	if t.Label != "" {
-		strip.Attr("aria-label", t.Label)
+		strip.Attr("aria-label", lang.Translate(t.Label).String())
 	}
 	deck := Div().Set(clsDeck.AsAttr())
 
@@ -161,7 +163,7 @@ func (t *DeckTabs) Render() *Element {
 		if item.Icon != "" {
 			tab.Child(item.Icon.Render(string(clsIcon)))
 		}
-		tab.Child(Span().Set(clsLabel.AsAttr()).Text(item.Label))
+		tab.Child(Span().Set(clsLabel.AsAttr()).Text(lang.Translate(item.Label).String()))
 
 		panel := Section().Set(clsPanel.AsAttr()).
 			Attr("role", "tabpanel").

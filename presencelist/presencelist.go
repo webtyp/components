@@ -3,6 +3,7 @@ package presencelist
 import (
 	. "webtyp.com/dom"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -41,7 +42,8 @@ type PresenceList struct {
 	OnSelect     func(id string) // row clicked
 	OnlineLabel  string          // screen-reader text for the online dot, e.g. "En línea"
 	OfflineLabel string          // e.g. "Desconectado"
-	Empty        string
+	// English; translated in Render.
+	Empty        lang.Text
 
 	people []Person
 	rows   *SignalNodes
@@ -102,7 +104,7 @@ func (l *PresenceList) Render() *Element {
 	emptyShow := Show(DeriveBool(func() bool {
 		_ = l.rows.Get()
 		return len(l.people) == 0 && l.Empty != ""
-	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(l.Empty) })
+	}), func() *Element { return Div().Set(clsEmpty.AsAttr()).Text(lang.Translate(l.Empty).String()) })
 
 	return Div().Set(clsListWrap.AsAttr()).
 		Child(list).

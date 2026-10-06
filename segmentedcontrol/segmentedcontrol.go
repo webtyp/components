@@ -3,6 +3,7 @@ package segmentedcontrol
 import (
 	"webtyp.com/dom"
 	"webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
 )
@@ -22,7 +23,7 @@ var (
 
 type Option struct {
 	Value string
-	Label string
+	Label lang.Text // English; translated in Render.
 	Icon  *svg.Icon
 }
 
@@ -69,7 +70,7 @@ func (c *SegmentedControl) Render() *dom.Element {
 				}
 			})
 
-		pill.Child(html.Span().Text(opt.Label))
+		pill.Child(html.Span().Text(lang.Translate(opt.Label).String()))
 
 		pill.OnKeyDown(func(e dom.KeyEvent) {
 			if e.Key() == dom.KeyArrowRight {

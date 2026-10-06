@@ -4,6 +4,7 @@ import (
 	"webtyp.com/dom"
 	"webtyp.com/fmt"
 	"webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -27,7 +28,7 @@ var (
 
 type Step struct {
 	Key   string
-	Label string
+	Label lang.Text // English; translated in Render.
 }
 
 type StepIndicator struct {
@@ -66,7 +67,7 @@ func (c *StepIndicator) Render() *dom.Element {
 				return fmt.Sprint(idx + 1)
 			})
 
-		label := html.Span().Set(clsLabel.AsAttr()).Text(step.Label)
+		label := html.Span().Set(clsLabel.AsAttr()).Text(lang.Translate(step.Label).String())
 
 		btn := html.Button().Set(clsStep.AsAttr()).
 			BindStateFunc(widget.Current, func() bool { return c.activeSig.Get() == idxStr }).

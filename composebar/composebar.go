@@ -4,6 +4,7 @@ import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -24,11 +25,13 @@ var (
 
 type ComposeBar struct {
 	Element
-	Placeholder string
-	SendLabel   string            // button text, e.g. "Enviar"
-	MaxLength   int               // > 0 sets maxlength on the input; <= 0 sets none
-	OnSend      func(body string) // called with the trimmed, non-empty text
-	Disabled    *SignalBool       // optional; nil = always enabled
+	// English; translated in Render.
+	Placeholder lang.Text
+	// English; translated in Render.
+	SendLabel lang.Text         // button text, e.g. "Send"
+	MaxLength int               // > 0 sets maxlength on the input; <= 0 sets none
+	OnSend    func(body string) // called with the trimmed, non-empty text
+	Disabled  *SignalBool       // optional; nil = always enabled
 
 	text *SignalString
 }
@@ -66,7 +69,7 @@ func (c *ComposeBar) Render() *Element {
 		Bind(c.text)
 
 	if c.Placeholder != "" {
-		input.Attr("placeholder", c.Placeholder)
+		input.Attr("placeholder", lang.Translate(c.Placeholder).String())
 	}
 	if c.MaxLength > 0 {
 		input.Attr("maxlength", fmt.Sprint(c.MaxLength))
@@ -85,7 +88,7 @@ func (c *ComposeBar) Render() *Element {
 
 	sendBtn := Button().Set(clsSend.AsAttr()).
 		Attr("type", "button").
-		Text(c.SendLabel)
+		Text(lang.Translate(c.SendLabel).String())
 
 	if c.Disabled != nil {
 		sendBtn.BindAttrBool("disabled", c.Disabled).

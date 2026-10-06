@@ -3,6 +3,7 @@ package modaldialog
 import (
 	. "webtyp.com/dom"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -28,7 +29,7 @@ var (
 // ModalDialog represents a modal dialog component.
 type ModalDialog struct {
 	Element
-	Title   string
+	Title   lang.Text // English; translated in Render.
 	Content Component
 
 	// HideClose drops the "×" from the header. Set it when the dialog's own
@@ -49,7 +50,7 @@ func (m *ModalDialog) Init(_ Ctx) {
 
 func (m *ModalDialog) Render() *Element {
 	header := Div().Set(clsModalHeader.AsAttr()).
-		Child(H2().Text(m.Title))
+		Child(H2().Text(lang.Translate(m.Title).String()))
 	if !m.HideClose {
 		header.Child(Button().
 			Text("×").

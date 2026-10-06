@@ -2,8 +2,8 @@ package searchbar
 
 import (
 	. "webtyp.com/dom"
-	"webtyp.com/fmt/lang"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
 )
@@ -28,7 +28,7 @@ var (
 const iconMagnifier = svg.Icon("searchbar-magnifier")
 
 // defaultPlaceholder is what the field says when the host sets none.
-const defaultPlaceholder = "Search…"
+const defaultPlaceholder lang.Text = "Search…"
 
 // SearchBar is a single-control filter bar: a magnifier cap followed by a text
 // field. It holds no list and knows nothing about what it filters — it reports
@@ -41,7 +41,8 @@ type SearchBar struct {
 	Element // value embed — NEVER *dom.Element (TinyGo heap constraint)
 
 	// Placeholder is the field's placeholder text. Empty uses defaultPlaceholder.
-	Placeholder string
+	// English; translated in Render.
+	Placeholder lang.Text
 
 	onFilter func(term string)
 }
@@ -74,12 +75,9 @@ func (s *SearchBar) Render() *Element {
 	root.Child(Label().Set(clsIcon.AsAttr()).
 		Child(iconMagnifier.Render()))
 
-	// The host's own placeholder is parameterized input and is rendered as
-	// given; only the DEFAULT is this library's text, so only the default goes
-	// through lang — the same split every other component here follows.
 	placeholder := s.Placeholder
 	if placeholder == "" {
-		placeholder = lang.Translate(defaultPlaceholder).String()
+		placeholder = defaultPlaceholder
 	}
 
 	// size="1" collapses the input's intrinsic width (the UA default is 20
@@ -93,7 +91,7 @@ func (s *SearchBar) Render() *Element {
 	// note exists to prevent. Clearing it fires an "input" event, so the
 	// filter re-runs with "" through the same handler.
 	input := Input("search").Set(clsInput.AsAttr()).
-		Attr("placeholder", placeholder).
+		Attr("placeholder", lang.Translate(placeholder).String()).
 		Attr("size", "1")
 	input.OnInput(func(e Event) {
 		if s.onFilter != nil {
