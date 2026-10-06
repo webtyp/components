@@ -1,6 +1,5 @@
 //go:build wasm
 
-// Root-level test (justified): Public API integration for multiple component packages in WASM.
 package components_test
 
 import (
