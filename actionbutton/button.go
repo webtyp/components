@@ -3,6 +3,7 @@ package actionbutton
 import (
 	. "webtyp.com/dom"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/widget"
 )
 
@@ -33,8 +34,8 @@ var (
 
 type ActionButton struct {
 	Element
-	Text    string
-	Variant string // "primary", "secondary", "danger"
+	Text    lang.Text // English; translated in Render.
+	Variant string    // "primary", "secondary", "danger"
 
 	// Href renders the button as <a href> instead of <button>: no click
 	// handler, works before WASM loads and with JavaScript disabled. Set
@@ -62,12 +63,12 @@ func (b *ActionButton) Render() *Element {
 	cls := string(clsBtn) + " " + string(variantCls)
 
 	if b.Href != "" {
-		return A(b.Href).Attr("class", cls).Text(b.Text)
+		return A(b.Href).Attr("class", cls).Text(lang.Translate(b.Text).String())
 	}
 
 	btn := Button().
 		Attr("class", cls).
-		Text(b.Text)
+		Text(lang.Translate(b.Text).String())
 
 	if b.OnClick != nil {
 		btn.OnClick(b.OnClick)
