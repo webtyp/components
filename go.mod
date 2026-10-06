@@ -8,7 +8,7 @@ require (
 	webtyp.com/dom v0.13.21
 	webtyp.com/fmt v1.0.0
 	webtyp.com/html v0.0.24
-	webtyp.com/image v0.1.3
+	webtyp.com/image v0.1.16
 	webtyp.com/js v0.0.11
 	webtyp.com/svg v0.3.14
 	webtyp.com/time v0.5.7
