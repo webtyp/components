@@ -68,7 +68,7 @@ func (t *TargetDate) sheet() *style.Sheet {
 			style.Grow(),
 		).
 		Part(PartBadge,
-			style.As(style.Inset),
+			style.As(style.Primary),
 			style.Round(style.RadiusSm),
 			style.FontSize(style.TextXs),
 			style.ChipBox(),
