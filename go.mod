@@ -1,6 +1,6 @@
 module webtyp.com/components
 
-go 1.25.2
+go 1.26.8
 
 require (
 	webtyp.com/css v0.4.28
@@ -16,10 +16,12 @@ require (
 	webtyp.com/widget v0.6.36
 )
 
+require webtyp.com/filepath v0.1.0 // indirect
+
 require (
 	webtyp.com/color v0.1.2 // indirect
 	webtyp.com/context v0.0.23 // indirect
-	webtyp.com/fetch v0.1.28 // indirect
+	webtyp.com/fetch v0.1.29 // indirect
 	webtyp.com/font v0.0.5 // indirect
 	webtyp.com/icons v0.0.7
 	webtyp.com/json v0.5.27 // indirect
