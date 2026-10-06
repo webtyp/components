@@ -2,8 +2,9 @@
 PLAN: "feat: components type their fixed UI text as lang.Text and translate it in Render"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 6543375632725665162
+PR: https://github.com/webtyp/components/pull/31
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
