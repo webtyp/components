@@ -20,8 +20,6 @@ require (
 require (
 	webtyp.com/escape v0.1.0 // indirect
 	webtyp.com/filepath v0.1.0 // indirect
-	webtyp.com/form v0.4.29 // indirect
-	webtyp.com/input v0.0.18 // indirect
 )
 
 require (
