@@ -14,12 +14,14 @@ require (
 	webtyp.com/svg v0.3.14
 	webtyp.com/time v0.5.7
 	webtyp.com/view v0.6.27
-	webtyp.com/widget v0.6.36
+	webtyp.com/widget v0.6.37
 )
 
 require (
 	webtyp.com/escape v0.1.0 // indirect
 	webtyp.com/filepath v0.1.0 // indirect
+	webtyp.com/form v0.4.29 // indirect
+	webtyp.com/input v0.0.18 // indirect
 )
 
 require (

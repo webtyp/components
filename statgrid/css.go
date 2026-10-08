@@ -11,7 +11,7 @@ import (
 func (s *StatGrid) RenderCSS() *css.Stylesheet {
 	return style.For(s).
 		Root(
-			style.Grid(style.ColumnMedium, style.Space4),
+			style.Grid(4, style.ColumnMedium, style.Space4),
 		).
 		Part(PartItem,
 			style.Stack(style.Space1),

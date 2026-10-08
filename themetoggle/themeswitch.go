@@ -28,12 +28,12 @@ const (
 	TsThemeLight TsTheme = "light"
 )
 
-// defaultTheme es el tema por defecto cuando no hay nada guardado en
-// localStorage (o en SSR, donde no hay localStorage).
-const defaultTheme = TsThemeLight
-
 // ThemeToggle es un botón flotante que alterna entre dark y light.
-// Restaura automáticamente el tema guardado en localStorage al montarse.
+//
+// Al montarse restaura la elección guardada en localStorage. Sin elección no
+// impone ningún tema: deja <html> como está y muestra el esquema en efecto —
+// el que declara la app (css.DefaultLight) o, si no declara nada, el del SO.
+// Solo un clic escribe data-theme.
 type ThemeToggle struct {
 	Element
 	theme *SignalString // "dark" | "light"
