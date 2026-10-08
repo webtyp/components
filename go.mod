@@ -7,7 +7,7 @@ require (
 	webtyp.com/date v0.0.7
 	webtyp.com/dom v0.13.23
 	webtyp.com/fmt v1.0.0
-	webtyp.com/html v0.0.24
+	webtyp.com/html v0.0.27
 	webtyp.com/image v0.1.16
 	webtyp.com/js v0.0.11
 	webtyp.com/lang v0.1.3
