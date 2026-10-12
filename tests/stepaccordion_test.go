@@ -15,11 +15,13 @@ import (
 
 func stateAttr(s widget.State) string { return s.Key() + "='" + s.Value() + "'" }
 
+// threeSteps has no bodies: these tests render the same accordion several
+// times, and a dom element can only have one parent.
 func threeSteps() []stepaccordion.Step {
 	return []stepaccordion.Step{
-		{Key: "service", Title: "Service", Body: html.P().Text("BODY-1")},
-		{Key: "staff", Title: "Professional", Body: html.P().Text("BODY-2")},
-		{Key: "slot", Title: "Date and time", Body: html.P().Text("BODY-3")},
+		{Key: "service", Title: "Service"},
+		{Key: "staff", Title: "Professional"},
+		{Key: "slot", Title: "Date and time"},
 	}
 }
 
@@ -210,7 +212,10 @@ func TestStepAccordion_TitleAndEditTranslated(t *testing.T) {
 }
 
 func TestStepAccordion_StepNumbersAndBodies(t *testing.T) {
-	secs := sections(t, newAccordion(threeSteps()))
+	steps := threeSteps()
+	steps[0].Body = html.P().Text("BODY-1")
+	steps[2].Body = html.P().Text("BODY-3")
+	secs := sections(t, newAccordion(steps))
 	for i, want := range []string{">1<", ">2<", ">3<"} {
 		if !strings.Contains(secs[i], want) {
 			t.Errorf("step %d: missing badge %s", i+1, want)
