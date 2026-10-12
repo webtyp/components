@@ -90,6 +90,20 @@ A numbered wizard/stepper control.
 
 ---
 
+## [StepAccordion](../stepaccordion/README.md) — ✅ Slot-ready
+A vertical wizard: steps open one at a time, a finished step collapses to a
+one-line summary with "Edit", later steps stay locked until reached.
+[Detailed Documentation →](../stepaccordion/README.md)
+
+---
+
+## [ChipGrid](../chipgrid/README.md) — ✅ Slot-ready
+A grid of chips to pick one value (e.g. a free hour); WAI-ARIA listbox with
+roving tabindex, disabled chips skipped.
+[Detailed Documentation →](../chipgrid/README.md)
+
+---
+
 ## [SegmentedControl](../segmentedcontrol/README.md) — ✅ Slot-ready
 A horizontal pill switch for 2 or more options.
 [Detailed Documentation →](../segmentedcontrol/README.md)

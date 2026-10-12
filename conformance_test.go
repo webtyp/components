@@ -16,6 +16,7 @@ import (
 	"webtyp.com/components/actionbutton"
 	"webtyp.com/components/calendarslider"
 	"webtyp.com/components/cellgrid"
+	"webtyp.com/components/chipgrid"
 	"webtyp.com/components/contentcard"
 	"webtyp.com/components/datatable"
 	"webtyp.com/components/decktabs"
@@ -28,6 +29,7 @@ import (
 	"webtyp.com/components/selectsearch"
 	"webtyp.com/components/sitenav"
 	"webtyp.com/components/statgrid"
+	"webtyp.com/components/stepaccordion"
 	"webtyp.com/components/stepindicator"
 	"webtyp.com/components/targethour"
 	"webtyp.com/components/targetlist"
@@ -110,47 +112,47 @@ var allowedVars = map[string]bool{
 	"--text-xl":   true,
 	"--text-2xl":  true,
 
-	"--leading-tight":       true,
-	"--leading-normal":      true,
-	"--leading-relaxed":     true,
-	"--font-weight-regular": true,
-	"--font-weight-medium":  true,
-	"--font-weight-bold":    true,
-	"--tracking-tight":      true,
-	"--tracking-normal":     true,
-	"--tracking-wide":       true,
-	"--space-0":             true,
-	"--space-1":             true,
-	"--space-2":             true,
-	"--space-3":             true,
-	"--space-4":             true,
-	"--space-6":             true,
-	"--space-8":             true,
-	"--space-12":            true,
-	"--radius-sm":           true,
-	"--radius-md":           true,
-	"--radius-lg":           true,
-	"--radius-full":         true,
-	"--shadow-sm":           true,
-	"--shadow-md":           true,
-	"--shadow-lg":           true,
-	"--shadow-xl":           true,
-	"--duration-fast":       true,
-	"--duration-base":       true,
-	"--duration-slow":       true,
-	"--ease-in":             true,
-	"--ease-out":            true,
-	"--ease-in-out":         true,
-	"--z-base":              true,
-	"--z-dropdown":          true,
-	"--z-sticky":            true,
-	"--z-modal":             true,
-	"--z-toast":             true,
-	"--z-tooltip":           true,
-	"--bp-sm":               true,
-	"--bp-md":               true,
-	"--bp-lg":               true,
-	"--bp-xl":               true,
+	"--leading-tight":          true,
+	"--leading-normal":         true,
+	"--leading-relaxed":        true,
+	"--font-weight-regular":    true,
+	"--font-weight-medium":     true,
+	"--font-weight-bold":       true,
+	"--tracking-tight":         true,
+	"--tracking-normal":        true,
+	"--tracking-wide":          true,
+	"--space-0":                true,
+	"--space-1":                true,
+	"--space-2":                true,
+	"--space-3":                true,
+	"--space-4":                true,
+	"--space-6":                true,
+	"--space-8":                true,
+	"--space-12":               true,
+	"--radius-sm":              true,
+	"--radius-md":              true,
+	"--radius-lg":              true,
+	"--radius-full":            true,
+	"--shadow-sm":              true,
+	"--shadow-md":              true,
+	"--shadow-lg":              true,
+	"--shadow-xl":              true,
+	"--duration-fast":          true,
+	"--duration-base":          true,
+	"--duration-slow":          true,
+	"--ease-in":                true,
+	"--ease-out":               true,
+	"--ease-in-out":            true,
+	"--z-base":                 true,
+	"--z-dropdown":             true,
+	"--z-sticky":               true,
+	"--z-modal":                true,
+	"--z-toast":                true,
+	"--z-tooltip":              true,
+	"--bp-sm":                  true,
+	"--bp-md":                  true,
+	"--bp-lg":                  true,
+	"--bp-xl":                  true,
 	"--max-w-prose":            true,
 	"--max-w-content":          true,
 	"--max-w-screen":           true,
@@ -351,6 +353,8 @@ func TestEveryPackageEmits(t *testing.T) {
 		&stepindicator.StepIndicator{},
 		&segmentedcontrol.SegmentedControl{},
 		&cellgrid.CellGrid{},
+		&stepaccordion.StepAccordion{},
+		&chipgrid.ChipGrid{},
 	}
 
 	for _, c := range components {
@@ -387,6 +391,8 @@ func TestKindAllowsEveryState(t *testing.T) {
 		"stepindicator":    &stepindicator.StepIndicator{},
 		"segmentedcontrol": &segmentedcontrol.SegmentedControl{},
 		"cellgrid":         &cellgrid.CellGrid{},
+		"stepaccordion":    &stepaccordion.StepAccordion{},
+		"chipgrid":         &chipgrid.ChipGrid{},
 	}
 
 	stateMap := map[string]widget.State{
