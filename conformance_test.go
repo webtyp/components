@@ -151,9 +151,12 @@ var allowedVars = map[string]bool{
 	"--bp-md":               true,
 	"--bp-lg":               true,
 	"--bp-xl":               true,
-	"--max-w-prose":         true,
-	"--max-w-content":       true,
-	"--max-w-screen":        true,
+	"--max-w-prose":            true,
+	"--max-w-content":          true,
+	"--max-w-screen":           true,
+	"--control-height":         true,
+	"--control-height-compact": true,
+	"--control-width":          true,
 }
 
 var (

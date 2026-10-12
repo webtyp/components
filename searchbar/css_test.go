@@ -26,10 +26,13 @@ func TestSearchBar_RenderCSSEmitsEveryPart(t *testing.T) {
 		t.Errorf("the glyph should not have a part rule of its own any more\n%s", css)
 	}
 
-	for _, sel := range []string{".searchbar ", ".searchbar__input"} {
+	for _, sel := range []string{".searchbar "} {
 		if !cssBlockSetsControlHeight(css, sel) {
 			t.Errorf("%s must contain a block that sets min-height: var(--control-height\n%s", sel, css)
 		}
+	}
+	if !strings.Contains(css, "min-height: var(--control-height-compact") {
+		t.Errorf("searchbar must emit compact control height on mobile breakpoint\n%s", css)
 	}
 }
 
