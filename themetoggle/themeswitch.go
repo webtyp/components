@@ -13,10 +13,13 @@ const NameThemeToggle = widget.Name("themetoggle")
 
 const (
 	PartOption = widget.Part("option")
+	PartIcon   = widget.Part("icon")
 )
 
 var (
-	clsTsBtn = NameThemeToggle.Root()
+	clsRoot   = NameThemeToggle.Root()
+	clsOption = NameThemeToggle.Class(PartOption)
+	clsIcon   = NameThemeToggle.Class(PartIcon)
 )
 
 // storageKey identifica la entrada de localStorage del componente.
@@ -65,44 +68,37 @@ func (t *ThemeToggle) Render() *Element {
 	if !t.supported {
 		return Span()
 	}
-
-	optClass := string(NameThemeToggle.Class(PartOption))
-
 	return Div().
-		Set(clsTsBtn.AsAttr()).
+		Set(clsRoot.AsAttr()).
 		Attr("role", "radiogroup").
-		Attr("aria-label", "Theme").
+		Attr("aria-label", lang.Translate("Theme").String()).
 		Child(
-			t.renderOption(TsThemeSystem, "System", IconSystem, optClass),
-		).
-		Child(
-			t.renderOption(TsThemeLight, "Light", IconLight, optClass),
-		).
-		Child(
-			t.renderOption(TsThemeDark, "Dark", IconDark, optClass),
+			t.option(TsThemeSystem, "System", IconSystem),
+			t.option(TsThemeLight, "Light", IconLight),
+			t.option(TsThemeDark, "Dark", IconDark),
 		)
 }
 
-func (t *ThemeToggle) renderOption(theme TsTheme, labelKey string, icon svg.Icon, optClass string) *Element {
-	labelSig := DeriveString(func() string { return lang.Translate(labelKey).String() })
-	isActiveSig := DeriveString(func() string {
+// option is one segment. The glyph wears its own part: sharing the option's
+// class handed the <svg> the button's box and state rules.
+func (t *ThemeToggle) option(theme TsTheme, labelKey string, icon svg.Icon) *Element {
+	label := lang.Translate(labelKey).String()
+	checked := DeriveString(func() string {
 		if t.theme.Get() == string(theme) {
 			return "true"
 		}
 		return "false"
 	})
-
 	return Button().
-		Set(widget.Class(optClass).AsAttr()).
+		Set(clsOption.AsAttr()).
+		Attr("type", "button").
 		Attr("role", "radio").
-		BindAttr("aria-checked", isActiveSig).
-		BindAttr("title", labelSig).
-		BindAttr("aria-label", labelSig).
+		Attr("title", label).
+		Attr("aria-label", label).
+		BindAttr("aria-checked", checked).
 		BindStateFunc(widget.Current, func() bool { return t.theme.Get() == string(theme) }).
-		Child(icon.Render(optClass)).
-		OnClick(func(Event) {
-			t.selectTheme(theme)
-		})
+		Child(icon.Render(string(clsIcon))).
+		OnClick(func(Event) { t.selectTheme(theme) })
 }
 
 func valid(t TsTheme) bool {

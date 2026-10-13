@@ -3,8 +3,8 @@
 package themetoggle
 
 import (
-	"testing"
 	"strings"
+	"testing"
 
 	"webtyp.com/dom"
 )
@@ -19,16 +19,21 @@ func forceScheme(scheme string) {
 	dom.SetDocumentAttr("style", "color-scheme: "+scheme)
 }
 
-func TestThemeToggle_Init_FallbackSystem(t *testing.T) {
-	setUp()
-	ts := &ThemeToggle{}
-	ts.Init(nil)
+// Without a saved choice the control marks the scheme in effect — an app
+// pinned to light (css.DefaultLight) over a dark OS must not show "system".
+func TestThemeToggle_Init_MarksSchemeInEffect(t *testing.T) {
+	for _, scheme := range []string{"light", "dark"} {
+		setUp()
+		forceScheme(scheme)
+		ts := &ThemeToggle{}
+		ts.Init(nil)
 
-	if got := dom.GetDocumentAttr("data-theme"); got != "" {
-		t.Errorf("Init must not write data-theme without a saved choice, got %q", got)
-	}
-	if got := ts.theme.Get(); got != string(TsThemeSystem) {
-		t.Errorf("expected signal to default to system, got %q", got)
+		if got := dom.GetDocumentAttr("data-theme"); got != "" {
+			t.Errorf("Init must not write data-theme without a saved choice, got %q", got)
+		}
+		if got := ts.theme.Get(); got != scheme {
+			t.Errorf("scheme %s in effect: signal = %q", scheme, got)
+		}
 	}
 	setUp()
 }

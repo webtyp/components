@@ -3,8 +3,8 @@
 package main
 
 import (
-	. "webtyp.com/dom"
 	"webtyp.com/components/themetoggle"
+	. "webtyp.com/dom"
 	. "webtyp.com/html"
 )
 
