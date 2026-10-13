@@ -8,7 +8,9 @@ import (
 	"webtyp.com/widget/style"
 )
 
-// RenderCSS lays the steps out as a column of panels. What each step shows
+// RenderCSS lays the steps out as a column of panels. The header reads left to
+// right — number in a round badge, title, and the summary pushed to the end —
+// like stepindicator's badge. What each step shows
 // hangs off its phase: the body only while open, summary and Edit only once
 // finished (widget.Locked). A locked step (widget.Disabled) shows its number
 // and title, dimmed.
@@ -21,14 +23,18 @@ func (a *StepAccordion) RenderCSS() *css.Stylesheet {
 			style.Round(style.RadiusMd),
 			style.Pad(style.Space4),
 		).
+		// ControlBox: every header is one control tall, so a finished step
+		// (whose Edit button is a full-height control) lines up with the rest.
 		Part(PartHeader,
 			style.Row(style.Space3),
-			style.CenterContent(),
+			style.ControlBox(),
 		).
 		Part(PartBadge,
-			style.ChipBox(),
+			style.IconBox(style.IconMd),
+			style.CenterContent(),
 			style.As(style.AccentWash),
 			style.Round(style.RadiusFull),
+			style.FontSize(style.TextSm),
 			style.FontWeight(style.WeightBold),
 		).
 		Part(PartTitle,
@@ -46,6 +52,7 @@ func (a *StepAccordion) RenderCSS() *css.Stylesheet {
 		).
 		Part(PartBody, style.Hide()).
 		WhenWithin(widget.Open, PartStep, PartBody, style.Show()).
+		WhenWithin(widget.Open, PartStep, PartBadge, style.As(style.Primary), style.Round(style.RadiusFull)).
 		WhenWithin(widget.Locked, PartStep, PartSummary, style.Show()).
 		WhenWithin(widget.Locked, PartStep, PartEdit, style.Show()).
 		When(widget.Disabled, PartStep, style.As(style.Inactive)).

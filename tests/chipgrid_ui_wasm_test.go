@@ -227,3 +227,19 @@ func TestWASM_ChipGrid_TabStopOnSelectedOrFirstEnabled(t *testing.T) {
 		t.Errorf("selected c: c is the tab stop, got %s %s %s", tab(0), tab(1), tab(2))
 	}
 }
+
+// A grid mounted while empty shows its empty text; the chips that arrive later
+// replace it instead of sitting next to it.
+func TestChipGrid_EmptyTextLeavesWhenChipsArrive(t *testing.T) {
+	g, app, _ := mountGrid(t, nil, false)
+	if app.Call("querySelector", ".chipgrid__empty").IsNull() {
+		t.Fatal("an empty grid shows its empty text")
+	}
+	g.SetChips(hourChips())
+	if !app.Call("querySelector", ".chipgrid__empty").IsNull() {
+		t.Fatalf("the empty text survived the chips: %s", app.Get("innerHTML").String())
+	}
+	if n := app.Call("querySelectorAll", ".chipgrid__chip").Length(); n != 3 {
+		t.Fatalf("chips = %d, want 3", n)
+	}
+}

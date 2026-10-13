@@ -21,6 +21,9 @@ var (
 	clsEmpty = NameChipGrid.Class(PartEmpty)
 )
 
+// emptyKey identifies the empty text among the chips (chip keys are their values).
+const emptyKey = "chipgrid-empty"
+
 // textNoOptions is the empty text when the host sets none.
 const textNoOptions lang.Text = "No options available"
 
@@ -100,7 +103,9 @@ func (g *ChipGrid) show(chips []Chip) {
 		if empty == "" {
 			empty = textNoOptions
 		}
-		g.nodes.Set([]*dom.Element{html.P().Set(clsEmpty.AsAttr()).Text(lang.Translate(empty).String())})
+		// Keyed like every BindChildren row: dom only removes the nodes it can
+		// identify, so an unkeyed empty text outlived the chips that replaced it.
+		g.nodes.Set([]*dom.Element{html.P().Set(clsEmpty.AsAttr()).Key(emptyKey).Text(lang.Translate(empty).String())})
 		return
 	}
 

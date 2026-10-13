@@ -8,18 +8,18 @@ import (
 	"webtyp.com/widget/style"
 )
 
-// RenderCSS lays the chips in a grid that reflows by container width; the
+// RenderCSS lays the chips in a row that wraps, packed to the start: each chip
+// is as wide as its label ("09:30" or "Traumatología"), so a long label is
+// never clipped and three chips do not spread across the whole width. The
 // picked chip takes the primary surface, a disabled one the inactive look.
 func (g *ChipGrid) RenderCSS() *css.Stylesheet {
 	return style.For(g).
-		Root(style.Grid(6, style.ColumnNarrow, style.Space2)).
+		Root(style.Row(style.Space2)).
 		Part(PartChip,
 			style.Button(style.Panel),
-			style.ChipBox(),
 			style.Round(style.RadiusMd),
 		).
 		Part(PartEmpty,
-			style.SpanFull(),
 			style.FontSize(style.TextSm),
 		).
 		When(widget.Selected, PartChip, style.As(style.Primary)).
