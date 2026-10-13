@@ -1,5 +1,7 @@
 ---
 PLAN: "feat(themetoggle): 3-state segmented control + usermenu Preferences slot"
+STATUS: running
+SESSION: 2116987196617954533
 ---
 
 # PLAN — themetoggle: 3 states + usermenu Preferences slot
