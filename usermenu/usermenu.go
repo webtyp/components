@@ -21,6 +21,7 @@ const (
 	PartRoles    = widget.Part("roles")
 	PartRole     = widget.Part("role")
 	PartActions = widget.Part("actions")
+	PartPrefs = widget.Part("prefs")
 
 	// PartAction is what a control placed in the actions slot wears. The slot
 	// takes a Component the consumer builds — this package never sees it — so
@@ -46,6 +47,7 @@ var (
 	clsRoles    = NameUserMenu.Class(PartRoles)
 	clsRole     = NameUserMenu.Class(PartRole)
 	clsActions  = NameUserMenu.Class(PartActions)
+	clsPrefs  = NameUserMenu.Class(PartPrefs)
 	clsBackdrop = NameUserMenu.Class(PartBackdrop)
 )
 
@@ -91,6 +93,7 @@ type UserMenu struct {
 	// Actions holds the user's preferences — a theme toggle, a language picker,
 	// a sign-out. Optional; the panel simply omits the section.
 	Actions Component
+	Preferences Component
 
 	open *SignalBool
 }
@@ -133,6 +136,10 @@ func (m *UserMenu) Render() *Element {
 				Text(fmt.Convert(r).Truncate(roleChars).String()))
 		}
 		panel.Child(roles)
+	}
+
+	if m.Preferences != nil {
+		panel.Child(Div().Set(clsPrefs.AsAttr()).Child(m.Preferences))
 	}
 
 	if m.Actions != nil {

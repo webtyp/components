@@ -62,6 +62,10 @@ func (m *UserMenu) RenderCSS() *css.Stylesheet {
 			style.ChipBox(),
 			style.CenterContent(),
 		).
+		Part(PartPrefs,
+			style.Row(style.Space2),
+			style.CenterContent(),
+		).
 		Part(PartActions,
 			style.Row(style.Space1),
 		).
