@@ -13,8 +13,9 @@ func (t *ThemeToggle) Init(_ Ctx) {
 			return
 		}
 	}
-	// No choice yet: show the scheme in effect and leave <html> alone, so the
-	// app's declared default (or the OS) keeps deciding.
+	// No choice yet: mark the scheme in effect and leave <html> alone, so the
+	// app's declared default (css.DefaultLight) or the OS keeps deciding.
+	// Marking "system" here would lie on an app pinned to light over a dark OS.
 	effective := TsThemeLight
 	if DarkSchemeActive() {
 		effective = TsThemeDark
@@ -22,11 +23,10 @@ func (t *ThemeToggle) Init(_ Ctx) {
 	t.theme = NewString(string(effective))
 }
 
-func (t *ThemeToggle) onClick() {
-	next := toggle(TsTheme(t.theme.Get()))
+func (t *ThemeToggle) selectTheme(next TsTheme) {
 	SetDocumentAttr("data-theme", string(next)) // applies the theme
 	if LocalStorageAvailable() {
 		LocalStorageSet(storageKey, string(next))
 	}
-	t.theme.Set(string(next)) // patches icon + labels surgically
+	t.theme.Set(string(next)) // patches aria-checked + current state surgically
 }

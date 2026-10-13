@@ -9,4 +9,4 @@ func (t *ThemeToggle) Init(_ Ctx) {
 	t.supported = true                        // no browser to probe at SSR time — see the field's doc comment
 }
 
-func (t *ThemeToggle) onClick() {}
+func (t *ThemeToggle) selectTheme(TsTheme) {}

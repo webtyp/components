@@ -1,7 +1,9 @@
 ---
 PLAN: "feat(themetoggle): 3-state segmented control + usermenu Preferences slot"
-STATUS: running
+STATUS: review
 SESSION: 2116987196617954533
+PR: https://github.com/webtyp/components/pull/32
+REVIEWED_COMMIT: d48f97e31905e1ec1bf5f6b4e125be6b923920ab
 ---
 
 # PLAN — themetoggle: 3 states + usermenu Preferences slot

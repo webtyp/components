@@ -14,13 +14,14 @@ import (
 const NameUserMenu = widget.Name("usermenu")
 
 const (
-	PartTrigger  = widget.Part("trigger")
-	PartAvatar   = widget.Part("avatar")
-	PartName     = widget.Part("name")
-	PartPanel    = widget.Part("panel")
-	PartRoles    = widget.Part("roles")
-	PartRole     = widget.Part("role")
+	PartTrigger = widget.Part("trigger")
+	PartAvatar  = widget.Part("avatar")
+	PartName    = widget.Part("name")
+	PartPanel   = widget.Part("panel")
+	PartRoles   = widget.Part("roles")
+	PartRole    = widget.Part("role")
 	PartActions = widget.Part("actions")
+	PartPrefs   = widget.Part("prefs")
 
 	// PartAction is what a control placed in the actions slot wears. The slot
 	// takes a Component the consumer builds — this package never sees it — so
@@ -46,6 +47,7 @@ var (
 	clsRoles    = NameUserMenu.Class(PartRoles)
 	clsRole     = NameUserMenu.Class(PartRole)
 	clsActions  = NameUserMenu.Class(PartActions)
+	clsPrefs    = NameUserMenu.Class(PartPrefs)
 	clsBackdrop = NameUserMenu.Class(PartBackdrop)
 )
 
@@ -88,8 +90,13 @@ type UserMenu struct {
 	// business making it for its host.
 	Fallback svg.Icon
 
-	// Actions holds the user's preferences — a theme toggle, a language picker,
-	// a sign-out. Optional; the panel simply omits the section.
+	// Preferences holds what the SHELL lets every user tune — the theme
+	// control platformd always puts here. Rendered between the roles and the
+	// actions. Optional; the panel simply omits the section.
+	Preferences Component
+
+	// Actions holds what the APP offers — a sign-out, a site picker.
+	// Optional; the panel simply omits the section.
 	Actions Component
 
 	open *SignalBool
@@ -133,6 +140,10 @@ func (m *UserMenu) Render() *Element {
 				Text(fmt.Convert(r).Truncate(roleChars).String()))
 		}
 		panel.Child(roles)
+	}
+
+	if m.Preferences != nil {
+		panel.Child(Div().Set(clsPrefs.AsAttr()).Child(m.Preferences))
 	}
 
 	if m.Actions != nil {

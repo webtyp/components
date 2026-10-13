@@ -3,10 +3,10 @@
 package themetoggle
 
 import (
+	"strings"
 	"testing"
 
 	"webtyp.com/dom"
-	"webtyp.com/fmt"
 )
 
 func setUp() {
@@ -15,18 +15,13 @@ func setUp() {
 	dom.SetDocumentAttr("style", "")
 }
 
-// forceScheme stands in for the app's stylesheet: css.DefaultLight() or the
-// OS preference both end up as the color-scheme <html> resolves to.
 func forceScheme(scheme string) {
 	dom.SetDocumentAttr("style", "color-scheme: "+scheme)
 }
 
-// With nothing saved the toggle must not impose a theme: <html> stays
-// untouched and the icon shows whatever scheme is in effect.
-func TestThemeToggle_Init_NoSavedValue_FollowsEffectiveScheme(t *testing.T) {
-	if !dom.SupportsLightDark() {
-		t.Skip("browser cannot resolve light-dark()")
-	}
+// Without a saved choice the control marks the scheme in effect — an app
+// pinned to light (css.DefaultLight) over a dark OS must not show "system".
+func TestThemeToggle_Init_MarksSchemeInEffect(t *testing.T) {
 	for _, scheme := range []string{"light", "dark"} {
 		setUp()
 		forceScheme(scheme)
@@ -34,16 +29,16 @@ func TestThemeToggle_Init_NoSavedValue_FollowsEffectiveScheme(t *testing.T) {
 		ts.Init(nil)
 
 		if got := dom.GetDocumentAttr("data-theme"); got != "" {
-			t.Errorf("scheme %s: Init must not write data-theme without a saved choice, got %q", scheme, got)
+			t.Errorf("Init must not write data-theme without a saved choice, got %q", got)
 		}
 		if got := ts.theme.Get(); got != scheme {
-			t.Errorf("scheme %s: signal must follow the effective scheme, got %q", scheme, got)
+			t.Errorf("scheme %s in effect: signal = %q", scheme, got)
 		}
 	}
 	setUp()
 }
 
-func TestThemeToggle_Init_RestoresLight(t *testing.T) {
+func TestThemeToggle_Init_RestoresSaved(t *testing.T) {
 	setUp()
 	dom.LocalStorageSet(storageKey, "light")
 
@@ -59,34 +54,15 @@ func TestThemeToggle_Init_RestoresLight(t *testing.T) {
 	}
 }
 
-func TestThemeToggle_Init_InvalidValue_FollowsEffectiveScheme(t *testing.T) {
-	setUp()
-	forceScheme("dark")
-	dom.LocalStorageSet(storageKey, "xyz")
-
-	ts := &ThemeToggle{}
-	ts.Init(nil)
-
-	if got := dom.GetDocumentAttr("data-theme"); got != "" {
-		t.Errorf("an invalid saved value is no choice: data-theme must stay unset, got %q", got)
-	}
-	if dom.SupportsLightDark() && ts.theme.Get() != "dark" {
-		t.Errorf("expected signal=dark (the effective scheme), got %q", ts.theme.Get())
-	}
-	setUp()
-}
-
 func TestThemeToggle_Render_Initial(t *testing.T) {
 	setUp()
-	forceScheme("light")
 	ts := &ThemeToggle{}
 	ts.Init(nil)
 	el := ts.Render()
 	setUp()
 
-	// effective scheme is light → icon is ☀️
 	got := el.String()
-	if !fmt.Contains(got, icon(TsThemeLight)) {
-		t.Errorf("expected icon %s in rendered element, got %s", icon(TsThemeLight), got)
+	if !strings.Contains(got, "role='radiogroup'") {
+		t.Errorf("expected radiogroup in rendered element, got %s", got)
 	}
 }

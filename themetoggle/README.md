@@ -1,15 +1,15 @@
 # ThemeToggle
 
-Signal-driven component to toggle the application theme (dark / light).
+Signal-driven component to toggle the application theme (system, light, and dark).
 
 ## Features
 
-- 2 states: `dark` and `light`. With nothing saved it imposes neither: `<html>` is left
+- 3 states: `system`, `light`, and `dark`. With nothing saved it imposes neither: `<html>` is left
   alone and the icon shows the scheme in effect — the app's declared default
   (`css.Theme(css.DefaultLight())`) or, without one, the OS preference. Only a click
   writes `data-theme`.
 - Automatic persistence in `localStorage` via `Init`.
-- Fixed floating button.
+- A segmented control that adapts to its host container.
 - Signal-driven: updates icon and labels surgically without re-rendering the whole button.
 
 ## Usage

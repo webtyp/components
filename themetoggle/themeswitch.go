@@ -2,7 +2,9 @@ package themetoggle
 
 import (
 	. "webtyp.com/dom"
+	"webtyp.com/fmt/lang"
 	. "webtyp.com/html"
+	"webtyp.com/svg"
 	"webtyp.com/widget"
 )
 
@@ -10,11 +12,14 @@ import (
 const NameThemeToggle = widget.Name("themetoggle")
 
 const (
-	PartButton = widget.Part("button")
+	PartOption = widget.Part("option")
+	PartIcon   = widget.Part("icon")
 )
 
 var (
-	clsTsBtn = NameThemeToggle.Root()
+	clsRoot   = NameThemeToggle.Root()
+	clsOption = NameThemeToggle.Class(PartOption)
+	clsIcon   = NameThemeToggle.Class(PartIcon)
 )
 
 // storageKey identifica la entrada de localStorage del componente.
@@ -24,11 +29,18 @@ const storageKey = "webtyp-themeswitch"
 type TsTheme string
 
 const (
-	TsThemeDark  TsTheme = "dark"
-	TsThemeLight TsTheme = "light"
+	TsThemeSystem TsTheme = "system"
+	TsThemeDark   TsTheme = "dark"
+	TsThemeLight  TsTheme = "light"
 )
 
-// ThemeToggle es un botón flotante que alterna entre dark y light.
+const (
+	IconSystem = svg.Icon("themetoggle-system")
+	IconLight  = svg.Icon("themetoggle-light")
+	IconDark   = svg.Icon("themetoggle-dark")
+)
+
+// ThemeToggle es un control segmentado que alterna entre system, light y dark.
 //
 // Al montarse restaura la elección guardada en localStorage. Sin elección no
 // impone ningún tema: deja <html> como está y muestra el esquema en efecto —
@@ -36,7 +48,7 @@ const (
 // Solo un clic escribe data-theme.
 type ThemeToggle struct {
 	Element
-	theme *SignalString // "dark" | "light"
+	theme *SignalString // "system" | "dark" | "light"
 
 	// supported es falso solo cuando el navegador no puede resolver
 	// light-dark() (ver dom.SupportsLightDark): en ese caso el toggle no
@@ -50,56 +62,45 @@ type ThemeToggle struct {
 }
 
 func (t *ThemeToggle) WidgetName() widget.Name { return NameThemeToggle }
-func (t *ThemeToggle) WidgetKind() widget.Kind { return widget.Region }
+func (t *ThemeToggle) WidgetKind() widget.Kind { return widget.Tabs }
 
 func (t *ThemeToggle) Render() *Element {
 	if !t.supported {
 		return Span()
 	}
+	return Div().
+		Set(clsRoot.AsAttr()).
+		Attr("role", "radiogroup").
+		Attr("aria-label", lang.Translate("Theme").String()).
+		Child(
+			t.option(TsThemeSystem, "System", IconSystem),
+			t.option(TsThemeLight, "Light", IconLight),
+			t.option(TsThemeDark, "Dark", IconDark),
+		)
+}
 
-	// labelSig is used twice (title + aria-label) → a named shared computed. Auto-tracked: no deps list.
-	labelSig := DeriveString(func() string { return label(TsTheme(t.theme.Get())) })
-
+// option is one segment. The glyph wears its own part: sharing the option's
+// class handed the <svg> the button's box and state rules.
+func (t *ThemeToggle) option(theme TsTheme, labelKey string, icon svg.Icon) *Element {
+	label := lang.Translate(labelKey).String()
+	checked := DeriveString(func() string {
+		if t.theme.Get() == string(theme) {
+			return "true"
+		}
+		return "false"
+	})
 	return Button().
-		BindTextFunc(func() string { return icon(TsTheme(t.theme.Get())) }). // computed icon, auto-tracked
-		BindAttr("title", labelSig).
-		BindAttr("aria-label", labelSig).
-		Set(clsTsBtn.AsAttr()).
-		OnClick(func(Event) {
-			t.onClick()
-		})
-}
-
-// toggle alterna entre los 2 estados. Switch (no map) — TinyGo.
-func toggle(current TsTheme) TsTheme {
-	switch current {
-	case TsThemeDark:
-		return TsThemeLight
-	default:
-		return TsThemeDark
-	}
-}
-
-// icon retorna el símbolo visible del botón. Switch (no map) — TinyGo.
-func icon(theme TsTheme) string {
-	switch theme {
-	case TsThemeDark:
-		return "🌙"
-	default:
-		return "☀️" // U+2600 + U+FE0F (variation selector) forces emoji presentation, same size as 🌙
-	}
-}
-
-// label retorna el nombre del modo actual (usado como tooltip y aria-label).
-func label(theme TsTheme) string {
-	switch theme {
-	case TsThemeDark:
-		return "dark"
-	default:
-		return "light"
-	}
+		Set(clsOption.AsAttr()).
+		Attr("type", "button").
+		Attr("role", "radio").
+		Attr("title", label).
+		Attr("aria-label", label).
+		BindAttr("aria-checked", checked).
+		BindStateFunc(widget.Current, func() bool { return t.theme.Get() == string(theme) }).
+		Child(icon.Render(string(clsIcon))).
+		OnClick(func(Event) { t.selectTheme(theme) })
 }
 
 func valid(t TsTheme) bool {
-	return t == TsThemeDark || t == TsThemeLight
+	return t == TsThemeSystem || t == TsThemeDark || t == TsThemeLight
 }
