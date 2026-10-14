@@ -2,6 +2,8 @@
 PLAN: "feat(components)!: section titles use style.Heading; typed ActionButton variant; remove decktabs"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 728072016565189675
 ---
 
 > Read AGENTS.md at the repo root before any change.
