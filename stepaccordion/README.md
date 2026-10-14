@@ -7,7 +7,7 @@ so the host can clear the choices that depended on it.
 
 Each step's phase is written on its `<section>` as a state — open (`widget.Open`),
 finished (`widget.Locked`) or locked (`widget.Disabled`) — and the stylesheet reveals the
-body, summary and Edit button from it.
+body, summary and Edit button from it. Titles use `style.Heading`.
 
 ## Usage
 

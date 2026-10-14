@@ -12,7 +12,7 @@ import "webtyp.com/components/actionbutton"
 
 btn := &actionbutton.ActionButton{
     Text: "Save Changes",
-    Variant: "primary",
+    Variant: actionbutton.Primary,
     OnClick: func(e dom.Event) {
         fmt.Println("Saved!")
     },
@@ -21,7 +21,7 @@ btn := &actionbutton.ActionButton{
 
 ## Properties
 - `Text` (string): The button label.
-- `Variant` (string): Visual style (`primary`, `secondary`, `danger`).
+- `Variant` (Variant): Visual style (`Primary`, `Secondary`, `Danger`).
 - `Href` (string): When set, renders as `<a href>` instead of `<button>` —
   no click handler, works before WASM loads and with JavaScript disabled.
   Use this for navigation (e.g. an OAuth login link). `OnClick` is ignored
@@ -33,7 +33,7 @@ btn := &actionbutton.ActionButton{
 ```go
 loginLink := &actionbutton.ActionButton{
     Text:    "Sign in with Google",
-    Variant: "primary",
+    Variant: actionbutton.Primary,
     Href:    "/oauth/google",
 }
 ```

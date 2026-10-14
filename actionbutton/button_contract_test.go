@@ -9,7 +9,7 @@ import (
 var _ dom.Component = (*ActionButton)(nil)
 
 func TestActionButton_RenderIdempotent(t *testing.T) {
-	b := &ActionButton{Text: "Save", Variant: "primary"}
+	b := &ActionButton{Text: "Save", Variant: Primary}
 
 	first := b.Render().String()
 	second := b.Render().String()

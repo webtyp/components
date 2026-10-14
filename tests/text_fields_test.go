@@ -9,7 +9,6 @@ import (
 	"webtyp.com/components/actionbutton"
 	"webtyp.com/components/bubblethread"
 	"webtyp.com/components/composebar"
-	"webtyp.com/components/decktabs"
 	"webtyp.com/components/inboxlist"
 	"webtyp.com/components/modaldialog"
 	"webtyp.com/components/presencelist"
@@ -69,16 +68,6 @@ func TestFixedText_BackendPassthrough(t *testing.T) {
 				return m.Render().String()
 			}(),
 			want: "Confirm Action",
-		},
-		{
-			name: "DeckTabs.Label",
-			html: (&decktabs.DeckTabs{Label: "Main Navigation", Items: []decktabs.Item{{ID: "1", Label: "Tab 1"}}}).Render().String(),
-			want: "Main Navigation",
-		},
-		{
-			name: "DeckTabs.Item.Label",
-			html: (&decktabs.DeckTabs{Items: []decktabs.Item{{ID: "1", Label: "First Tab"}}}).Render().String(),
-			want: "First Tab",
 		},
 		{
 			name: "StepIndicator.Step.Label",

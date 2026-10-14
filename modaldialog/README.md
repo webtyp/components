@@ -1,6 +1,6 @@
 # ModalDialog
 
-Modal dialog overlay with backdrop and close button.
+Modal dialog overlay with backdrop and close button. The title uses `style.Heading`.
 
 ## Import
 `"webtyp.com/components/modaldialog"`
