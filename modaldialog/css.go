@@ -40,6 +40,9 @@ func (m *ModalDialog) RenderCSS() *css.Stylesheet {
 		Part(PartHeader,
 			style.Row(style.Space2),
 		).
+		Part(PartTitle,
+			style.Heading(),
+		).
 		Part(PartBody,
 			style.Stack(style.Space1),
 		).

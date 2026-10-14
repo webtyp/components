@@ -19,7 +19,7 @@ var (
 func TestButton_Render(t *testing.T) {
 	btn := &ActionButton{
 		Text:    "Click",
-		Variant: "primary",
+		Variant: Primary,
 	}
 
 	html := btn.Render().String()
@@ -45,7 +45,7 @@ func TestButton_Render(t *testing.T) {
 func TestButton_RenderHref(t *testing.T) {
 	btn := &ActionButton{
 		Text:    "Sign in with Google",
-		Variant: "primary",
+		Variant: Primary,
 		Href:    "/oauth/google",
 	}
 
@@ -131,7 +131,7 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 	cssStr := (&ActionButton{}).RenderCSS().String()
 	cssClasses := filterClasses(extractCSSClasses(cssStr), "actionbutton")
 
-	variants := []string{"primary", "secondary", "danger"}
+	variants := []Variant{Primary, Secondary, Danger}
 	htmlClasses := make(map[string]bool)
 	for _, v := range variants {
 		btn := &ActionButton{Text: "Button", Variant: v}

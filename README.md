@@ -43,7 +43,7 @@ func main() {
     // Create a button
     btn := &actionbutton.ActionButton{
         Text: "Click Me",
-        Variant: "primary",
+        Variant: actionbutton.Primary,
         OnClick: func(e Event) {
             println("Button clicked!")
         },

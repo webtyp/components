@@ -1,6 +1,6 @@
 # ContentCard
 
-Container with header, body, and footer sections.
+Container with header, body, and footer sections. The header title uses `style.Heading`.
 
 ## Import
 `"webtyp.com/components/contentcard"`

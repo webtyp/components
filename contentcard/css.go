@@ -18,7 +18,7 @@ func (c *ContentCard) RenderCSS() *css.Stylesheet {
 		).
 		Part(PartHeader,
 			style.Pad(style.Space2),
-			style.FontWeight(style.WeightBold),
+			style.Heading(),
 		).
 		Part(PartBody,
 			style.Pad(style.Space2),

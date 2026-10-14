@@ -97,7 +97,7 @@ func (a *StepAccordion) Render() *dom.Element {
 		p := a.phases[i]
 		key := st.Key
 
-		title := html.H3().Set(clsTitle.AsAttr()).Text(lang.Translate(st.Title).String())
+		title := html.H2().Set(clsTitle.AsAttr()).Text(lang.Translate(st.Title).String())
 		body := html.Div().Set(clsBody.AsAttr()).
 			Attr("role", "region").
 			Attr("aria-labelledby", title.GetID())

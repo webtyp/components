@@ -42,7 +42,7 @@ func TestModal_Render(t *testing.T) {
 	if !Contains(html, "class='modaldialog__header'") {
 		t.Error("expected header")
 	}
-	if !Contains(html, "<h2>My Modal</h2>") { // H2 factory renders <h2>...</h2>
+	if !Contains(html, "<h2 class='modaldialog__title'>My Modal</h2>") { // H2 factory renders <h2>...</h2>
 		t.Error("expected title")
 	}
 	if !Contains(html, "<p>Content</p>") {
@@ -52,7 +52,7 @@ func TestModal_Render(t *testing.T) {
 	// Test hidden — with lazy Show, content is unmounted when not visible.
 	m.visible.Set(false)
 	htmlHidden := m.Render().String()
-	if Contains(htmlHidden, "<h2>My Modal</h2>") {
+	if Contains(htmlHidden, "<h2 class='modaldialog__title'>My Modal</h2>") {
 		t.Error("expected content to be unmounted when not visible")
 	}
 }

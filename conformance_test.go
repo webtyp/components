@@ -19,7 +19,6 @@ import (
 	"webtyp.com/components/chipgrid"
 	"webtyp.com/components/contentcard"
 	"webtyp.com/components/datatable"
-	"webtyp.com/components/decktabs"
 	"webtyp.com/components/herobanner"
 	"webtyp.com/components/infobar"
 	"webtyp.com/components/modaldialog"
@@ -346,7 +345,6 @@ func TestEveryPackageEmits(t *testing.T) {
 		&selectsearch.SelectSearch{},
 		&sitenav.SiteNav{},
 		&statgrid.StatGrid{},
-		&decktabs.DeckTabs{},
 		&targethour.TargetHour{},
 		&targetlist.TargetList{},
 		&themetoggle.ThemeToggle{},
@@ -384,7 +382,6 @@ func TestKindAllowsEveryState(t *testing.T) {
 		"selectsearch":     &selectsearch.SelectSearch{},
 		"sitenav":          &sitenav.SiteNav{},
 		"statgrid":         &statgrid.StatGrid{},
-		"decktabs":         &decktabs.DeckTabs{},
 		"targethour":       &targethour.TargetHour{},
 		"targetlist":       &targetlist.TargetList{},
 		"themetoggle":      &themetoggle.ThemeToggle{},

@@ -16,6 +16,7 @@ const (
 	PartBody    = widget.Part("body")
 	PartActions = widget.Part("actions")
 	PartClose   = widget.Part("close")
+	PartTitle   = widget.Part("title")
 )
 
 var (
@@ -24,6 +25,7 @@ var (
 	clsModalHeader  = NameModalDialog.Class(PartHeader)
 	clsModalBody    = NameModalDialog.Class(PartBody)
 	clsModalClose   = NameModalDialog.Class(PartClose)
+	clsModalTitle   = NameModalDialog.Class(PartTitle)
 )
 
 // ModalDialog represents a modal dialog component.
@@ -50,7 +52,7 @@ func (m *ModalDialog) Init(_ Ctx) {
 
 func (m *ModalDialog) Render() *Element {
 	header := Div().Set(clsModalHeader.AsAttr()).
-		Child(H2().Text(lang.Translate(m.Title).String()))
+		Child(H2().Set(clsModalTitle.AsAttr()).Text(lang.Translate(m.Title).String()))
 	if !m.HideClose {
 		header.Child(Button().
 			Text("×").

@@ -38,8 +38,7 @@ func (a *StepAccordion) RenderCSS() *css.Stylesheet {
 			style.FontWeight(style.WeightBold),
 		).
 		Part(PartTitle,
-			style.FontSize(style.TextBase),
-			style.FontWeight(style.WeightMedium),
+			style.Heading(),
 		).
 		Part(PartSummary,
 			style.FontSize(style.TextSm),

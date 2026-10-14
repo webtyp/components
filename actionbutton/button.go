@@ -32,10 +32,20 @@ var (
 	clsBtnDanger    = NameActionButton.Class(PartDanger)
 )
 
+// Variant is the weight of the action: Primary for the main one, Secondary
+// for alternatives, Danger for destructive ones.
+type Variant uint8
+
+const (
+	Primary Variant = iota
+	Secondary
+	Danger
+)
+
 type ActionButton struct {
 	Element
 	Text    lang.Text // English; translated in Render.
-	Variant string    // "primary", "secondary", "danger"
+	Variant Variant
 
 	// Href renders the button as <a href> instead of <button>: no click
 	// handler, works before WASM loads and with JavaScript disabled. Set
@@ -52,9 +62,9 @@ func (b *ActionButton) WidgetKind() widget.Kind { return widget.Region }
 func (b *ActionButton) Render() *Element {
 	var variantCls widget.Class
 	switch b.Variant {
-	case "secondary":
+	case Secondary:
 		variantCls = clsBtnSecondary
-	case "danger":
+	case Danger:
 		variantCls = clsBtnDanger
 	default:
 		variantCls = clsBtnPrimary

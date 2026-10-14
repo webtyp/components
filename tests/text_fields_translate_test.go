@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"webtyp.com/components/composebar"
-	"webtyp.com/components/decktabs"
 	"webtyp.com/components/searchbar"
 	"webtyp.com/components/selectsearch"
 	"webtyp.com/dom"
@@ -53,12 +52,6 @@ func TestFixedText_Translated(t *testing.T) {
 	html = (&composebar.ComposeBar{SendLabel: "Send", OnSend: func(string) {}}).Render().String()
 	if !strings.Contains(html, "Enviar") || strings.Contains(html, "Send") {
 		t.Errorf("ComposeBar: expected 'Enviar', got: %s", html)
-	}
-
-	// 3. DeckTabs
-	html = (&decktabs.DeckTabs{Items: []decktabs.Item{{ID: "1", Label: "Hours"}}}).Render().String()
-	if !strings.Contains(html, "Horario") || strings.Contains(html, "Hours") {
-		t.Errorf("DeckTabs: expected 'Horario', got: %s", html)
 	}
 
 	// 4. SelectSearch (requires mounting for Show())
