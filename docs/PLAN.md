@@ -2,8 +2,10 @@
 PLAN: "feat(components)!: section titles use style.Heading; typed ActionButton variant; remove decktabs"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 728072016565189675
+PR: https://github.com/webtyp/components/pull/33
+REVIEWED_COMMIT: f67f4190e54656e7d3de4a869c4d7b1dd5575065
 ---
 
 > Read AGENTS.md at the repo root before any change.
