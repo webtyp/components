@@ -18,7 +18,7 @@ func (c *CellGrid) RenderCSS() *css.Stylesheet {
 			style.CenterContent(),
 		).
 		When(widget.Selected, PartCell,
-			style.As(style.Primary),
+			style.As(style.Accent),
 		).
 		Stylesheet()
 }

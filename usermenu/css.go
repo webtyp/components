@@ -18,11 +18,16 @@ func (m *UserMenu) RenderCSS() *css.Stylesheet {
 		).
 		// The resting state: avatar and name, nothing else. Whatever a shell
 		// puts here has to have a bounded width, and a name does.
+		// Bare, not Subtle or Primary: the trigger lives on the app's primary
+		// chrome (the header, and the drawer on a phone), where Subtle's muted
+		// text is unreadable and a Primary fill draws a visible pill over the
+		// gradient. No surface at all: the avatar and the name read on-primary,
+		// the way the brand mark does.
 		Part(PartTrigger,
 			style.Row(style.Space2),
-			style.Button(style.Subtle),
-			// A pill, not a 4px-cornered box: Button derives only RadiusSm from
-			// Subtle, so the explicit radius stays.
+			style.As(style.Bare),
+			style.Interactive(style.Bare),
+			// A pill, not a 4px-cornered box, for the focus ring.
 			style.Round(style.RadiusFull),
 			style.Pad(style.Space1),
 		).

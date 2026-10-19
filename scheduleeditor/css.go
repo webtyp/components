@@ -85,7 +85,7 @@ func (e *ScheduleEditor) sheet() *style.Sheet {
 			style.FontWeight(style.WeightBold),
 		).
 		When(widget.Selected, PartDayLabel,
-			style.As(style.Primary),
+			style.As(style.Accent),
 		).
 		// El estado inválido vive en la fila del DÍA, que es donde el
 		// solapamiento ocurre ahora: dos rangos del mismo día que se pisan.

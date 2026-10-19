@@ -41,8 +41,13 @@ func (t *TargetList) sheet() *style.Sheet {
 			style.FontWeight(style.WeightBold),
 			style.Grow(),
 		).
+		// The badge is data (a code), not an action: neutral and outlined, never
+		// the primary fill, which belongs to action buttons. It rides the row's
+		// bottom-right edge, out of the flow (OnEdge), so the label always has
+		// the row's whole width and the badge never moves — it does not wrap
+		// under the label when the two do not fit side by side.
 		Part(PartBadge,
-			style.As(style.Primary),
+			style.As(style.Panel),
 			style.Round(style.RadiusSm),
 			style.FontSize(style.TextXs),
 			style.ChipBox(),
@@ -53,11 +58,14 @@ func (t *TargetList) sheet() *style.Sheet {
 		When(widget.Selected, PartRow,
 			style.As(style.Accent),
 		).
+		// Outline for a passing state, fill for a confirmed one: hover and focus
+		// outline the row in the accent and leave its content alone; pressed and
+		// selected fill it.
 		Cue(widget.Hover, PartRow,
-			style.As(style.AccentWash),
+			style.As(style.AccentOutline),
 		).
 		Cue(widget.Focus, PartRow,
-			style.As(style.AccentWash),
+			style.As(style.AccentOutline),
 		).
 		Cue(widget.Press, PartRow,
 			style.As(style.Accent),

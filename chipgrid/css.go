@@ -22,7 +22,7 @@ func (g *ChipGrid) RenderCSS() *css.Stylesheet {
 		Part(PartEmpty,
 			style.FontSize(style.TextSm),
 		).
-		When(widget.Selected, PartChip, style.As(style.Primary)).
+		When(widget.Selected, PartChip, style.As(style.Accent)).
 		When(widget.Disabled, PartChip, style.As(style.Inactive)).
 		Stylesheet()
 }
