@@ -9,11 +9,11 @@
 package scheduleeditor
 
 import (
-	"webtyp.com/date"
+	"webtyp.com/calendar"
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
-	"webtyp.com/lang"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/time"
 	"webtyp.com/widget"
 
@@ -271,7 +271,7 @@ func dayFullLabel(index int) string {
 	if index < 0 || index > 6 {
 		return ""
 	}
-	return lang.Translate(date.WeekdayName(index)).String()
+	return lang.Translate(calendar.WeekdayName(index)).String()
 }
 
 // ---------------------------------------------------------------------------
@@ -326,7 +326,7 @@ func (e *ScheduleEditor) rangesForDay(d int) []dayRange {
 // next (vacío = el día no se trabaja) y lo emite.
 func (e *ScheduleEditor) emitDayRanges(d int, next []dayRange) {
 	rows := make([]PatternRow, 0, len(e.Pattern)*2)
-	for _, wd := range date.WeekOrder() {
+	for _, wd := range calendar.WeekOrder() {
 		src := e.rangesForDay(wd)
 		if wd == d {
 			src = next
@@ -347,7 +347,7 @@ func (e *ScheduleEditor) buildPattern() *Element {
 	container.Child(Div().Set(clsHintText.AsAttr()).
 		Text(lang.Translate("Turn on the days you work and set their hours").String()))
 
-	for _, d := range date.WeekOrder() {
+	for _, d := range calendar.WeekOrder() {
 		container.Child(e.buildDayRow(d))
 	}
 	return container
@@ -631,7 +631,7 @@ func toCalHolidays(days []string) []calendarslider.Holiday {
 // disponibilidad, que es lo que este editor decide.
 func (e *ScheduleEditor) effectiveOccupation() []calendarslider.OccupationDay {
 	months := e.horizonMonths()
-	startYear, startMonth := date.ParseMonthKey(time.FormatDate(time.Now())[:7])
+	startYear, startMonth := calendar.ParseMonthKey(time.FormatDate(time.NowUnix())[:7])
 	if startYear == 0 {
 		return nil
 	}
@@ -647,13 +647,13 @@ func (e *ScheduleEditor) effectiveOccupation() []calendarslider.OccupationDay {
 
 	out := make([]calendarslider.OccupationDay, 0, months*31)
 	for m := 0; m < months; m++ {
-		y, mon := date.AddMonths(startYear, startMonth, m)
-		for d := 1; d <= date.DaysInMonth(y, mon); d++ {
+		y, mon := calendar.AddMonths(startYear, startMonth, m)
+		for d := 1; d <= calendar.DaysInMonth(y, mon); d++ {
 			pct := 0
-			if worksOn[date.Weekday(y, mon, d)] {
+			if worksOn[calendar.Weekday(y, mon, d)] {
 				pct = 100
 			}
-			out = append(out, calendarslider.OccupationDay{Date: date.DateKey(y, mon, d), Percent: pct})
+			out = append(out, calendarslider.OccupationDay{Date: calendar.DateKey(y, mon, d), Percent: pct})
 		}
 	}
 
@@ -709,9 +709,9 @@ type dayFacts struct {
 
 func (e *ScheduleEditor) factsFor(key string) dayFacts {
 	var f dayFacts
-	y, m, d := date.ParseDateKey(key)
+	y, m, d := calendar.ParseDateKey(key)
 	if y != 0 {
-		wd := date.Weekday(y, m, d)
+		wd := calendar.Weekday(y, m, d)
 		for _, row := range e.Pattern {
 			if containsInt(row.Days, wd) {
 				f.covered = true
@@ -1078,12 +1078,12 @@ func dateCell(key string) *Element {
 // colapsado de calendarslider, para que la misma fecha se lea igual en las dos
 // pantallas; las palabras las pone el diccionario de la app.
 func humanDate(key string) string {
-	y, m, d := date.ParseDateKey(key)
+	y, m, d := calendar.ParseDateKey(key)
 	if y == 0 {
 		return key
 	}
-	weekday := date.WeekdayName(date.Weekday(y, m, d))
-	return lang.Translate(weekday, d, date.MonthName(m), y).String()
+	weekday := calendar.WeekdayName(calendar.Weekday(y, m, d))
+	return lang.Translate(weekday, d, calendar.MonthName(m), y).String()
 }
 
 func containsDate(list []string, date string) bool {

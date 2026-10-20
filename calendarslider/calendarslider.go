@@ -12,11 +12,11 @@
 package calendarslider
 
 import (
-	"webtyp.com/date"
+	"webtyp.com/calendar"
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
-	"webtyp.com/lang"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/svg"
 	"webtyp.com/time"
 	"webtyp.com/widget"
@@ -85,7 +85,7 @@ var (
 // shortWeekdayKeys son las claves canónicas en inglés del encabezado. La
 // librería nunca fija un idioma ni el primer día: el texto lo traduce el
 // diccionario de la app vía lang.Translate, y el orden lo decide
-// date.FirstWeekday (lunes por defecto). Índice = convención de date.Weekday
+// calendar.FirstWeekday (lunes por defecto). Índice = convención de calendar.Weekday
 // (0 = Sunday … 6 = Saturday).
 var shortWeekdayKeys = [7]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
 
@@ -267,7 +267,7 @@ func (c *CalendarSlider) Init(_ Ctx) {
 	if c.Expanded == nil {
 		c.Expanded = NewBool(true)
 	}
-	c.today = time.FormatDate(time.Now())
+	c.today = time.FormatDate(time.NowUnix())
 }
 
 func (c *CalendarSlider) numMonths() int {
@@ -282,9 +282,9 @@ func (c *CalendarSlider) numMonths() int {
 }
 
 func (c *CalendarSlider) startYearMonth() (int, int) {
-	sy, sm := date.ParseMonthKey(c.today)
+	sy, sm := calendar.ParseMonthKey(c.today)
 	if c.Start != "" {
-		if y, m := date.ParseMonthKey(c.Start); y != 0 {
+		if y, m := calendar.ParseMonthKey(c.Start); y != 0 {
 			sy, sm = y, m
 		}
 	}
@@ -297,8 +297,8 @@ func (c *CalendarSlider) Render() *Element {
 
 	keys := make([]string, n)
 	for i := 0; i < n; i++ {
-		y, m := date.AddMonths(sy, sm, i)
-		keys[i] = date.MonthKey(y, m)
+		y, m := calendar.AddMonths(sy, sm, i)
+		keys[i] = calendar.MonthKey(y, m)
 	}
 
 	c.months = c.months[:0]
@@ -308,7 +308,7 @@ func (c *CalendarSlider) Render() *Element {
 		Attr("aria-label", lang.Translate("Calendar").String()).
 		BindState(widget.Current, c.Expanded)
 	for i, key := range keys {
-		y, m := date.ParseMonthKey(key)
+		y, m := calendar.ParseMonthKey(key)
 		prevKey := keys[(i-1+n)%n]
 		nextKey := keys[(i+1)%n]
 		prevWraps := i == 0
@@ -349,15 +349,15 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 			} else if c.Selected != nil {
 				selKey = c.Selected.Get()
 			}
-			y, m, d := date.ParseDateKey(selKey)
+			y, m, d := calendar.ParseDateKey(selKey)
 			if y == 0 {
 				// A placeholder, not "": with an empty label the collapsed
 				// field rendered as a mute icon with no indication of what
 				// tapping it does.
 				return lang.Translate("Select date").String()
 			}
-			weekday := date.WeekdayName(date.Weekday(y, m, d))
-			return lang.Translate(weekday, d, date.MonthName(m), y).String()
+			weekday := calendar.WeekdayName(calendar.Weekday(y, m, d))
+			return lang.Translate(weekday, d, calendar.MonthName(m), y).String()
 		})
 
 	label := Label().Set(clsCollapsed.AsAttr()).
@@ -371,7 +371,7 @@ func (c *CalendarSlider) buildCollapsed() *Element {
 
 func (c *CalendarSlider) buildWeekdayRow() *Element {
 	weekdays := Ul().Set(clsWeekRow.AsAttr()).Attr("role", "row")
-	for _, w := range date.WeekOrder() {
+	for _, w := range calendar.WeekOrder() {
 		weekdays.Child(Li().Set(clsWeekday.AsAttr()).
 			Attr("role", "columnheader").
 			Text(lang.Translate(shortWeekdayKeys[w]).String()))
@@ -382,7 +382,7 @@ func (c *CalendarSlider) buildWeekdayRow() *Element {
 const weeksPerMonth = 6
 
 func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, prevWraps, nextWraps bool) *Element {
-	key := date.MonthKey(year, month)
+	key := calendar.MonthKey(year, month)
 	monthEl := Div().Set(clsMonth.AsAttr()).
 		Key(key).
 		Attr("data-month", key)
@@ -393,7 +393,7 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 	c.curNav = nav
 
 	monthName := Div().Set(clsMonthNm.AsAttr()).
-		Text(lang.Translate(date.MonthName(month), year).String())
+		Text(lang.Translate(calendar.MonthName(month), year).String())
 
 	prev := Button().Set(clsPrev.AsAttr()).
 		Attr("type", "button").
@@ -503,8 +503,8 @@ func (c *CalendarSlider) slideToMonth(key string, instant bool) {
 }
 
 func (c *CalendarSlider) buildDayCells(year, month int) []*Element {
-	startCol := date.WeekColumn(date.Weekday(year, month, 1))
-	total := date.DaysInMonth(year, month)
+	startCol := calendar.WeekColumn(calendar.Weekday(year, month, 1))
+	total := calendar.DaysInMonth(year, month)
 	cells := make([]*Element, 0, startCol+total)
 	for i := 0; i < startCol; i++ {
 		cells = append(cells, Li().Attr("aria-hidden", "true"))
@@ -516,8 +516,8 @@ func (c *CalendarSlider) buildDayCells(year, month int) []*Element {
 }
 
 func (c *CalendarSlider) buildDay(year, month, day int) *Element {
-	dateStr := date.DateKey(year, month, day)
-	weekday := date.Weekday(year, month, day)
+	dateStr := calendar.DateKey(year, month, day)
+	weekday := calendar.Weekday(year, month, day)
 
 	use := -1
 	if v, ok := c.occupationPercent(dateStr); ok {
@@ -593,7 +593,7 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 				nav.pos = dayIdx
 			}
 			stack.Attr("tabindex", tab)
-			week := (date.WeekColumn(date.Weekday(year, month, 1)) + day - 1) / 7
+			week := (calendar.WeekColumn(calendar.Weekday(year, month, 1)) + day - 1) / 7
 			nav.days = append(nav.days, dayRef{date: dateStr, btn: stack, week: week})
 		}
 	} else {
@@ -657,8 +657,8 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 // active day is known before the cells are built.
 func (c *CalendarSlider) monthSelectables(year, month int) []string {
 	var out []string
-	for day := 1; day <= date.DaysInMonth(year, month); day++ {
-		key := date.DateKey(year, month, day)
+	for day := 1; day <= calendar.DaysInMonth(year, month); day++ {
+		key := calendar.DateKey(year, month, day)
 		if _, ok := c.occupationPercent(key); !ok {
 			continue
 		}
@@ -755,7 +755,7 @@ func useLevelClass(use int, kind MeterKind) widget.Class {
 // reliably — and on a booking calendar the percentage is the reason the day is
 // worth choosing at all.
 func dayLabel(year, month, day, use int) string {
-	return lang.Translate(day, date.MonthName(month), year, fmt.Sprint(use)+"%", "occupied").String()
+	return lang.Translate(day, calendar.MonthName(month), year, fmt.Sprint(use)+"%", "occupied").String()
 }
 
 func containsWord(s, word string) bool {

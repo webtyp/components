@@ -253,7 +253,7 @@ func TestChipCollapseDefaultsToToday(t *testing.T) {
 	c.Init(nil)
 	Render("app", c.Render())
 
-	today := time.FormatDate(time.Now())
+	today := time.FormatDate(time.NowUnix())
 	query(t, ".calendarslider__collapsed").Call("click")
 	if c.Selected.Get() != today {
 		t.Errorf("plegar sin selección debería fijar hoy (%s), Selected = %q", today, c.Selected.Get())
