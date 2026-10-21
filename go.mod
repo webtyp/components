@@ -11,7 +11,7 @@ require (
 	webtyp.com/image v0.1.16
 	webtyp.com/js v0.0.11
 	webtyp.com/lang v0.1.7
-	webtyp.com/svg v0.3.28
+	webtyp.com/svg v0.3.30
 	webtyp.com/time v0.6.2
 	webtyp.com/view v0.6.40
 	webtyp.com/widget v0.6.43
