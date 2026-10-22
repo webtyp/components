@@ -26,7 +26,7 @@ require (
 	webtyp.com/icons v0.0.7
 	webtyp.com/json v0.5.29 // indirect
 	webtyp.com/model v0.2.4 // indirect
-	webtyp.com/router v0.4.5 // indirect
+	webtyp.com/router v0.4.6 // indirect
 )
 
 // TEMP local verification (accent outline) — remove before commit.
