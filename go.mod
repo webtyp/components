@@ -23,7 +23,7 @@ require (
 	webtyp.com/color v0.1.2 // indirect
 	webtyp.com/context v0.0.23 // indirect
 	webtyp.com/font v0.0.5 // indirect
-	webtyp.com/icons v0.0.7
+	webtyp.com/icons v0.0.33
 	webtyp.com/json v0.5.29 // indirect
 	webtyp.com/model v0.2.6 // indirect
 	webtyp.com/router v0.4.6 // indirect
