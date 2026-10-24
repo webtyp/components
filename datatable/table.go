@@ -48,16 +48,13 @@ func (t *DataTable) Render() *Element {
 	thead.Child(tr)
 	table.Child(thead)
 
-	// Seeded from the DATA, not from t.rows. The signal owns the live children
-	// — BindChildren replaces them wholesale on every update — and its elements
-	// already belong to whichever tbody the runtime last painted. Handing them
-	// to a second Render() would give one element two parents, so the markup a
-	// re-render produces is built fresh. SetRows keeps t.Rows in step, so the
-	// seed and the signal always describe the same table.
+	// A fresh signal per Render, built from the DATA: the signal owns the
+	// tbody's children (dom draws exactly what it holds, on the server and in
+	// the browser), and the previous signal's elements already belong to the
+	// tbody the runtime last painted — reusing them would give one element two
+	// parents. SetRows updates whichever signal the latest tbody is bound to.
+	t.rows = NewNodes(t.buildRows(t.Rows)...)
 	tbody := Tbody().BindChildren(t.rows)
-	for _, row := range t.buildRows(t.Rows) {
-		tbody.Child(row)
-	}
 	table.Child(tbody)
 
 	return table
