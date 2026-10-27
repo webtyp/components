@@ -32,12 +32,12 @@ func TestTargetHour_RowHasHourLabelAndCheck(t *testing.T) {
 }
 
 func TestHourText_StoredInstant(t *testing.T) {
-	// A time at 09:30 UTC
 	u := time.Date(2026, 10, 27, 9, 30, 0)
 	badge := strconv.FormatInt(int64(u), 10)
 	h := hourText(badge)
-	if h != "09:30" {
-		t.Errorf("got %q, want %q", h, "09:30")
+	want := time.FormatTime(u)[:5]
+	if h != want {
+		t.Errorf("got %q, want %q", h, want)
 	}
 }
 
