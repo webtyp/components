@@ -3,8 +3,10 @@ PLAN: "feat!: list widgets read view.Item.Badge; targetdate and targethour draw 
 TAG: v0.8.56
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 6444490990618543278
+PR: https://github.com/webtyp/components/pull/34
+REVIEWED_COMMIT: 275e8ae5ff3b23c48bd9a7f6e2a7aac4a71d7096
 ---
 
 > Read AGENTS.md at the repo root before any change.

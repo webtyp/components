@@ -13,8 +13,8 @@ func TestFreeSlots_RenderedAfterItems(t *testing.T) {
 	th.Init(nil)
 	th.FreeSlots = []string{"09:00", "10:30", "14:00"}
 	th.SetItems([]Item{
-		{ID: "1", LeadMain: "08:00", Label: "a"},
-		{ID: "2", LeadMain: "08:30", Label: "b"},
+		{ID: "1", Badge: "08:00", Label: "a"},
+		{ID: "2", Badge: "08:30", Label: "b"},
 	})
 
 	nodes := th.rows.Get()
@@ -40,7 +40,7 @@ func TestFreeSlots_RenderedAfterItems(t *testing.T) {
 func TestFreeSlots_NilNoRegression(t *testing.T) {
 	th := &TargetHour{}
 	th.Init(nil)
-	th.SetItems([]Item{{ID: "1", LeadMain: "08:00", Label: "a"}})
+	th.SetItems([]Item{{ID: "1", Badge: "08:00", Label: "a"}})
 
 	nodes := th.rows.Get()
 	if len(nodes) != 1 {

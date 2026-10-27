@@ -25,7 +25,7 @@ var _ listViewContract = (*targethour.TargetHour)(nil)
 func TestSelectModeShowsOnTheRoot(t *testing.T) {
 	th := &targethour.TargetHour{}
 	th.Init(nil)
-	th.SetItems([]targethour.Item{{ID: "1", Label: "Row 1", LeadMain: "09:00"}})
+	th.SetItems([]targethour.Item{{ID: "1", Label: "Row 1", Badge: "09:00"}})
 
 	if html := th.Render().String(); strings.Contains(html, "data-open") {
 		t.Errorf("the root must not carry the open state with the mode OFF\nhtml: %s", html)

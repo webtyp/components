@@ -3,8 +3,11 @@
 package targethour
 
 import (
+	"strconv"
 	"strings"
 	"testing"
+
+	"webtyp.com/time"
 )
 
 func TestTargetHour_RowHasHourLabelAndCheck(t *testing.T) {
@@ -13,7 +16,7 @@ func TestTargetHour_RowHasHourLabelAndCheck(t *testing.T) {
 
 	html := th.buildRow(Item{
 		ID: "7", Label: "Fractura", Description: "dr. Tony Stark",
-		LeadMain: "10:30",
+		Badge: "10:30",
 	}).String()
 
 	for _, want := range []string{"targethour__row", "Fractura", "targethour__sel-check", "targethour__hour", "10:30"} {
@@ -25,5 +28,22 @@ func TestTargetHour_RowHasHourLabelAndCheck(t *testing.T) {
 		if strings.Contains(html, unwanted) {
 			t.Errorf("buildRow must not render per-row menu artifact %q\ngot: %s", unwanted, html)
 		}
+	}
+}
+
+func TestHourText_StoredInstant(t *testing.T) {
+	u := time.Date(2026, 10, 27, 9, 30, 0)
+	badge := strconv.FormatInt(int64(u), 10)
+	h := hourText(badge)
+	want := time.FormatTime(u)[:5]
+	if h != want {
+		t.Errorf("got %q, want %q", h, want)
+	}
+}
+
+func TestHourText_PlainText(t *testing.T) {
+	h := hourText("09:30")
+	if h != "09:30" {
+		t.Errorf("got %q, want %q", h, "09:30")
 	}
 }

@@ -1,5 +1,5 @@
 // Package targetdate is targetlist's sibling for rows that need a prominent
-// leading badge — an hour, a day, anything view.Item.LeadTop/Main/Bottom
+// leading badge — an hour, a day, anything view.Item.Badge
 // carries — instead of a plain label. Same multi-selection mechanics as
 // targetlist.
 package targetdate
@@ -8,11 +8,37 @@ import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
+	"webtyp.com/time"
 	"webtyp.com/view"
 	"webtyp.com/widget"
 
 	"webtyp.com/components/listselect"
 )
+
+// Abbreviations, translated through lang.json (English keys).
+var (
+	weekdayAbbr = [7]lang.Text{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
+	monthAbbr   = [12]lang.Text{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+)
+
+// leadLines turns the row badge into the three lines of the date badge: a stored
+// date (seconds since 1970, as text) → weekday / day / month; any other text → the
+// text alone in the middle line; "" → three empty lines.
+func leadLines(badge string) (top, main, bottom string) {
+	if badge == "" {
+		return "", "", ""
+	}
+	secs, err := fmt.Convert(badge).Int64()
+	if err != nil {
+		return "", badge, ""
+	}
+	u := time.Unix(secs)
+	_, month, day, _, _, _ := time.CivilDate(u)
+	return lang.Translate(weekdayAbbr[time.Weekday(u)]).String(),
+		fmt.Convert(day).String(),
+		lang.Translate(monthAbbr[month-1]).String()
+}
 
 // badgeChars mirrors targetlist's own budget — see that package's comment.
 const badgeChars = 16
@@ -49,7 +75,7 @@ var (
 
 // Item is view.Item — see targetlist.Item's comment for why this is an
 // alias, not a copy. TargetDate is the one row that actually reads
-// LeadTop/Main/Bottom.
+// the badge of the row (view.Item.Badge).
 type Item = view.Item
 
 // rowState holds the per-record reactive text of one row. The reconciler
@@ -65,27 +91,29 @@ type rowState struct {
 }
 
 func newRowState(it Item) *rowState {
+	top, main, bottom := leadLines(it.Badge)
 	return &rowState{
 		id:     it.ID,
 		label:  NewString(it.Label),
 		desc:   NewString(it.Description),
-		top:    NewString(it.LeadTop),
-		main:   NewString(it.LeadMain),
-		bottom: NewString(it.LeadBottom),
+		top:    NewString(top),
+		main:   NewString(main),
+		bottom: NewString(bottom),
 	}
 }
 
 // set refreshes the words of a retained row to the latest record.
 func (r *rowState) set(it Item) {
+	top, main, bottom := leadLines(it.Badge)
 	r.label.Set(it.Label)
 	r.desc.Set(it.Description)
-	r.top.Set(it.LeadTop)
-	r.main.Set(it.LeadMain)
-	r.bottom.Set(it.LeadBottom)
+	r.top.Set(top)
+	r.main.Set(main)
+	r.bottom.Set(bottom)
 }
 
 // TargetDate is a selectable list of records with a prominent leading badge
-// (LeadTop/Main/Bottom) instead of a plain label lead-in.
+// (the badge of the row (view.Item.Badge)) instead of a plain label lead-in.
 type TargetDate struct {
 	Element
 

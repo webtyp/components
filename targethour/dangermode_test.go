@@ -11,7 +11,7 @@ import (
 func TestTargetHour_DangerMarksInvalidNotSelected(t *testing.T) {
 	th := &TargetHour{}
 	th.Init(nil)
-	row := th.buildRow(Item{ID: "1", Label: "Row 1", LeadMain: "09:00"})
+	row := th.buildRow(Item{ID: "1", Label: "Row 1", Badge: "09:00"})
 
 	th.SetSelectMode(true)
 	th.SetDanger(true)
@@ -40,7 +40,7 @@ func TestTargetHour_NormalHighlightLeavesCheckStateless(t *testing.T) {
 	th := &TargetHour{}
 	th.Init(nil)
 	th.Selected.Set("1")
-	row := th.buildRow(Item{ID: "1", Label: "Row 1", LeadMain: "09:00"})
+	row := th.buildRow(Item{ID: "1", Label: "Row 1", Badge: "09:00"})
 
 	html := row.String()
 	check := html[strings.Index(html, `class='targethour__sel-check'`):]
@@ -183,7 +183,7 @@ func TestTargetHour_CheckHiddenUntilSelectionMode(t *testing.T) {
 func TestTargetHour_RenderUsesSharedIconGlyphs(t *testing.T) {
 	th := &TargetHour{}
 	th.Init(nil)
-	row := th.buildRow(Item{ID: "1", Label: "Row 1", LeadMain: "09:00"})
+	row := th.buildRow(Item{ID: "1", Label: "Row 1", Badge: "09:00"})
 
 	html := row.String()
 	if !strings.Contains(html, `href='#trash'`) || !strings.Contains(html, `href='#pencil'`) {

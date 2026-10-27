@@ -9,11 +9,26 @@ import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
 	. "webtyp.com/html"
+	"webtyp.com/time"
 	"webtyp.com/view"
 	"webtyp.com/widget"
 
 	"webtyp.com/components/listselect"
 )
+
+// hourText: a stored instant (seconds since 1970, as text) → «HH:MM» in the
+// configured zone; any other text (already «09:30») → as is.
+func hourText(badge string) string {
+	secs, err := fmt.Convert(badge).Int64()
+	if err != nil {
+		return badge
+	}
+	f := time.FormatTime(time.Unix(secs))
+	if len(f) >= 5 {
+		return f[:5]
+	}
+	return f
+}
 
 const badgeChars = 16
 
@@ -69,7 +84,7 @@ type rowState struct {
 func newRowState(it Item) *rowState {
 	return &rowState{
 		id:    it.ID,
-		hour:  NewString(it.LeadMain),
+		hour:  NewString(hourText(it.Badge)),
 		label: NewString(it.Label),
 		desc:  NewString(it.Description),
 	}
@@ -77,7 +92,7 @@ func newRowState(it Item) *rowState {
 
 // set refreshes the words of a retained row to the latest record.
 func (r *rowState) set(it Item) {
-	r.hour.Set(it.LeadMain)
+	r.hour.Set(hourText(it.Badge))
 	r.label.Set(it.Label)
 	r.desc.Set(it.Description)
 }
