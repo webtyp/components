@@ -36,8 +36,7 @@ var (
 // Item is view.Item, not a copy: a shared shape means crudview.filter's
 // []view.Item flows straight into SetItems, and a host swapping this widget
 // for targetdate (also view.Item-based) needs no re-mapping either. TargetList
-// itself only ever reads ID/Label/Description — LeadTop/Main/Bottom are
-// targetdate's slot, ignored here.
+// itself only ever reads ID/Label/Description — Badge is for the date and hour lists.
 type Item = view.Item
 
 // rowState holds the per-record reactive text of one row. The reconciler

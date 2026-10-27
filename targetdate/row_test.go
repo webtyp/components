@@ -3,8 +3,11 @@
 package targetdate
 
 import (
+	"strconv"
 	"strings"
 	"testing"
+
+	"webtyp.com/time"
 )
 
 // Internal, so it can reach buildRow: Render() binds its children and SSR does
@@ -18,10 +21,10 @@ func TestTargetDate_RowHasLeadLabelAndCheck(t *testing.T) {
 
 	html := td.buildRow(Item{
 		ID: "7", Label: "Fractura", Description: "dr. Tony Stark",
-		LeadTop: "Jue", LeadMain: "15", LeadBottom: "Ene 26",
+		Badge: "Hoy", // Plain text badge; will render "Hoy" in the main line.
 	}).String()
 
-	for _, want := range []string{"targetdate__row", "Fractura", "targetdate__sel-check", "15"} {
+	for _, want := range []string{"targetdate__row", "Fractura", "targetdate__sel-check", "Hoy"} {
 		if !strings.Contains(html, want) {
 			t.Errorf("buildRow output missing %q\ngot: %s", want, html)
 		}
@@ -30,5 +33,34 @@ func TestTargetDate_RowHasLeadLabelAndCheck(t *testing.T) {
 		if strings.Contains(html, unwanted) {
 			t.Errorf("buildRow must not render per-row menu artifact %q\ngot: %s", unwanted, html)
 		}
+	}
+}
+
+func TestLeadLines_StoredDate(t *testing.T) {
+	u := time.Date(2026, 10, 27, 12, 0, 0)
+	badge := strconv.FormatInt(int64(u), 10)
+	top, main, bottom := leadLines(badge)
+	if top != "Tue" { // we aren't bootstrapping language translations in test, so fallback to English keys
+		t.Errorf("got top %q, want %q", top, "Tue")
+	}
+	if main != "27" {
+		t.Errorf("got main %q, want %q", main, "27")
+	}
+	if bottom != "Oct" {
+		t.Errorf("got bottom %q, want %q", bottom, "Oct")
+	}
+}
+
+func TestLeadLines_PlainText(t *testing.T) {
+	top, main, bottom := leadLines("Hoy")
+	if top != "" || main != "Hoy" || bottom != "" {
+		t.Errorf("got %q, %q, %q, want %q, %q, %q", top, main, bottom, "", "Hoy", "")
+	}
+}
+
+func TestLeadLines_Empty(t *testing.T) {
+	top, main, bottom := leadLines("")
+	if top != "" || main != "" || bottom != "" {
+		t.Errorf("got %q, %q, %q, want empty", top, main, bottom)
 	}
 }

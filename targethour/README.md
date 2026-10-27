@@ -28,7 +28,7 @@ th := &targethour.TargetHour{
 		return targethour.StatusPending
 	},
 }
-th.SetItems(items) // []view.Item — each with LeadMain set to the hour "HH:MM"
+th.SetItems(items) // []view.Item — each with Badge set to the hour "HH:MM"
 ```
 
 ### Free slots (reservable hours)
@@ -69,9 +69,9 @@ List: func(selected *dom.SignalString, onSelect func(view.Item)) crudview.ListVi
 
 ## The row
 
-`view.Item` fields read: `ID`, `LeadMain` (the hour, rendered prominent),
+`view.Item` fields read: `ID`, `Badge` (the hour, rendered prominent),
 `Label` (the name), `Description` (an optional trailing chip, truncated to 16
-chars). `LeadTop` / `LeadBottom` are ignored — use `targetdate` if you need
+chars).
 the stacked date badge.
 
 ## Status tint

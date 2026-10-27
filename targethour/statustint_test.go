@@ -14,7 +14,7 @@ import (
 func TestTargetHour_NoStatusMapperNoTint(t *testing.T) {
 	th := &TargetHour{}
 	th.Init(nil)
-	html := th.buildRow(Item{ID: "1", Label: "x", LeadMain: "09:00"}).String()
+	html := th.buildRow(Item{ID: "1", Label: "x", Badge: "09:00"}).String()
 	if strings.Contains(html, string(widget.Locked.Attr().Key())+"='true'") ||
 		strings.Contains(html, string(widget.Busy.Attr().Key())+"='true'") {
 		t.Errorf("a row without a StatusOf mapper must carry no tint state\n%s", html)
@@ -35,7 +35,7 @@ func TestTargetHour_StatusDrivesTheTintState(t *testing.T) {
 	for _, c := range cases {
 		th := &TargetHour{StatusOf: func(view.Item) Status { return c.st }}
 		th.Init(nil)
-		html := th.buildRow(Item{ID: "1", Label: "x", LeadMain: "09:00"}).String()
+		html := th.buildRow(Item{ID: "1", Label: "x", Badge: "09:00"}).String()
 		if !strings.Contains(html, c.wantKey+"='true'") {
 			t.Errorf("status %d must set %s='true'\n%s", c.st, c.wantKey, html)
 		}
@@ -49,7 +49,7 @@ func TestTargetHour_StatusDrivesTheTintState(t *testing.T) {
 func TestTargetHour_LeadRendersTheHour(t *testing.T) {
 	th := &TargetHour{}
 	th.Init(nil)
-	html := th.buildRow(Item{ID: "1", Label: "Ana", LeadMain: "14:30"}).String()
+	html := th.buildRow(Item{ID: "1", Label: "Ana", Badge: "14:30"}).String()
 	if !strings.Contains(html, "targethour__hour") || !strings.Contains(html, "14:30") {
 		t.Errorf("the lead must render LeadMain as the hour\n%s", html)
 	}
