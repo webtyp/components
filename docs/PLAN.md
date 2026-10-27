@@ -3,6 +3,8 @@ PLAN: "feat!: list widgets read view.Item.Badge; targetdate and targethour draw 
 TAG: v0.8.56
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 6444490990618543278
 ---
 
 > Read AGENTS.md at the repo root before any change.
