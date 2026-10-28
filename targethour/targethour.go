@@ -10,7 +10,7 @@ import (
 	"webtyp.com/fmt"
 	. "webtyp.com/html"
 	"webtyp.com/time"
-	"webtyp.com/view"
+	"webtyp.com/model"
 	"webtyp.com/widget"
 
 	"webtyp.com/components/listselect"
@@ -57,7 +57,7 @@ var (
 	clsFreeAdd  = NameTargetHour.Class(PartFreeAdd)
 )
 
-type Item = view.Item
+type Item = model.Item
 
 // Status is a row's booking state — drives the tint only. The zero value
 // (StatusPending) paints no tint, exactly like a plain targetlist row.
@@ -105,7 +105,7 @@ type TargetHour struct {
 
 	// StatusOf maps a row to its booking state for the tint. Optional — nil
 	// means every row is StatusPending (no tint). The host owns the mapping
-	// from its own model / view.Item to this typed enum, so the library holds
+	// from its own model / model.Item to this typed enum, so the library holds
 	// no localized status strings.
 	StatusOf func(it Item) Status
 

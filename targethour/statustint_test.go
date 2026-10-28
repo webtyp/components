@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"webtyp.com/view"
+	"webtyp.com/model"
 	"webtyp.com/widget"
 )
 
@@ -33,7 +33,7 @@ func TestTargetHour_StatusDrivesTheTintState(t *testing.T) {
 		{StatusAttended, widget.Busy.Attr().Key(), widget.Locked.Attr().Key()},
 	}
 	for _, c := range cases {
-		th := &TargetHour{StatusOf: func(view.Item) Status { return c.st }}
+		th := &TargetHour{StatusOf: func(model.Item) Status { return c.st }}
 		th.Init(nil)
 		html := th.buildRow(Item{ID: "1", Label: "x", Badge: "09:00"}).String()
 		if !strings.Contains(html, c.wantKey+"='true'") {

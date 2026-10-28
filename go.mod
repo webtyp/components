@@ -13,7 +13,6 @@ require (
 	webtyp.com/lang v0.1.9
 	webtyp.com/svg v0.3.30
 	webtyp.com/time v0.6.2
-	webtyp.com/view v0.6.47
 	webtyp.com/widget v0.6.44
 )
 
@@ -25,8 +24,7 @@ require (
 	webtyp.com/font v0.0.5 // indirect
 	webtyp.com/icons v0.0.33
 	webtyp.com/json v0.5.29 // indirect
-	webtyp.com/model v0.2.7 // indirect
-	webtyp.com/router v0.4.9 // indirect
+	webtyp.com/model v0.2.9
 )
 
 // TEMP local verification (accent outline) — remove before commit.
