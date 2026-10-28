@@ -5,7 +5,7 @@ import (
 	. "webtyp.com/dom"
 	"webtyp.com/fmt"
 	. "webtyp.com/html"
-	"webtyp.com/view"
+	"webtyp.com/model"
 	"webtyp.com/widget"
 
 	"webtyp.com/components/listselect"
@@ -33,11 +33,11 @@ var (
 	clsBadge    = NameTargetList.Class(PartBadge)
 )
 
-// Item is view.Item, not a copy: a shared shape means crudview.filter's
-// []view.Item flows straight into SetItems, and a host swapping this widget
-// for targetdate (also view.Item-based) needs no re-mapping either. TargetList
+// Item is model.Item, not a copy: a shared shape means crudview.filter's
+// []model.Item flows straight into SetItems, and a host swapping this widget
+// for targetdate (also model.Item-based) needs no re-mapping either. TargetList
 // itself only ever reads ID/Label/Description — Badge is for the date and hour lists.
-type Item = view.Item
+type Item = model.Item
 
 // rowState holds the per-record reactive text of one row. The reconciler
 // reuses row nodes by key across SetItems, so static Text() at build time

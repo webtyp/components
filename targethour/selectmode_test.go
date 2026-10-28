@@ -7,12 +7,12 @@ import (
 	"testing"
 
 	"webtyp.com/components/targethour"
-	"webtyp.com/view"
+	"webtyp.com/model"
 )
 
 type listViewContract interface {
-	SetItems(items []view.Item)
-	Items() []view.Item
+	SetItems(items []model.Item)
+	Items() []model.Item
 	Count() int
 	SetSelectMode(on bool)
 	SetDanger(on bool)

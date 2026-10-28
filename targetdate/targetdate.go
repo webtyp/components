@@ -1,5 +1,5 @@
 // Package targetdate is targetlist's sibling for rows that need a prominent
-// leading badge — an hour, a day, anything view.Item.Badge
+// leading badge — an hour, a day, anything model.Item.Badge
 // carries — instead of a plain label. Same multi-selection mechanics as
 // targetlist.
 package targetdate
@@ -10,7 +10,7 @@ import (
 	. "webtyp.com/html"
 	"webtyp.com/lang"
 	"webtyp.com/time"
-	"webtyp.com/view"
+	"webtyp.com/model"
 	"webtyp.com/widget"
 
 	"webtyp.com/components/listselect"
@@ -73,10 +73,10 @@ var (
 	clsLeadBottom = NameTargetDate.Class(PartLeadBottom)
 )
 
-// Item is view.Item — see targetlist.Item's comment for why this is an
+// Item is model.Item — see targetlist.Item's comment for why this is an
 // alias, not a copy. TargetDate is the one row that actually reads
-// the badge of the row (view.Item.Badge).
-type Item = view.Item
+// the badge of the row (model.Item.Badge).
+type Item = model.Item
 
 // rowState holds the per-record reactive text of one row. The reconciler
 // reuses row nodes by key across SetItems, so static Text() at build time
@@ -113,7 +113,7 @@ func (r *rowState) set(it Item) {
 }
 
 // TargetDate is a selectable list of records with a prominent leading badge
-// (the badge of the row (view.Item.Badge)) instead of a plain label lead-in.
+// (the badge of the row (model.Item.Badge)) instead of a plain label lead-in.
 type TargetDate struct {
 	Element
 
