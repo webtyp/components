@@ -32,5 +32,5 @@ webtyp.com/svg v0.3.30 h1:74qEeESqUEL3yQYS7O5dAE8Fn/7xbrOw50uxd2RALS0=
 webtyp.com/svg v0.3.30/go.mod h1:lFcEU24sxIo6vAZw2i3o8F78x00GzvOV/UqEHXnsqdI=
 webtyp.com/time v0.6.2 h1:54zst3g0xCB5GBSH/6j9P9EmvgPRs4MDCqFyDe2L/yc=
 webtyp.com/time v0.6.2/go.mod h1:dTCSLhAwMfO+4UjixTboRsXdjss59S5/8bpB9+lqc0o=
-webtyp.com/widget v0.6.44 h1:mRip9Y4zTPd+/QzZ7DyUlm+679BEWKpDJVQ/I8fBxT4=
-webtyp.com/widget v0.6.44/go.mod h1:H45QZ+Di1muuit4vDlJC5OehiLT/NR483Es/KUq6C28=
+webtyp.com/widget v0.6.45 h1:/VOu/dqKm+H9gVTUnHphOTRGRkMCoRSyQHURaqYvuWE=
+webtyp.com/widget v0.6.45/go.mod h1:H45QZ+Di1muuit4vDlJC5OehiLT/NR483Es/KUq6C28=
