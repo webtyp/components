@@ -3,8 +3,10 @@ PLAN: "refactor!: list widgets use model.Item (view.Item removed)"
 TAG: v0.8.57
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 13908604820368307988
+PR: https://github.com/webtyp/components/pull/35
+REVIEWED_COMMIT: 95252ff82b74ad9d42c452c6f2a0f1cc15d636e0
 ---
 
 > Read AGENTS.md at the repo root before any change.
