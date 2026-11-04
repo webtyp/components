@@ -110,3 +110,7 @@ Pair it with `calendarslider.CalendarSlider` as the `crudview.Config.Filter`:
 `CalendarSlider` satisfies `widget.Filterable`, so picking a day emits that
 date (`"YYYY-MM-DD"`) as the filter term and the presenter's `Filter(term)`
 returns that day's slots.
+
+## Zone (required)
+
+`Zone time.Zone` is the installation's time zone; an app passes `appkit.BrowserDeps.Zone`. Dates and hours are shown on its clock (a Santiago winter night stays on its own day). A zero `Zone` panics: it never falls back to UTC.

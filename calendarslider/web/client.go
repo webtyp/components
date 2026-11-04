@@ -7,6 +7,7 @@ import (
 	"webtyp.com/components/themetoggle"
 	. "webtyp.com/dom"
 	. "webtyp.com/html"
+	"webtyp.com/time"
 )
 
 type App struct {
@@ -18,6 +19,7 @@ type App struct {
 func (a *App) Init(_ Ctx) {
 	a.selected = NewString("")
 	a.cal = calendarslider.CalendarSlider{
+		Zone:      time.MachineZone(), // demo: the visitor's clock; an app passes appkit.BrowserDeps.Zone
 		Start:     "2026-08",
 		NumMonths: 3,
 		Holidays: []calendarslider.Holiday{

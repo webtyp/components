@@ -4,6 +4,7 @@ package targethour_test
 
 import (
 	"testing"
+	"webtyp.com/time"
 
 	"syscall/js"
 	"webtyp.com/components/targethour"
@@ -35,7 +36,7 @@ func query(t *testing.T, sel string) js.Value {
 // calendar's day left the "k / N" strip showing the previous day's total
 // (the exact bug reported against the reservation demo).
 func TestMasterCheckCountUpdatesAfterReload(t *testing.T) {
-	th := &targethour.TargetHour{}
+	th := &targethour.TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]targethour.Item{{ID: "1"}, {ID: "2"}})
 	Render("app", th)

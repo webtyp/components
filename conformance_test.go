@@ -11,9 +11,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"webtyp.com/time"
 
 	"testing"
 	"webtyp.com/components/actionbutton"
+	"webtyp.com/components/agedate"
 	"webtyp.com/components/calendarslider"
 	"webtyp.com/components/cellgrid"
 	"webtyp.com/components/chipgrid"
@@ -33,7 +35,6 @@ import (
 	"webtyp.com/components/targethour"
 	"webtyp.com/components/targetlist"
 	"webtyp.com/components/themetoggle"
-	"webtyp.com/components/agedate"
 	"webtyp.com/css"
 	"webtyp.com/widget"
 )
@@ -335,18 +336,18 @@ func TestEveryPackageEmits(t *testing.T) {
 		RenderCSS() *css.Stylesheet
 	}{
 		&actionbutton.ActionButton{},
-		&calendarslider.CalendarSlider{},
+		&calendarslider.CalendarSlider{Zone: time.MachineZone()},
 		&contentcard.ContentCard{},
 		&datatable.DataTable{},
 		&herobanner.HeroBanner{},
 		&infobar.InfoBar{},
 		&modaldialog.ModalDialog{},
-		&scheduleeditor.ScheduleEditor{},
+		&scheduleeditor.ScheduleEditor{Zone: time.MachineZone()},
 		&searchbar.SearchBar{},
 		&selectsearch.SelectSearch{},
 		&sitenav.SiteNav{},
 		&statgrid.StatGrid{},
-		&targethour.TargetHour{},
+		&targethour.TargetHour{Zone: time.MachineZone()},
 		&targetlist.TargetList{},
 		&themetoggle.ThemeToggle{},
 		&agedate.AgeDate{},
@@ -373,18 +374,18 @@ func TestKindAllowsEveryState(t *testing.T) {
 		WidgetKind() widget.Kind
 	}{
 		"actionbutton":     &actionbutton.ActionButton{},
-		"calendarslider":   &calendarslider.CalendarSlider{},
+		"calendarslider":   &calendarslider.CalendarSlider{Zone: time.MachineZone()},
 		"contentcard":      &contentcard.ContentCard{},
 		"datatable":        &datatable.DataTable{},
 		"herobanner":       &herobanner.HeroBanner{},
 		"infobar":          &infobar.InfoBar{},
 		"modaldialog":      &modaldialog.ModalDialog{},
-		"scheduleeditor":   &scheduleeditor.ScheduleEditor{},
+		"scheduleeditor":   &scheduleeditor.ScheduleEditor{Zone: time.MachineZone()},
 		"searchbar":        &searchbar.SearchBar{},
 		"selectsearch":     &selectsearch.SelectSearch{},
 		"sitenav":          &sitenav.SiteNav{},
 		"statgrid":         &statgrid.StatGrid{},
-		"targethour":       &targethour.TargetHour{},
+		"targethour":       &targethour.TargetHour{Zone: time.MachineZone()},
 		"targetlist":       &targetlist.TargetList{},
 		"themetoggle":      &themetoggle.ThemeToggle{},
 		"agedate":          &agedate.AgeDate{},

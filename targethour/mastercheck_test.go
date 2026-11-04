@@ -5,6 +5,7 @@ package targethour
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 )
 
 // classRules concatenates every rule BODY in css whose selector list mentions
@@ -41,7 +42,7 @@ func classRules(css, class string) string {
 // child that stays visible in every mode, sized like the select-all icon,
 // so the strip's own flex height follows that icon's footprint.
 func TestTargetHour_MasterCheckHeaderReservesHeightAlways(t *testing.T) {
-	css := (&TargetHour{}).RenderCSS().String()
+	css := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 	header := classRules(css, ".targethour__sel-header")
 	if header == "" {
 		t.Fatal("expected a rule for .targethour__sel-header")
@@ -64,7 +65,7 @@ func TestTargetHour_MasterCheckHeaderReservesHeightAlways(t *testing.T) {
 // The select-all box, unlike the count, IS hidden until selection mode
 // opens: it is an action control that means nothing without selection mode.
 func TestTargetHour_MasterCheckBoxHiddenUntilSelectionMode(t *testing.T) {
-	css := (&TargetHour{}).RenderCSS().String()
+	css := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 	body := classRules(css, ".targethour__sel-all")
 	if body == "" {
 		t.Fatal("expected a rule for .targethour__sel-all")
@@ -81,7 +82,7 @@ func TestTargetHour_MasterCheckBoxHiddenUntilSelectionMode(t *testing.T) {
 // selection mode too (N alone answers "how many records are there"), so it
 // shows even before anything is marked.
 func TestTargetHour_MasterCheckCountAlwaysVisible(t *testing.T) {
-	css := (&TargetHour{}).RenderCSS().String()
+	css := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 	body := classRules(css, ".targethour__sel-count")
 	if body == "" {
 		t.Fatal("expected a rule for .targethour__sel-count")
@@ -99,7 +100,7 @@ func TestTargetHour_MasterCheckCountAlwaysVisible(t *testing.T) {
 // listselect.Header (covered by its WASM test); here only the widget's wiring
 // is checked — the Mode the header drives.
 func TestTargetHour_MasterCheckTogglesAll(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]Item{{ID: "1"}, {ID: "2"}, {ID: "3"}})
 	th.SetSelectMode(true)
@@ -124,7 +125,7 @@ func TestTargetHour_MasterCheckTogglesAll(t *testing.T) {
 
 // The count label renders "n / total" inside the header strip.
 func TestTargetHour_MasterCheckShowsNOfTotal(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]Item{{ID: "1"}, {ID: "2"}})
 	th.SetSelectMode(true)
@@ -138,7 +139,7 @@ func TestTargetHour_MasterCheckShowsNOfTotal(t *testing.T) {
 
 // The header reuses the shared glyphs, not a bespoke tick.
 func TestTargetHour_MasterCheckUsesSharedGlyphs(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	html := th.Render().String()
 	// The box carries one fixed glyph — never trash/pencil, which name the
@@ -154,7 +155,7 @@ func TestTargetHour_MasterCheckUsesSharedGlyphs(t *testing.T) {
 // TestTargetHour_MasterCheckUsesSharedGlyphs cannot catch: it only proves the
 // reference exists, not that the symbol backing it does.
 func TestTargetHour_IconSvgRegistersSelectAll(t *testing.T) {
-	out := (&TargetHour{}).IconSvg().String()
+	out := (&TargetHour{Zone: time.MachineZone()}).IconSvg().String()
 	if !strings.Contains(out, `<symbol id="selectall"`) {
 		t.Errorf("IconSvg must register the selectall symbol the header references:\n%s", out)
 	}

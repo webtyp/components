@@ -5,6 +5,7 @@ package targethour_test
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 
 	"webtyp.com/components/targethour"
 	"webtyp.com/model"
@@ -23,7 +24,7 @@ type listViewContract interface {
 var _ listViewContract = (*targethour.TargetHour)(nil)
 
 func TestSelectModeShowsOnTheRoot(t *testing.T) {
-	th := &targethour.TargetHour{}
+	th := &targethour.TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]targethour.Item{{ID: "1", Label: "Row 1", Badge: "09:00"}})
 
@@ -38,7 +39,7 @@ func TestSelectModeShowsOnTheRoot(t *testing.T) {
 }
 
 func TestNothingIsCheckedUntilTheUserMarksIt(t *testing.T) {
-	th := &targethour.TargetHour{}
+	th := &targethour.TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]targethour.Item{{ID: "1"}, {ID: "2"}, {ID: "3"}})
 
@@ -49,7 +50,7 @@ func TestNothingIsCheckedUntilTheUserMarksIt(t *testing.T) {
 }
 
 func TestLeavingSelectModeClearsTheMarks(t *testing.T) {
-	th := &targethour.TargetHour{}
+	th := &targethour.TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]targethour.Item{{ID: "1"}, {ID: "2"}})
 

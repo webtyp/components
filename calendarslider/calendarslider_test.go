@@ -5,6 +5,7 @@ package calendarslider
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 
 	. "webtyp.com/dom"
 	. "webtyp.com/fmt"
@@ -22,7 +23,7 @@ import (
 // última semana parcial (1 día). El mes lleva: fila de días de la semana +
 // 6 semanas + fila de navegación (prev + etiqueta + next en una sola fila).
 func TestBuildMonthAgosto2026(t *testing.T) {
-	c := &CalendarSlider{today: "2026-08-11"}
+	c := &CalendarSlider{Zone: time.MachineZone(), today: "2026-08-11"}
 	m := c.buildMonth(2026, 8, "2026-07", "2026-09", false, false)
 	if m == nil {
 		t.Fatal("buildMonth returned nil")
@@ -52,7 +53,7 @@ func TestBuildMonthAgosto2026(t *testing.T) {
 // los está usando como vecino real o como vuelta del bucle. Quien decide el
 // bucle infinito es Render, no buildMonth — ver TestRenderWrapsAround.
 func TestBuildMonthAlwaysHasBothLinks(t *testing.T) {
-	c := &CalendarSlider{today: "2026-08-11"}
+	c := &CalendarSlider{Zone: time.MachineZone(), today: "2026-08-11"}
 	m := c.buildMonth(2026, 8, "2026-07", "2026-09", false, false).String()
 	if !Contains(m, "Previous month") || !Contains(m, "Next month") {
 		t.Error("buildMonth debería incluir siempre ambos enlaces")
@@ -63,7 +64,7 @@ func TestBuildMonthAlwaysHasBothLinks(t *testing.T) {
 // tira apunta al último y el › del último apunta al primero — igual que el
 // deslizador original, para volver al inicio sin recorrer los N meses.
 func TestRenderWrapsAround(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08", NumMonths: 3}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
 	c.Init(nil)
 	c.today = "2026-08-11"
 	htmlOut := c.Render().String()
@@ -93,7 +94,7 @@ func TestRenderWrapsAround(t *testing.T) {
 // deslizar entre meses. Febrero de 2021 empieza lunes y tiene 28 días — 4
 // filas reales — el caso más corto posible.
 func TestBuildMonthPadsToSixWeeks(t *testing.T) {
-	c := &CalendarSlider{today: "2021-02-11"}
+	c := &CalendarSlider{Zone: time.MachineZone(), today: "2021-02-11"}
 	m := c.buildMonth(2021, 2, "2021-01", "2021-03", false, false)
 	children := m.Children()
 
@@ -119,7 +120,7 @@ func TestBuildMonthPadsToSixWeeks(t *testing.T) {
 // TestBuildMonthCells valida el contenido de las celdas: huecos iniciales,
 // marcadores de hoy/feriado/domingo, ocupación y seleccionabilidad.
 func TestBuildMonthCells(t *testing.T) {
-	c := &CalendarSlider{
+	c := &CalendarSlider{Zone: time.MachineZone(),
 		today:      "2026-08-11",
 		Holidays:   []Holiday{{Date: "2026-08-15", Name: "Asunción de la Virgen"}},
 		Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 60}, {Date: "2026-08-02", Percent: 30}},
@@ -195,13 +196,13 @@ func TestBuildMonthCells(t *testing.T) {
 func TestMeterKindDecidesTheColour(t *testing.T) {
 	full := []OccupationDay{{Date: "2026-08-11", Percent: 100}}
 
-	booking := &CalendarSlider{Start: "2026-08", Occupation: full}
+	booking := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", Occupation: full}
 	booking.Init(nil)
 	if !Contains(booking.buildDay(2026, 8, 11).String(), "day-use-high") {
 		t.Errorf("ocupación 100%% debería ser el escalón alto (rojo):\n%s", booking.buildDay(2026, 8, 11).String())
 	}
 
-	agenda := &CalendarSlider{Start: "2026-08", Occupation: full, Meter: Availability}
+	agenda := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", Occupation: full, Meter: Availability}
 	agenda.Init(nil)
 	got := agenda.buildDay(2026, 8, 11).String()
 	// Disponibilidad no entra en la rampa: es binaria, y tres escalones de
@@ -223,7 +224,7 @@ func TestMeterKindDecidesTheColour(t *testing.T) {
 }
 
 func TestClampOccupation(t *testing.T) {
-	c := &CalendarSlider{Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 150}, {Date: "2026-08-12", Percent: -5}}}
+	c := &CalendarSlider{Zone: time.MachineZone(), Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 150}, {Date: "2026-08-12", Percent: -5}}}
 	if !Contains(c.buildDay(2026, 8, 11).String(), "data-use='100'") {
 		t.Error("ocupación sobre 100 debería recortarse a 100")
 	}
@@ -233,7 +234,7 @@ func TestClampOccupation(t *testing.T) {
 }
 
 func TestRenderStructure(t *testing.T) {
-	c := &CalendarSlider{
+	c := &CalendarSlider{Zone: time.MachineZone(),
 		Start:      "2026-08",
 		NumMonths:  3,
 		Holidays:   []Holiday{{Date: "2026-08-15", Name: "Asunción"}},
@@ -289,7 +290,7 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 	// Un día por cada escalón de la rampa de ocupación: la aserción es que
 	// NINGUNA clase de la hoja quede muerta, así que el fixture tiene que
 	// ejercitar las tres, no solo la que toque.
-	c := &CalendarSlider{Start: "2026-08", Holidays: []Holiday{{Date: "2026-08-15", Name: "x"}}, Occupation: []OccupationDay{
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", Holidays: []Holiday{{Date: "2026-08-15", Name: "x"}}, Occupation: []OccupationDay{
 		{Date: "2026-08-11", Percent: 10},
 		{Date: "2026-08-12", Percent: 60},
 		{Date: "2026-08-13", Percent: 95},
@@ -298,7 +299,7 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 	c.today = "2026-08-11"
 	// El trazo de disponibilidad solo aparece con Meter: Availability, así que
 	// el pareo necesita las dos variantes para no dejar CSS muerto.
-	avail := &CalendarSlider{Start: "2026-08", Meter: Availability, Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 100}}}
+	avail := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", Meter: Availability, Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 100}}}
 	avail.Init(nil)
 	htmlOut := c.Render().String() + avail.Render().String()
 	cssOut := c.RenderCSS().String()
@@ -329,7 +330,7 @@ func TestPairMarkupAndStylesheet(t *testing.T) {
 }
 
 func TestNumMonthsClampsToMax(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08", NumMonths: 20}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", NumMonths: 20}
 	c.Init(nil)
 	htmlOut := c.Render().String()
 
@@ -345,7 +346,7 @@ func TestNumMonthsClampsToMax(t *testing.T) {
 }
 
 func TestNumMonthsDefaultsToThree(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08"}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	htmlOut := c.Render().String()
 	if got := strings.Count(htmlOut, "data-month='"); got != 3 {
@@ -354,7 +355,7 @@ func TestNumMonthsDefaultsToThree(t *testing.T) {
 }
 
 func TestCalendarSlider_SatisfiesFilterable(t *testing.T) {
-	var c widget.Filterable = &CalendarSlider{}
+	var c widget.Filterable = &CalendarSlider{Zone: time.MachineZone()}
 	got := ""
 	c.OnFilterChange(func(term string) { got = term })
 	if got != "" {
@@ -363,7 +364,7 @@ func TestCalendarSlider_SatisfiesFilterable(t *testing.T) {
 }
 
 func TestNavRowAlwaysVisible(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08"}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	cssOut := c.RenderCSS().String()
 
@@ -384,7 +385,7 @@ func TestNavRowAlwaysVisible(t *testing.T) {
 }
 
 func TestDaysFillTheirTrack(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08"}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	cssOut := c.RenderCSS().String()
 
@@ -430,7 +431,7 @@ func TestDaysFillTheirTrack(t *testing.T) {
 }
 
 func TestMonthNavMatchesEcosystemSize(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08"}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	cssOut := c.RenderCSS().String()
 
@@ -476,7 +477,7 @@ func TestMonthNavMatchesEcosystemSize(t *testing.T) {
 }
 
 func TestCollapseWorksEverywhere(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08"}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	cssOut := c.RenderCSS().String()
 
@@ -506,7 +507,7 @@ func TestCollapseWorksEverywhere(t *testing.T) {
 }
 
 func TestCollapsedChipIsTopField(t *testing.T) {
-	c := &CalendarSlider{Start: "2026-08"}
+	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	cssOut := c.RenderCSS().String()
 
@@ -535,7 +536,7 @@ func TestCollapsedChipIsTopField(t *testing.T) {
 func TestMultiSelectToggle(t *testing.T) {
 	selMany := NewString("2026-08-11")
 
-	c := &CalendarSlider{
+	c := &CalendarSlider{Zone: time.MachineZone(),
 		today:        "2026-08-11",
 		Holidays:     []Holiday{{Date: "2026-08-15", Name: "Asunción de la Virgen"}},
 		Occupation:   []OccupationDay{{Date: "2026-08-11", Percent: 50}, {Date: "2026-08-12", Percent: 50}},
@@ -591,7 +592,7 @@ func TestMultiSelectToggle(t *testing.T) {
 // every existing consumer (targethour, reservation, the exceptions panel) is
 // untouched by the multi-select addition.
 func TestSingleSelectUnchangedBySelectedMany(t *testing.T) {
-	c := &CalendarSlider{
+	c := &CalendarSlider{Zone: time.MachineZone(),
 		today:      "2026-08-11",
 		Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 50}, {Date: "2026-08-12", Percent: 50}},
 		Selected:   NewString("2026-08-12"),

@@ -39,7 +39,6 @@
     "Nov": ["Nov", "", "", "", "", "", "", ""],
     "Oct": ["Oct", "", "", "", "", "", "", ""],
     "Previous month": ["Mes anterior", "", "", "", "", "", "", ""],
-    "Reason": ["Motivo", "", "", "", "", "", "", ""],
     "Remove": ["Quitar", "", "", "", "", "", "", ""],
     "Remove row": ["Quitar fila", "", "", "", "", "", "", ""],
     "Remove time range": ["Quitar horario", "", "", "", "", "", "", ""],

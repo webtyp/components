@@ -144,6 +144,10 @@ type Exception struct {
 type ScheduleEditor struct {
 	Element // value embed — NEVER pointer
 
+	// Zone is the installation's time zone (appkit.BrowserDeps.Zone): dates and hours are shown on its clock.
+	// Required: a zero Zone panics.
+	Zone time.Zone
+
 	// Pattern is the weekly template. Initial state — the host persists on
 	// each callback and re-mounts with fresh data.
 	Pattern []PatternRow
@@ -579,6 +583,7 @@ func (e *ScheduleEditor) buildExceptions() *Element {
 			Text(lang.Translate("Dates that differ from the weekly pattern").String())).
 		Child(e.buildExceptionList()).
 		Child(&calendarslider.CalendarSlider{
+			Zone:       e.Zone, // the editor's zone: its calendar shows the same days
 			NumMonths:  e.horizonMonths(),
 			Holidays:   toCalHolidays(e.Holidays),
 			Occupation: e.effectiveOccupation(),
@@ -631,7 +636,7 @@ func toCalHolidays(days []string) []calendarslider.Holiday {
 // disponibilidad, que es lo que este editor decide.
 func (e *ScheduleEditor) effectiveOccupation() []calendarslider.OccupationDay {
 	months := e.horizonMonths()
-	startYear, startMonth := calendar.ParseMonthKey(time.FormatDate(time.NowUnix())[:7])
+	startYear, startMonth := calendar.ParseMonthKey(e.Zone.Date(time.NowUnix())[:7])
 	if startYear == 0 {
 		return nil
 	}

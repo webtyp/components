@@ -1,17 +1,14 @@
 package agedate
 
 import (
-	"math"
-	"strconv"
-	"strings"
 	"webtyp.com/dom"
 	"webtyp.com/fmt"
 
+	. "webtyp.com/html"
 	"webtyp.com/input"
+	"webtyp.com/lang"
 	"webtyp.com/time"
 	"webtyp.com/widget"
-	"webtyp.com/lang"
-	. "webtyp.com/html"
 )
 
 const NameAgeDate = widget.Name("agedate")
@@ -49,77 +46,65 @@ func (a *AgeDate) Validate(value string) error {
 func (a *AgeDate) WidgetName() widget.Name { return NameAgeDate }
 func (a *AgeDate) WidgetKind() widget.Kind { return widget.Combobox }
 
-// birthFromAge: today minus years and months. ageText uses '.' or ',' as decimal mark. "" or "0" → "", false.
-func birthFromAge(ageText string, today time.Unix) (date string, ok bool) {
-	if ageText == "" || ageText == "0" || ageText == "0.0" || ageText == "0,0" {
-		return "", false
-	}
-	ageText = strings.ReplaceAll(ageText, ",", ".")
-	val, err := strconv.ParseFloat(ageText, 64)
+// today is the date on the clock of the computer at the front desk (the clinic's): the age is counted from it.
+// MachineZone is right here: whoever types the age stands in front of that computer.
+func today() string { return time.MachineZone().Date(time.NowUnix()) }
+
+// birthFromAge: today ("YYYY-MM-DD") minus years and months. ageText uses '.' or ',' as decimal mark; the
+// decimal part is a fraction of a year (0.5 = 6 months). "" or "0" → "", false.
+func birthFromAge(ageText, today string) (date string, ok bool) {
+	val, err := fmt.Convert(ageText).Replace(",", ".").Float64()
 	if err != nil || val <= 0 {
 		return "", false
 	}
+	years := int(val)
+	months := int((val - float64(years)) * 12)
 
-	years := int(math.Floor(val))
-	fraction := val - math.Floor(val)
-	months := int(math.Floor(fraction * 12))
-
-	ty, tm, td, _, _, _ := time.CivilDate(today)
-
-	newMonth := tm - months
-	newYear := ty - years
+	t, err := time.ParseDateUTC(today)
+	if err != nil {
+		return "", false
+	}
+	ty, tm, td, _, _, _ := time.CivilUTC(t)
+	newYear, newMonth := ty-years, tm-months
 	for newMonth <= 0 {
 		newMonth += 12
 		newYear--
 	}
-
-	tUnix := time.Date(newYear, newMonth, td, 0, 0, 0)
-
-	cy, cm, cd, _, _, _ := time.CivilDate(tUnix)
-	dateStr := fmt.Sprintf("%04d-%02d-%02d", cy, cm, cd)
-	return dateStr, true
+	y, m, d, _, _, _ := time.CivilUTC(time.DateUTC(newYear, newMonth, td, 0, 0, 0))
+	return fmt.Sprintf("%04d-%02d-%02d", y, m, d), true
 }
 
-// ageFromBirth: whole years, plus the year fraction of full months, rounded to 1 decimal ("40.3").
-func ageFromBirth(date string, today time.Unix) (age string, ok bool) {
-	if date == "" {
-		return "", false
-	}
-
-	t, err := time.ParseDate(date)
+// ageFromBirth: whole years, plus the year fraction of full months, rounded to 1 decimal ("40.3"), counted on today
+// ("YYYY-MM-DD").
+func ageFromBirth(date, today string) (age string, ok bool) {
+	b, err := time.ParseDateUTC(date)
 	if err != nil {
 		return "", false
 	}
-
-	ty, tm, td, _, _, _ := time.CivilDate(today)
-	by, bm, bd, _, _, _ := time.CivilDate(t)
-
-	years := ty - by
-	months := tm - bm
-	days := td - bd
-
-	if months < 0 || (months == 0 && days < 0) {
-		years--
-		months += 12
+	t, err := time.ParseDateUTC(today)
+	if err != nil {
+		return "", false
 	}
-	if days < 0 {
+	ty, tm, td, _, _, _ := time.CivilUTC(t)
+	by, bm, bd, _, _, _ := time.CivilUTC(b)
+	years, months := ty-by, tm-bm
+	if td < bd {
 		months--
 	}
 	if months < 0 {
+		years--
 		months += 12
 	}
-
-	fraction := float64(months) / 12.0
-	ageVal := float64(years) + fraction
-
-	ageStr := fmt.Sprintf("%.1f", ageVal)
-	return ageStr, true
+	if years < 0 {
+		return "", false
+	}
+	return fmt.Sprintf("%.1f", float64(years)+float64(months)/12.0), true
 }
 
 func (a *AgeDate) RenderInput(value *dom.SignalString, onInput func(string)) *dom.Element {
 	ageVal := ""
 	if v := value.Get(); v != "" {
-		if age, ok := ageFromBirth(v, time.NowUnix()); ok {
+		if age, ok := ageFromBirth(v, today()); ok {
 			ageVal = age
 		}
 	}
@@ -129,7 +114,7 @@ func (a *AgeDate) RenderInput(value *dom.SignalString, onInput func(string)) *do
 		Attr("value", ageVal).
 		Class(NameAgeDate.Class(PartAge).String()).
 		OnInput(func(e dom.Event) {
-			if date, ok := birthFromAge(e.TargetValue(), time.NowUnix()); ok {
+			if date, ok := birthFromAge(e.TargetValue(), today()); ok {
 				value.Set(date)
 				if onInput != nil {
 					onInput(date)
@@ -143,7 +128,7 @@ func (a *AgeDate) RenderInput(value *dom.SignalString, onInput func(string)) *do
 		OnChange(func(e dom.Event) {
 			val := e.TargetValue()
 			value.Set(val)
-			if age, ok := ageFromBirth(val, time.NowUnix()); ok {
+			if age, ok := ageFromBirth(val, today()); ok {
 				if ref, ok := ageInput.Ref(); ok {
 					ref.SetValue(age)
 				}

@@ -5,6 +5,7 @@ package calendarslider
 import (
 	"syscall/js"
 	"testing"
+	"webtyp.com/time"
 
 	. "webtyp.com/dom"
 )
@@ -46,7 +47,7 @@ func zeroTabsInMonth(month string) int {
 // because dom.Event could not read a key press at all. The handler now goes
 // through dom.OnKeyDown and dom.Key.
 func TestArrowKeysMoveFocus(t *testing.T) {
-	c := &CalendarSlider{
+	c := &CalendarSlider{Zone: time.MachineZone(),
 		Start: "2026-08",
 		Occupation: []OccupationDay{
 			{Date: "2026-08-11", Percent: 60},

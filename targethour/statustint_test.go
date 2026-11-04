@@ -5,6 +5,7 @@ package targethour
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 
 	"webtyp.com/model"
 	"webtyp.com/widget"
@@ -12,7 +13,7 @@ import (
 
 // A row with no StatusOf carries no tint state.
 func TestTargetHour_NoStatusMapperNoTint(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	html := th.buildRow(Item{ID: "1", Label: "x", Badge: "09:00"}).String()
 	if strings.Contains(html, string(widget.Locked.Attr().Key())+"='true'") ||
@@ -33,7 +34,7 @@ func TestTargetHour_StatusDrivesTheTintState(t *testing.T) {
 		{StatusAttended, widget.Busy.Attr().Key(), widget.Locked.Attr().Key()},
 	}
 	for _, c := range cases {
-		th := &TargetHour{StatusOf: func(model.Item) Status { return c.st }}
+		th := &TargetHour{Zone: time.MachineZone(), StatusOf: func(model.Item) Status { return c.st }}
 		th.Init(nil)
 		html := th.buildRow(Item{ID: "1", Label: "x", Badge: "09:00"}).String()
 		if !strings.Contains(html, c.wantKey+"='true'") {
@@ -47,7 +48,7 @@ func TestTargetHour_StatusDrivesTheTintState(t *testing.T) {
 
 // The lead renders it.LeadMain as the prominent hour.
 func TestTargetHour_LeadRendersTheHour(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	html := th.buildRow(Item{ID: "1", Label: "Ana", Badge: "14:30"}).String()
 	if !strings.Contains(html, "targethour__hour") || !strings.Contains(html, "14:30") {

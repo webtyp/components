@@ -5,6 +5,7 @@ package targethour_test
 import (
 	"syscall/js"
 	"testing"
+	"webtyp.com/time"
 
 	"webtyp.com/components/targethour"
 	. "webtyp.com/dom"
@@ -17,7 +18,7 @@ import (
 
 func mountHourRows(t *testing.T, items []targethour.Item) *targethour.TargetHour {
 	t.Helper()
-	th := &targethour.TargetHour{}
+	th := &targethour.TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems(items)
 	if err := Render("app", th); err != nil {

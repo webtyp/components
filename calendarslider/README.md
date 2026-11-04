@@ -73,3 +73,7 @@ The `web/` demo (`Start: "2026-08"`, the same sample holidays/occupation shown i
 |---|---|
 | ![Light, desktop](docs/screenshots/light-desktop.png) | ![Dark, desktop](docs/screenshots/dark-desktop.png) |
 | ![Light, mobile](docs/screenshots/light-mobile.png) | ![Dark, mobile](docs/screenshots/dark-mobile.png) |
+
+## Zone (required)
+
+`Zone time.Zone` is the installation's time zone; an app passes `appkit.BrowserDeps.Zone`. Dates and hours are shown on its clock (a Santiago winter night stays on its own day). A zero `Zone` panics: it never falls back to UTC.

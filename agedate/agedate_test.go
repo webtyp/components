@@ -4,11 +4,10 @@ package agedate
 
 import (
 	"testing"
-	"webtyp.com/time"
 )
 
 func TestBirthFromAgeYears(t *testing.T) {
-	today := time.Date(2026, 11, 3, 0, 0, 0)
+	today := "2026-11-03"
 	date, ok := birthFromAge("40", today)
 	if !ok {
 		t.Fatal("expected ok")
@@ -19,7 +18,7 @@ func TestBirthFromAgeYears(t *testing.T) {
 }
 
 func TestBirthFromAgeMonths(t *testing.T) {
-	today := time.Date(2026, 11, 3, 0, 0, 0)
+	today := "2026-11-03"
 	date, ok := birthFromAge("0.5", today)
 	if !ok {
 		t.Fatal("expected ok")
@@ -38,7 +37,7 @@ func TestBirthFromAgeMonths(t *testing.T) {
 }
 
 func TestBirthFromAgeEmpty(t *testing.T) {
-	today := time.Date(2026, 11, 3, 0, 0, 0)
+	today := "2026-11-03"
 	_, ok := birthFromAge("", today)
 	if ok {
 		t.Fatal("expected !ok")
@@ -50,7 +49,7 @@ func TestBirthFromAgeEmpty(t *testing.T) {
 }
 
 func TestAgeFromBirth(t *testing.T) {
-	today := time.Date(2026, 11, 3, 0, 0, 0)
+	today := "2026-11-03"
 	age, ok := ageFromBirth("1986-11-03", today)
 	if !ok {
 		t.Fatal("expected ok")

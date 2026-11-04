@@ -5,11 +5,12 @@ package targethour
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 )
 
 // Free slots render as distinct light rows AFTER the booked-item rows.
 func TestFreeSlots_RenderedAfterItems(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.FreeSlots = []string{"09:00", "10:30", "14:00"}
 	th.SetItems([]Item{
@@ -38,7 +39,7 @@ func TestFreeSlots_RenderedAfterItems(t *testing.T) {
 
 // FreeSlots nil must leave the HTML identical to today (no free rows).
 func TestFreeSlots_NilNoRegression(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.SetItems([]Item{{ID: "1", Badge: "08:00", Label: "a"}})
 
@@ -53,7 +54,7 @@ func TestFreeSlots_NilNoRegression(t *testing.T) {
 
 // buildFreeSlot emits the clickable row with the hour and the marker.
 func TestFreeSlots_BuildRow(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 
 	html := th.buildFreeSlot("11:15").String()
