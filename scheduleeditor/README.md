@@ -107,3 +107,7 @@ The component renders its chrome through
 ## Tests
 
 Run tests with `gotest ./scheduleeditor/ ./calendarslider/`.
+
+## Zone (required)
+
+`Zone time.Zone` is the installation's time zone; an app passes `appkit.BrowserDeps.Zone`. Dates and hours are shown on its clock (a Santiago winter night stays on its own day). A zero `Zone` panics: it never falls back to UTC.

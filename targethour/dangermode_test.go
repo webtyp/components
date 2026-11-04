@@ -5,11 +5,12 @@ package targethour
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 )
 
 // Mirror of targetlist/targetdate's danger contract.
 func TestTargetHour_DangerMarksInvalidNotSelected(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	row := th.buildRow(Item{ID: "1", Label: "Row 1", Badge: "09:00"})
 
@@ -37,7 +38,7 @@ func TestTargetHour_DangerMarksInvalidNotSelected(t *testing.T) {
 
 // A normal-mode highlight must leave the check box stateless.
 func TestTargetHour_NormalHighlightLeavesCheckStateless(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.Selected.Set("1")
 	row := th.buildRow(Item{ID: "1", Label: "Row 1", Badge: "09:00"})
@@ -54,7 +55,7 @@ func TestTargetHour_NormalHighlightLeavesCheckStateless(t *testing.T) {
 }
 
 func TestTargetHour_CheckRidesTopEndCorner(t *testing.T) {
-	cssStr := (&TargetHour{}).RenderCSS().String()
+	cssStr := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 
 	// Anchored at line start: the KeepSize primitives group also mentions
 	// this class (as its last selector), so a bare substring search would
@@ -73,7 +74,7 @@ func TestTargetHour_CheckRidesTopEndCorner(t *testing.T) {
 }
 
 func TestTargetHour_DangerRowUsesWash(t *testing.T) {
-	cssStr := (&TargetHour{}).RenderCSS().String()
+	cssStr := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 
 	i := strings.Index(cssStr, `.targethour__row[data-invalid="true"] {`)
 	if i == -1 {
@@ -89,7 +90,7 @@ func TestTargetHour_DangerRowUsesWash(t *testing.T) {
 }
 
 func TestTargetHour_GlyphRevealHangsOffTheCheckBox(t *testing.T) {
-	cssStr := (&TargetHour{}).RenderCSS().String()
+	cssStr := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 
 	for _, sel := range []string{
 		`.targethour__sel-check[data-invalid="true"] .targethour__sel-check-trash`,
@@ -112,7 +113,7 @@ func TestTargetHour_GlyphRevealHangsOffTheCheckBox(t *testing.T) {
 }
 
 func TestTargetHour_CheckBoxCarriesWhiteText(t *testing.T) {
-	cssStr := (&TargetHour{}).RenderCSS().String()
+	cssStr := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 
 	for _, tc := range []struct{ sel, want string }{
 		{`.targethour__sel-check[data-selected="true"]`, "--color-on-primary"},
@@ -136,7 +137,7 @@ func TestTargetHour_CheckBoxCarriesWhiteText(t *testing.T) {
 }
 
 func TestTargetHour_CheckHiddenUntilSelectionMode(t *testing.T) {
-	cssStr := (&TargetHour{}).RenderCSS().String()
+	cssStr := (&TargetHour{Zone: time.MachineZone()}).RenderCSS().String()
 
 	// Anchored at line start: the KeepSize primitives group also mentions
 	// this class (as its last selector), so a bare substring search finds no
@@ -181,7 +182,7 @@ func TestTargetHour_CheckHiddenUntilSelectionMode(t *testing.T) {
 }
 
 func TestTargetHour_RenderUsesSharedIconGlyphs(t *testing.T) {
-	th := &TargetHour{}
+	th := &TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	row := th.buildRow(Item{ID: "1", Label: "Row 1", Badge: "09:00"})
 

@@ -4,13 +4,14 @@ package targethour_test
 
 import (
 	"testing"
+	"webtyp.com/time"
 
 	"webtyp.com/components/targethour"
 	. "webtyp.com/dom"
 )
 
 func TestFreeSlots_ClickCallsOnPickFree(t *testing.T) {
-	th := &targethour.TargetHour{}
+	th := &targethour.TargetHour{Zone: time.MachineZone()}
 	th.Init(nil)
 	th.FreeSlots = []string{"09:00", "10:30"}
 

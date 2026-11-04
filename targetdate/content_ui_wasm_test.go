@@ -5,6 +5,7 @@ package targetdate_test
 import (
 	"syscall/js"
 	"testing"
+	"webtyp.com/time"
 
 	"webtyp.com/components/targetdate"
 	. "webtyp.com/dom"
@@ -18,7 +19,7 @@ import (
 
 func mountDateRows(t *testing.T, items []targetdate.Item) *targetdate.TargetDate {
 	t.Helper()
-	td := &targetdate.TargetDate{}
+	td := &targetdate.TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	td.SetItems(items)
 	if err := Render("app", td); err != nil {

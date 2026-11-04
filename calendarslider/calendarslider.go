@@ -136,6 +136,10 @@ type OccupationDay struct {
 type CalendarSlider struct {
 	Element // value embed — NEVER pointer (TinyGo heap constraint)
 
+	// Zone is the installation's time zone (appkit.BrowserDeps.Zone): dates and hours are shown on its clock.
+	// Required: a zero Zone panics.
+	Zone time.Zone
+
 	// Start es el primer mes de la tira, formato "YYYY-MM"; vacío = el mes
 	// actual (zona local).
 	Start string
@@ -267,7 +271,7 @@ func (c *CalendarSlider) Init(_ Ctx) {
 	if c.Expanded == nil {
 		c.Expanded = NewBool(true)
 	}
-	c.today = time.FormatDate(time.NowUnix())
+	c.today = c.Zone.Date(time.NowUnix())
 }
 
 func (c *CalendarSlider) numMonths() int {

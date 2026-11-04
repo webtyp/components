@@ -5,13 +5,14 @@ package targetdate
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 )
 
 // Mirror of targetlist's danger contract: the two lists stay
 // interchangeable for crudview, and a state that exists in one and not the
 // other is exactly how they drift apart.
 func TestTargetDate_DangerMarksInvalidNotSelected(t *testing.T) {
-	td := &TargetDate{}
+	td := &TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	row := td.buildRow(Item{ID: "1", Label: "Row 1"})
 
@@ -41,7 +42,7 @@ func TestTargetDate_DangerMarksInvalidNotSelected(t *testing.T) {
 // the <li>, no selection mode) must leave the check box stateless, or the
 // pencil-reveal rule fires on a plain highlight.
 func TestTargetDate_NormalHighlightLeavesCheckStateless(t *testing.T) {
-	td := &TargetDate{}
+	td := &TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	td.Selected.Set("1")
 	row := td.buildRow(Item{ID: "1", Label: "Row 1"})
@@ -58,7 +59,7 @@ func TestTargetDate_NormalHighlightLeavesCheckStateless(t *testing.T) {
 }
 
 func TestTargetDate_CheckRidesTopEndCorner(t *testing.T) {
-	cssStr := (&TargetDate{}).RenderCSS().String()
+	cssStr := (&TargetDate{Zone: time.MachineZone()}).RenderCSS().String()
 
 	// Anchored at line start: the KeepSize primitives group also mentions
 	// this class (as its last selector), so a bare substring search would
@@ -77,7 +78,7 @@ func TestTargetDate_CheckRidesTopEndCorner(t *testing.T) {
 }
 
 func TestTargetDate_DangerRowUsesWash(t *testing.T) {
-	cssStr := (&TargetDate{}).RenderCSS().String()
+	cssStr := (&TargetDate{Zone: time.MachineZone()}).RenderCSS().String()
 
 	i := strings.Index(cssStr, `.targetdate__row[data-invalid="true"] {`)
 	if i == -1 {
@@ -95,7 +96,7 @@ func TestTargetDate_DangerRowUsesWash(t *testing.T) {
 // Mirror of targetlist: glyph reveal + box colour hang off the CHECK BOX's
 // own state, never the row's.
 func TestTargetDate_GlyphRevealHangsOffTheCheckBox(t *testing.T) {
-	cssStr := (&TargetDate{}).RenderCSS().String()
+	cssStr := (&TargetDate{Zone: time.MachineZone()}).RenderCSS().String()
 
 	for _, sel := range []string{
 		`.targetdate__sel-check[data-invalid="true"] .targetdate__sel-check-trash`,
@@ -121,7 +122,7 @@ func TestTargetDate_GlyphRevealHangsOffTheCheckBox(t *testing.T) {
 // (white on-danger). A near-black currentColor glyph on Accent/Inset is the
 // defect this fixes.
 func TestTargetDate_CheckBoxCarriesWhiteText(t *testing.T) {
-	cssStr := (&TargetDate{}).RenderCSS().String()
+	cssStr := (&TargetDate{Zone: time.MachineZone()}).RenderCSS().String()
 
 	for _, tc := range []struct{ sel, want string }{
 		{`.targetdate__sel-check[data-selected="true"]`, "--color-on-primary"},
@@ -147,7 +148,7 @@ func TestTargetDate_CheckBoxCarriesWhiteText(t *testing.T) {
 // Mirror of targetlist: the box is hidden until selection mode opens and
 // revealed as a centred flex square; each glyph carries its own size.
 func TestTargetDate_CheckHiddenUntilSelectionMode(t *testing.T) {
-	cssStr := (&TargetDate{}).RenderCSS().String()
+	cssStr := (&TargetDate{Zone: time.MachineZone()}).RenderCSS().String()
 
 	// Anchored at line start: the KeepSize primitives group also mentions
 	// this class (as its last selector), so a bare substring search finds no
@@ -193,7 +194,7 @@ func TestTargetDate_CheckHiddenUntilSelectionMode(t *testing.T) {
 
 // The row markup references the shared webtyp/icons glyphs, not a fixed tick.
 func TestTargetDate_RenderUsesSharedIconGlyphs(t *testing.T) {
-	td := &TargetDate{}
+	td := &TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	row := td.buildRow(Item{ID: "1", Label: "Row 1"})
 

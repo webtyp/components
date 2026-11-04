@@ -18,16 +18,12 @@ import (
 
 // hourText: a stored instant (seconds since 1970, as text) → «HH:MM» in the
 // configured zone; any other text (already «09:30») → as is.
-func hourText(badge string) string {
+func hourText(zone time.Zone, badge string) string {
 	secs, err := fmt.Convert(badge).Int64()
 	if err != nil {
 		return badge
 	}
-	f := time.FormatTime(time.Unix(secs))
-	if len(f) >= 5 {
-		return f[:5]
-	}
-	return f
+	return zone.Clock(time.Unix(secs))
 }
 
 const badgeChars = 16
@@ -76,15 +72,17 @@ const (
 // node — and its listeners — survives. The id never changes for a node, so
 // selection derives and the click path stay keyed on it, not on the words.
 type rowState struct {
+	zone        time.Zone
 	id          string
 	hour        *SignalString
 	label, desc *SignalString
 }
 
-func newRowState(it Item) *rowState {
+func newRowState(zone time.Zone, it Item) *rowState {
 	return &rowState{
+		zone:  zone,
 		id:    it.ID,
-		hour:  NewString(hourText(it.Badge)),
+		hour:  NewString(hourText(zone, it.Badge)),
 		label: NewString(it.Label),
 		desc:  NewString(it.Description),
 	}
@@ -92,13 +90,17 @@ func newRowState(it Item) *rowState {
 
 // set refreshes the words of a retained row to the latest record.
 func (r *rowState) set(it Item) {
-	r.hour.Set(hourText(it.Badge))
+	r.hour.Set(hourText(r.zone, it.Badge))
 	r.label.Set(it.Label)
 	r.desc.Set(it.Description)
 }
 
 type TargetHour struct {
 	Element
+
+	// Zone is the installation's time zone (appkit.BrowserDeps.Zone): dates and hours are shown on its clock.
+	// Required: a zero Zone panics.
+	Zone time.Zone
 
 	Selected *SignalString
 	OnSelect func(it Item)
@@ -191,7 +193,7 @@ func (t *TargetHour) stateFor(it Item) *rowState {
 			return r
 		}
 	}
-	return newRowState(it)
+	return newRowState(t.Zone, it)
 }
 
 // itemByID resolves the CURRENT record for a row click. A reused node's

@@ -4,6 +4,7 @@ package scheduleeditor_test
 
 import (
 	"testing"
+	"webtyp.com/time"
 
 	"syscall/js"
 	"webtyp.com/components/scheduleeditor"
@@ -36,7 +37,7 @@ func query(t *testing.T, sel string) js.Value {
 // abierto" es inequívoco por construcción: es lo que este test usa para
 // direccionarlos, y es la razón por la que no necesitan una clase cada uno.
 func TestDayStateChoosesTheAction(t *testing.T) {
-	se := &scheduleeditor.ScheduleEditor{
+	se := &scheduleeditor.ScheduleEditor{Zone: time.MachineZone(),
 		// Lunes a viernes en el patrón; sábado y domingo fuera.
 		Pattern: []scheduleeditor.PatternRow{
 			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
@@ -86,12 +87,12 @@ func TestDayStateChoosesTheAction(t *testing.T) {
 }
 
 func TestTwoInstancesShareAPage(t *testing.T) {
-	se1 := &scheduleeditor.ScheduleEditor{
+	se1 := &scheduleeditor.ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []scheduleeditor.PatternRow{
 			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
 		},
 	}
-	se2 := &scheduleeditor.ScheduleEditor{
+	se2 := &scheduleeditor.ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []scheduleeditor.PatternRow{
 			{StartMin: 540, EndMin: 1020, Days: []int{1, 2, 3, 4, 5}},
 		},

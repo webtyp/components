@@ -16,7 +16,7 @@ import (
 // components must stay interchangeable for crudview, and a check that exists
 // in one and not the other is exactly how they drift apart.
 func TestTargetDate_RowHasLeadLabelAndCheck(t *testing.T) {
-	td := &TargetDate{}
+	td := &TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 
 	html := td.buildRow(Item{
@@ -37,9 +37,9 @@ func TestTargetDate_RowHasLeadLabelAndCheck(t *testing.T) {
 }
 
 func TestLeadLines_StoredDate(t *testing.T) {
-	u := time.Date(2026, 10, 27, 12, 0, 0)
+	u := time.DateUTC(2026, 10, 27, 12, 0, 0)
 	badge := strconv.FormatInt(int64(u), 10)
-	top, main, bottom := leadLines(badge)
+	top, main, bottom := leadLines(santiago(t), badge)
 	if top != "Tue" { // we aren't bootstrapping language translations in test, so fallback to English keys
 		t.Errorf("got top %q, want %q", top, "Tue")
 	}
@@ -52,15 +52,31 @@ func TestLeadLines_StoredDate(t *testing.T) {
 }
 
 func TestLeadLines_PlainText(t *testing.T) {
-	top, main, bottom := leadLines("Hoy")
+	top, main, bottom := leadLines(santiago(t), "Hoy")
 	if top != "" || main != "Hoy" || bottom != "" {
 		t.Errorf("got %q, %q, %q, want %q, %q, %q", top, main, bottom, "", "Hoy", "")
 	}
 }
 
 func TestLeadLines_Empty(t *testing.T) {
-	top, main, bottom := leadLines("")
+	top, main, bottom := leadLines(santiago(t), "")
 	if top != "" || main != "" || bottom != "" {
 		t.Errorf("got %q, %q, %q, want empty", top, main, bottom)
+	}
+}
+
+func santiago(t *testing.T) time.Zone {
+	z, err := time.LoadZone("America/Santiago")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return z
+}
+
+// A winter night booking: 2019-07-16 01:30 UTC is Monday the 15th, 21:30, in Santiago (UTC is Tuesday the 16th).
+func TestLeadLines_ZoneNotUTC(t *testing.T) {
+	top, main, bottom := leadLines(santiago(t), "1563240600")
+	if top != "Mon" || main != "15" || bottom != "Jul" {
+		t.Errorf("got %q %q %q, want Mon 15 Jul", top, main, bottom)
 	}
 }

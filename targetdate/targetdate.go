@@ -25,7 +25,7 @@ var (
 // leadLines turns the row badge into the three lines of the date badge: a stored
 // date (seconds since 1970, as text) → weekday / day / month; any other text → the
 // text alone in the middle line; "" → three empty lines.
-func leadLines(badge string) (top, main, bottom string) {
+func leadLines(zone time.Zone, badge string) (top, main, bottom string) {
 	if badge == "" {
 		return "", "", ""
 	}
@@ -34,8 +34,10 @@ func leadLines(badge string) (top, main, bottom string) {
 		return "", badge, ""
 	}
 	u := time.Unix(secs)
-	_, month, day, _, _, _ := time.CivilDate(u)
-	return lang.Translate(weekdayAbbr[time.Weekday(u)]).String(),
+	date := zone.Date(u) // "YYYY-MM-DD" on the installation's clock
+	month, _ := fmt.Convert(date[5:7]).Int()
+	day, _ := fmt.Convert(date[8:10]).Int()
+	return lang.Translate(weekdayAbbr[zone.Weekday(u)]).String(),
 		fmt.Convert(day).String(),
 		lang.Translate(monthAbbr[month-1]).String()
 }
@@ -85,14 +87,16 @@ type Item = model.Item
 // node — and its listeners — survives. The id never changes for a node, so
 // selection derives and the click path stay keyed on it, not on the words.
 type rowState struct {
+	zone                  time.Zone
 	id                    string
 	label, desc           *SignalString
 	top, main, bottom     *SignalString
 }
 
-func newRowState(it Item) *rowState {
-	top, main, bottom := leadLines(it.Badge)
+func newRowState(zone time.Zone, it Item) *rowState {
+	top, main, bottom := leadLines(zone, it.Badge)
 	return &rowState{
+		zone:   zone,
 		id:     it.ID,
 		label:  NewString(it.Label),
 		desc:   NewString(it.Description),
@@ -104,7 +108,7 @@ func newRowState(it Item) *rowState {
 
 // set refreshes the words of a retained row to the latest record.
 func (r *rowState) set(it Item) {
-	top, main, bottom := leadLines(it.Badge)
+	top, main, bottom := leadLines(r.zone, it.Badge)
 	r.label.Set(it.Label)
 	r.desc.Set(it.Description)
 	r.top.Set(top)
@@ -116,6 +120,10 @@ func (r *rowState) set(it Item) {
 // (the badge of the row (model.Item.Badge)) instead of a plain label lead-in.
 type TargetDate struct {
 	Element
+
+	// Zone is the installation's time zone (appkit.BrowserDeps.Zone): dates and hours are shown on its clock.
+	// Required: a zero Zone panics.
+	Zone time.Zone
 
 	Selected *SignalString
 
@@ -193,7 +201,7 @@ func (t *TargetDate) stateFor(it Item) *rowState {
 			return r
 		}
 	}
-	return newRowState(it)
+	return newRowState(t.Zone, it)
 }
 
 // itemByID resolves the CURRENT record for a row click. A reused node's

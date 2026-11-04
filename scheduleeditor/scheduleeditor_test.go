@@ -5,6 +5,7 @@ package scheduleeditor
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 )
 
 type emptyCtx struct{}
@@ -12,7 +13,7 @@ type emptyCtx struct{}
 func (emptyCtx) OnCleanup(func()) {}
 
 func testEditor() *ScheduleEditor {
-	return &ScheduleEditor{
+	return &ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []PatternRow{
 			{StartMin: 540, EndMin: 1080, Days: []int{1, 3, 5}},
 			{StartMin: 900, EndMin: 1140, Days: []int{1, 3, 5}},
@@ -25,7 +26,7 @@ func testEditor() *ScheduleEditor {
 }
 
 func TestOnePatternRowCoversSeveralWeekdays(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []PatternRow{
 			{StartMin: 540, EndMin: 1080, Days: []int{1, 3, 5}},
 		},
@@ -48,7 +49,7 @@ func TestOnePatternRowCoversSeveralWeekdays(t *testing.T) {
 }
 
 func TestTwoRowsShareADayAndLeaveAGap(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []PatternRow{
 			{StartMin: 540, EndMin: 780, Days: []int{1}},
 			{StartMin: 900, EndMin: 1140, Days: []int{1}},
@@ -73,7 +74,7 @@ func TestTwoRowsShareADayAndLeaveAGap(t *testing.T) {
 }
 
 func TestEmptyPatternWithMarkedDaysIsValid(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []PatternRow{},
 		Marked: []MarkedDay{
 			{Date: sat, StartMin: 540, EndMin: 780},
@@ -106,7 +107,7 @@ func TestEmptyPatternWithMarkedDaysIsValid(t *testing.T) {
 // SPECIAL_HOURS sí abre un día cerrado: availableRanges lo resuelve ANTES de
 // mirar los bloques semanales (appointment_booking/service.go:564).
 func TestOpeningAClosedDayGoesThroughAddException(t *testing.T) {
-	e := &ScheduleEditor{}
+	e := &ScheduleEditor{Zone: time.MachineZone()}
 	e.Init(&emptyCtx{})
 
 	var got Exception
@@ -130,7 +131,7 @@ func TestOpeningAClosedDayGoesThroughAddException(t *testing.T) {
 }
 
 func TestMarkedDayCanDivergeFromTheCommonWindow(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Marked: []MarkedDay{
 			{Date: sat, StartMin: 480, EndMin: 720},
 		},
@@ -169,7 +170,7 @@ func TestPatternAndMarkedDaysRenderTogether(t *testing.T) {
 func TestUnmarkingADayFiresOnDaysUnmarked(t *testing.T) {
 	// Quitar un día extra ocurre desde la lista unificada de fechas, que es
 	// la única forma de sacarlo desde que las dos secciones se fundieron.
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Marked: []MarkedDay{{Date: sun, StartMin: 540, EndMin: 780}},
 	}
 	e.Init(&emptyCtx{})
@@ -228,7 +229,7 @@ func TestZeroBoundsFallBackToFullDay(t *testing.T) {
 }
 
 func TestHolidayIsNotSelectableInTheMarker(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Holidays: []string{fri},
 	}
 	e.Init(&emptyCtx{})
@@ -240,7 +241,7 @@ func TestHolidayIsNotSelectableInTheMarker(t *testing.T) {
 }
 
 func TestOverlappingRowsAreMarkedInvalidButNotBlocked(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []PatternRow{
 			{StartMin: 540, EndMin: 1080, Days: []int{1}},
 			{StartMin: 600, EndMin: 900, Days: []int{1}},
@@ -261,7 +262,7 @@ func TestOverlappingRowsAreMarkedInvalidButNotBlocked(t *testing.T) {
 }
 
 func TestRevealedStatesAreWrittenByTheMarkup(t *testing.T) {
-	e := &ScheduleEditor{
+	e := &ScheduleEditor{Zone: time.MachineZone(),
 		Pattern: []PatternRow{
 			{StartMin: 1080, EndMin: 540, Days: []int{1}},
 		},

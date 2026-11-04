@@ -5,6 +5,7 @@ package targetdate_test
 import (
 	"strings"
 	"testing"
+	"webtyp.com/time"
 
 	"webtyp.com/components/targetdate"
 )
@@ -21,7 +22,7 @@ import (
 func TestSelectModeShowsOnTheRoot(t *testing.T) {
 	// The root's Open state is the hook the stylesheet reveals the checks
 	// from. Without it the mode would flip in Go and change nothing on screen.
-	td := &targetdate.TargetDate{}
+	td := &targetdate.TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	td.SetItems([]targetdate.Item{{ID: "1", Label: "Row 1"}})
 
@@ -36,7 +37,7 @@ func TestSelectModeShowsOnTheRoot(t *testing.T) {
 }
 
 func TestNothingIsCheckedUntilTheUserMarksIt(t *testing.T) {
-	td := &targetdate.TargetDate{}
+	td := &targetdate.TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	td.SetItems([]targetdate.Item{{ID: "1"}, {ID: "2"}, {ID: "3"}})
 
@@ -47,7 +48,7 @@ func TestNothingIsCheckedUntilTheUserMarksIt(t *testing.T) {
 }
 
 func TestLeavingSelectModeClearsTheMarks(t *testing.T) {
-	td := &targetdate.TargetDate{}
+	td := &targetdate.TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	td.SetItems([]targetdate.Item{{ID: "1"}, {ID: "2"}})
 

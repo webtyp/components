@@ -4,6 +4,7 @@ package targetdate_test
 
 import (
 	"testing"
+	"webtyp.com/time"
 
 	"syscall/js"
 	"webtyp.com/components/targetdate"
@@ -34,7 +35,7 @@ func query(t *testing.T, sel string) js.Value {
 // SetItems, not just on a selection change — without that read, switching a
 // calendar's day left the "k / N" strip showing the previous day's total.
 func TestMasterCheckCountUpdatesAfterReload(t *testing.T) {
-	td := &targetdate.TargetDate{}
+	td := &targetdate.TargetDate{Zone: time.MachineZone()}
 	td.Init(nil)
 	td.SetItems([]targetdate.Item{{ID: "1"}, {ID: "2"}})
 	Render("app", td)
