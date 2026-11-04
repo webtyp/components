@@ -10,13 +10,16 @@ require (
 	webtyp.com/html v0.0.30
 	webtyp.com/image v0.1.16
 	webtyp.com/js v0.1.3
-	webtyp.com/lang v0.1.9
+	webtyp.com/lang v0.1.10
 	webtyp.com/svg v0.3.30
 	webtyp.com/time v0.6.2
 	webtyp.com/widget v0.6.46
 )
 
-require webtyp.com/escape v0.1.0 // indirect
+require (
+	webtyp.com/escape v0.1.0 // indirect
+	webtyp.com/input v0.0.33 // indirect
+)
 
 require (
 	webtyp.com/color v0.1.2 // indirect

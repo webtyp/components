@@ -33,6 +33,7 @@ import (
 	"webtyp.com/components/targethour"
 	"webtyp.com/components/targetlist"
 	"webtyp.com/components/themetoggle"
+	"webtyp.com/components/agedate"
 	"webtyp.com/css"
 	"webtyp.com/widget"
 )
@@ -348,6 +349,7 @@ func TestEveryPackageEmits(t *testing.T) {
 		&targethour.TargetHour{},
 		&targetlist.TargetList{},
 		&themetoggle.ThemeToggle{},
+		&agedate.AgeDate{},
 		&stepindicator.StepIndicator{},
 		&segmentedcontrol.SegmentedControl{},
 		&cellgrid.CellGrid{},
@@ -385,6 +387,7 @@ func TestKindAllowsEveryState(t *testing.T) {
 		"targethour":       &targethour.TargetHour{},
 		"targetlist":       &targetlist.TargetList{},
 		"themetoggle":      &themetoggle.ThemeToggle{},
+		"agedate":          &agedate.AgeDate{},
 		"stepindicator":    &stepindicator.StepIndicator{},
 		"segmentedcontrol": &segmentedcontrol.SegmentedControl{},
 		"cellgrid":         &cellgrid.CellGrid{},

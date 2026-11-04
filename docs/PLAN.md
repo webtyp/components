@@ -133,3 +133,7 @@ work. Stuck 30 minutes: open the PR anyway listing what fails.
 | 3 | `conformance_test.go` | conformance passes |
 | 4 | `agedate/agedate_test.go` | tests pass |
 | 5 | `agedate/README.md`, `README.md`, `lang.json` | done |
+
+## Executor notes
+
+Finished implementation of `agedate.AgeDate` according to the plan. All checks and tests passed successfully (`gotest`). The pre-commit instructions were followed.
