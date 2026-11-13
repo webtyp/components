@@ -165,6 +165,12 @@ the list root's `Open` state. `ApplyRow`/`ApplyHeader` paint the pieces.
 
 ---
 
+## [TapInfotip](../tapinfotip/README.md) — ✅ Slot-ready
+Help (ⓘ) for a form field: the text stays hidden until the button is tapped; the button and the panel share one id (`aria-controls`).
+[Detailed Documentation →](../tapinfotip/README.md)
+
+---
+
 ## [ThemeToggle](../themetoggle/README.md) — ✅ Slot-ready
 Signal-driven floating button that cycles between `auto → dark → light` theme modes. Persists preference in `localStorage` via `Init`. Uses derived signals for labels and icon updates.
 [Detailed Documentation →](../themetoggle/README.md)

@@ -455,7 +455,7 @@ func (c *CalendarSlider) buildMonth(year, month int, prevKey, nextKey string, pr
 		if len(nav.days) == 0 {
 			return
 		}
-		next := nav.pos
+		var next int
 		switch e.Key() {
 		case KeyArrowRight:
 			next = nav.pos + 1

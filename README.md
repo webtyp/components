@@ -137,6 +137,7 @@ See [Component Catalog](docs/CATALOG.md) for full documentation.
 -   **ScheduleEditor**: Weekly schedule template + per-date exceptions (pure editor).
 -   **SelectSearch**: Searchable dropdown with live filtering.
 -   **TargetHour**: Booked slot list with hour lead and optional status tint (plus reservable free-slot rows).
+-   **TapInfotip**: Help (ⓘ) that shows a field's text only when tapped.
 -   **ThemeToggle**: Theme switcher (dark/light).
 
 ## Where components fit

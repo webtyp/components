@@ -34,6 +34,7 @@ import (
 	"webtyp.com/components/stepindicator"
 	"webtyp.com/components/targethour"
 	"webtyp.com/components/targetlist"
+	"webtyp.com/components/tapinfotip"
 	"webtyp.com/components/themetoggle"
 	"webtyp.com/css"
 	"webtyp.com/widget"
@@ -349,6 +350,7 @@ func TestEveryPackageEmits(t *testing.T) {
 		&statgrid.StatGrid{},
 		&targethour.TargetHour{Zone: time.MachineZone()},
 		&targetlist.TargetList{},
+		&tapinfotip.TapInfotip{},
 		&themetoggle.ThemeToggle{},
 		&agedate.AgeDate{},
 		&stepindicator.StepIndicator{},
@@ -387,6 +389,7 @@ func TestKindAllowsEveryState(t *testing.T) {
 		"statgrid":         &statgrid.StatGrid{},
 		"targethour":       &targethour.TargetHour{Zone: time.MachineZone()},
 		"targetlist":       &targetlist.TargetList{},
+		"tapinfotip":       &tapinfotip.TapInfotip{},
 		"themetoggle":      &themetoggle.ThemeToggle{},
 		"agedate":          &agedate.AgeDate{},
 		"stepindicator":    &stepindicator.StepIndicator{},
