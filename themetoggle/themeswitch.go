@@ -2,8 +2,8 @@ package themetoggle
 
 import (
 	. "webtyp.com/dom"
-	"webtyp.com/fmt/lang"
 	. "webtyp.com/html"
+	"webtyp.com/lang"
 	"webtyp.com/svg"
 	"webtyp.com/widget"
 )

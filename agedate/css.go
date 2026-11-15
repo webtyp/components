@@ -16,13 +16,22 @@ func (a *AgeDate) RenderCSS() *css.Stylesheet {
 
 	s.Part(PartAge,
 		style.ControlBox(),
-		style.As(style.Page),
+		style.As(style.Field),
+		style.Round(style.RadiusMd),
+		style.PadInline(style.Space4),
 	)
 
 	s.Part(PartDate,
 		style.ControlBox(),
-		style.As(style.Page),
+		style.As(style.Field),
+		style.Round(style.RadiusMd),
+		style.PadInline(style.Space4),
 		style.Grow(),
+	)
+
+	s.Part(PartError,
+		style.Glyph(style.Danger),
+		style.FontSize(style.TextXs),
 	)
 
 	return s.Stylesheet()

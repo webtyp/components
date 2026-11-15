@@ -6,7 +6,7 @@ require (
 	webtyp.com/calendar v0.1.0
 	webtyp.com/css v0.4.30
 	webtyp.com/dom v0.13.29
-	webtyp.com/fmt v1.0.0
+	webtyp.com/fmt v1.0.2
 	webtyp.com/html v0.0.30
 	webtyp.com/image v0.1.16
 	webtyp.com/input v0.0.36
@@ -17,7 +17,11 @@ require (
 	webtyp.com/widget v0.6.46
 )
 
-require webtyp.com/escape v0.1.0 // indirect
+require (
+	webtyp.com/country v0.0.1 // indirect
+	webtyp.com/escape v0.1.0 // indirect
+	webtyp.com/filetype v0.1.1 // indirect
+)
 
 require (
 	webtyp.com/color v0.1.2 // indirect
@@ -32,3 +36,9 @@ require (
 
 // TEMP local verification (tapinfotip) — remove before commit.
 replace webtyp.com/icons => ../icons
+
+replace webtyp.com/input => ../input
+
+replace webtyp.com/model => ../model
+
+replace webtyp.com/country => ../country

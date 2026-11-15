@@ -171,6 +171,7 @@ Help (ⓘ) for a form field: the text stays hidden until the button is tapped; t
 
 ---
 
+
 ## [ThemeToggle](../themetoggle/README.md) — ✅ Slot-ready
 Signal-driven floating button that cycles between `auto → dark → light` theme modes. Persists preference in `localStorage` via `Init`. Uses derived signals for labels and icon updates.
 [Detailed Documentation →](../themetoggle/README.md)
