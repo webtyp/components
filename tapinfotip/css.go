@@ -8,8 +8,8 @@ import (
 	"webtyp.com/widget/style"
 )
 
-// RenderCSS defines the tapinfotip visual contract. The button is a 44px touch
-// target around a quiet glyph (a help affordance, not a call to action); the
+// RenderCSS defines the tapinfotip visual contract. The button is a quiet glyph
+// with a 24px touch target around it (a help affordance, not a call to action); the
 // panel is small, muted text that appears only while open.
 func (t *TapInfotip) RenderCSS() *css.Stylesheet {
 	return style.For(t).
@@ -25,6 +25,8 @@ func (t *TapInfotip) RenderCSS() *css.Stylesheet {
 			style.Round(style.RadiusFull),
 			style.FontSize(style.TextSm),
 			style.PushEnd(),
+			// 24px pressable area (WCAG 2.5.8) around the 1em glyph, drawn size unchanged.
+			style.HitArea(),
 		).
 		// A bare glyph is not a box: hover and press recolour the glyph itself
 		// (muted → accent) and draw no ring or fill; keyboard focus keeps the

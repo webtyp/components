@@ -196,8 +196,9 @@ func (a *AgeDate) RenderInput(value *dom.SignalString, onInput func(string)) *do
 		}).
 		Bind(value)
 
-	ageId := "age-" + a.GetID()
-	ageInput.ID(ageId)
+	ageInput.Attr("autocomplete", "off")
+	dateInput.Attr("autocomplete", "off").
+		Attr("aria-label", lang.Translate("Birth date").String())
 
 	row := Div().Class(NameAgeDate.Root().String()).Child(
 		Label().For(ageInput).Text(lang.Translate("Age").String()),

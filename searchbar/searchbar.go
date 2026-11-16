@@ -45,6 +45,7 @@ type SearchBar struct {
 	Placeholder lang.Text
 
 	onFilter func(term string)
+	onTyping func()
 }
 
 // Compile-time proof that the seam is satisfied. Keep this line: if the
@@ -52,6 +53,7 @@ type SearchBar struct {
 // failing at a host's type assertion where it would silently evaluate false and
 // leave the bar wired to nothing.
 var _ widget.Filterable = (*SearchBar)(nil)
+var _ widget.TypingAware = (*SearchBar)(nil)
 
 func (s *SearchBar) WidgetName() widget.Name { return NameSearchBar }
 
@@ -65,15 +67,17 @@ func (s *SearchBar) WidgetKind() widget.Kind { return widget.Form }
 //
 // The signature is fixed by widget.Filterable — do not add a parameter, do not
 // return anything, do not add a companion getter.
+//
+// The sink fires when the person presses Enter, never per keystroke: typing and
+// clearing the field do not search.
 func (s *SearchBar) OnFilterChange(fn func(term string)) { s.onFilter = fn }
+
+// OnTyping implements widget.TypingAware: fn runs on every keystroke and every
+// clear, so a host can say that Enter is what searches.
+func (s *SearchBar) OnFilterTyping(fn func()) { s.onTyping = fn }
 
 func (s *SearchBar) Render() *Element {
 	root := Div().Set(clsSearchBar.AsAttr())
-
-	// A <label> so a click on the cap focuses nothing accidentally and the
-	// magnifier is announced as decoration, not as a button.
-	root.Child(Label().Set(clsIcon.AsAttr()).
-		Child(iconMagnifier.Render()))
 
 	placeholder := s.Placeholder
 	if placeholder == "" {
@@ -88,16 +92,27 @@ func (s *SearchBar) Render() *Element {
 	//
 	// type="search" carries its own clear control — the browser paints and
 	// wires the ✕. The bar does not add one: a second ✕ is the thing this
-	// note exists to prevent. Clearing it fires an "input" event, so the
-	// filter re-runs with "" through the same handler.
+	// note exists to prevent. Clearing it fires an "input" event, which only
+	// announces typing: the list changes on Enter.
 	input := Input("search").Set(clsInput.AsAttr()).
 		Attr("placeholder", lang.Translate(placeholder).String()).
+		Attr("aria-label", lang.Translate(placeholder).String()).
+		Attr("autocomplete", "off").
 		Attr("size", "1")
-	input.OnInput(func(e Event) {
-		if s.onFilter != nil {
+	input.OnInput(func(Event) {
+		if s.onTyping != nil {
+			s.onTyping()
+		}
+	})
+	input.OnKeyDown(func(e KeyEvent) {
+		if e.Key() == KeyEnter && s.onFilter != nil {
 			s.onFilter(e.TargetValue())
 		}
 	})
+	// A <label> for the field: a click on the magnifier focuses the field, and
+	// the glyph stays decoration (aria-hidden), not a button.
+	root.Child(Label().Set(clsIcon.AsAttr()).For(input).
+		Child(iconMagnifier.Render()))
 	root.Child(input)
 
 	return root

@@ -73,3 +73,13 @@ func TestSearchBar_SatisfiesFilterable(t *testing.T) {
 		t.Errorf("stored sink is not the one registered through the interface: got %q", got)
 	}
 }
+
+// The magnifier's <label> points at the field: a label with no control is an
+// HTML issue, and a click on the glyph focuses the field.
+func TestSearchBar_MagnifierLabelPointsAtTheField(t *testing.T) {
+	html := (&SearchBar{}).Render().String()
+	i := strings.Index(html, "<label")
+	if i < 0 || !strings.Contains(html[i:i+strings.Index(html[i:], ">")], "for='") {
+		t.Errorf("magnifier label has no for=:\n%s", html)
+	}
+}
