@@ -48,6 +48,11 @@ func TestDayClickSelects(t *testing.T) {
 	c.Init(nil)
 	Render("app", c.Render())
 
+	meter := query(t, "[data-date='2026-08-11'] .calendarslider__day-use")
+	if gotMeter := meter.Get("style").Call("getPropertyValue", "--meter-fill").String(); gotMeter != "60%" {
+		t.Errorf("--meter-fill = %q, want %q", gotMeter, "60%")
+	}
+
 	bookable := query(t, "[data-date='2026-08-11'] .calendarslider__day-button")
 	bookable.Call("click")
 	if c.Selected.Get() != "2026-08-11" {

@@ -22,9 +22,6 @@ var (
 	clsIcon   = NameThemeToggle.Class(PartIcon)
 )
 
-// storageKey identifica la entrada de localStorage del componente.
-const storageKey = "webtyp-themeswitch"
-
 // TsTheme representa el estado de tema del componente.
 type TsTheme string
 

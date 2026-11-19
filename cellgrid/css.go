@@ -12,6 +12,7 @@ func (c *CellGrid) RenderCSS() *css.Stylesheet {
 	return style.For(c).
 		Root(
 			style.Fill(),
+			style.FixedGrid(1, style.SpaceNone),
 		).
 		Part(PartCell,
 			style.Button(style.Bare),

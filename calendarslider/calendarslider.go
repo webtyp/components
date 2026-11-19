@@ -607,7 +607,7 @@ func (c *CalendarSlider) buildDay(year, month, day int) *Element {
 	if selectable {
 		stack.Child(Div().Set(clsDayUse.AsAttr(), useLevelClass(use, c.Meter).AsAttr()).
 			Attr("data-use", fmt.Sprint(use)).
-			Attr("style", "--meter-fill:"+fmt.Sprint(use)+"%;"))
+			StyleProp("--meter-fill", fmt.Sprint(use)+"%"))
 	}
 
 	li := Li().Set(classes...).

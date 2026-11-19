@@ -4,6 +4,9 @@ package themetoggle
 
 import . "webtyp.com/dom"
 
+// storageKey identifica la entrada de localStorage del componente.
+const storageKey = "webtyp-themeswitch"
+
 func (t *ThemeToggle) Init(_ Ctx) {
 	t.supported = SupportsLightDark() // before the first Render — see the field's doc comment
 	if LocalStorageAvailable() {

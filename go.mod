@@ -5,14 +5,14 @@ go 1.26.8
 require (
 	webtyp.com/calendar v0.1.0
 	webtyp.com/css v0.4.30
-	webtyp.com/dom v0.13.29
+	webtyp.com/dom v0.13.32
 	webtyp.com/fmt v1.0.2
 	webtyp.com/html v0.0.30
 	webtyp.com/image v0.1.16
 	webtyp.com/input v0.2.4
 	webtyp.com/js v0.1.3
-	webtyp.com/lang v0.1.16
-	webtyp.com/svg v0.3.30
+	webtyp.com/lang v0.1.20
+	webtyp.com/svg v0.3.43
 	webtyp.com/time v0.6.4
 	webtyp.com/widget v0.6.49
 )

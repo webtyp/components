@@ -154,8 +154,8 @@ func TestBuildMonthCells(t *testing.T) {
 	if Contains(day2.String(), "day-red") {
 		t.Error("la ocupación debería ganarle al domingo")
 	}
-	if !Contains(day2.String(), "data-use='30'") || !Contains(day2.String(), "--meter-fill:30%") {
-		t.Error("la barra de ocupación debería llevar el porcentaje")
+	if !Contains(day2.String(), "data-use='30'") || Contains(day2.String(), "style=") {
+		t.Error("la barra de ocupación debería llevar data-use='30' y sin atributo style en línea")
 	}
 
 	day11 := c.buildDay(2026, 8, 11)
@@ -216,10 +216,10 @@ func TestMeterKindDecidesTheColour(t *testing.T) {
 		}
 	}
 
-	// La LONGITUD de la barra no cambia con el sentido: sigue siendo el
-	// porcentaje literal. Solo el color lo lee.
-	if !Contains(got, "--meter-fill:100%") {
-		t.Errorf("la barra debería medir el porcentaje real:\n%s", got)
+	// El porcentaje se aplica por CSSOM (StyleProp) en el navegador y se expone
+	// en data-use sin emitir atributo style= en el HTML.
+	if !Contains(got, "data-use='100'") || Contains(got, "style=") {
+		t.Errorf("la barra debería llevar data-use='100' sin atributo style:\n%s", got)
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 // fixed dates silently fall out of the rendered range (a "not selectable" assertion then passes
 // without a single day to check). thu, fri, sat and sun are one Thursday-to-Sunday week in the
 // first week of next month, always inside the editor's horizon.
-var thu, fri, sat, sun = nextMonthWeek(time.Now())
+var _, fri, sat, sun = nextMonthWeek(time.Now())
 
 func nextMonthWeek(now time.Time) (string, string, string, string) {
 	d := time.Date(now.Year(), now.Month()+1, 1, 12, 0, 0, 0, time.Local)

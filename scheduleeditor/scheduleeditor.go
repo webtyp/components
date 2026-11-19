@@ -61,15 +61,9 @@ const (
 var (
 	clsRoot         = NameScheduleEditor.Root()
 	clsPattern      = NameScheduleEditor.Class(PartPattern)
-	clsPatternRow   = NameScheduleEditor.Class(PartPatternRow)
-	clsDayChips     = NameScheduleEditor.Class(PartDayChips)
 	clsDayChip      = NameScheduleEditor.Class(PartDayChip)
 	clsDayLabel     = NameScheduleEditor.Class(PartDayLabel)
 	clsFieldLabel   = NameScheduleEditor.Class(PartFieldLabel)
-	clsRowRemove    = NameScheduleEditor.Class(PartRowRemove)
-	clsRowAdd       = NameScheduleEditor.Class(PartRowAdd)
-	clsMarker       = NameScheduleEditor.Class(PartMarker)
-	clsMarkerHours  = NameScheduleEditor.Class(PartMarkerHours)
 	clsSectionTitle = NameScheduleEditor.Class(PartSectionTitle)
 	clsTimeRange    = NameScheduleEditor.Class(PartTimeRange)
 	clsDayRow       = NameScheduleEditor.Class(PartDayRow)
@@ -79,7 +73,6 @@ var (
 	clsSlotRemove   = NameScheduleEditor.Class(PartSlotRemove)
 	clsHintText     = NameScheduleEditor.Class(PartHintText)
 	clsExceptions   = NameScheduleEditor.Class(PartExceptions)
-	clsSlider       = NameScheduleEditor.Class(PartSlider)
 	clsExcForm      = NameScheduleEditor.Class(PartExcForm)
 	clsExcHours     = NameScheduleEditor.Class(PartExcHours)
 	clsExcNotes     = NameScheduleEditor.Class(PartExcNotes)
@@ -258,15 +251,6 @@ func hourOptions(selected int, b Bounds, step int) []*Element {
 // ---------------------------------------------------------------------------
 // Plantilla semanal (Pattern)
 // ---------------------------------------------------------------------------
-
-var shortWeekdayKeys = [7]string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
-
-func dayChipLabel(index int) string {
-	if index < 0 || index > 6 {
-		return ""
-	}
-	return lang.Translate(shortWeekdayKeys[index]).String()
-}
 
 // dayFullLabel es el nombre largo del día. La fila por día lo lleva entero
 // ("Lunes"): una lista de siete renglones tiene sitio para la palabra, y la

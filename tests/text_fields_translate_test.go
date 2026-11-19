@@ -21,13 +21,9 @@ func TestMain(m *testing.M) {
 	app.Set("id", "app")
 	js.Global().Get("document").Get("body").Call("appendChild", app)
 
-	// Dictionary script
-	script := js.Global().Get("document").Call("createElement", "script")
-	script.Set("type", "application/json")
-	script.Set("id", lang.ScriptID)
-	// byte-order sorted keys
-	script.Set("textContent", `{"default":"es","languages":["es"],"keys":{"Delete":["Eliminar"],"Hours":["Horario"],"Search patients":["Buscar pacientes"],"Send":["Enviar"]}}`)
-	js.Global().Get("document").Get("head").Call("appendChild", script)
+	// Dictionary preloaded on globalThis (as js.PageBootstrap does)
+	parsed := js.Global().Get("JSON").Call("parse", `{"default":"es","languages":["es"],"keys":{"Delete":["Eliminar"],"Hours":["Horario"],"Search patients":["Buscar pacientes"],"Send":["Enviar"]}}`)
+	js.Global().Set(lang.GlobalDictKey, parsed)
 
 	m.Run()
 }

@@ -52,9 +52,9 @@ func (c *CellGrid) Init(_ dom.Ctx) {}
 
 func (c *CellGrid) Render() *dom.Element {
 	grid := html.Div().
-		Set(clsGrid.AsAttr())
-
-	grid.Attr("style", fmt.Sprintf("display: grid; grid-template-columns: repeat(%d, 1fr); grid-template-rows: repeat(%d, 1fr);", c.Cols, c.Rows))
+		Set(clsGrid.AsAttr()).
+		StyleProp("grid-template-columns", fmt.Sprintf("repeat(%d, 1fr)", c.Cols)).
+		StyleProp("grid-template-rows", fmt.Sprintf("repeat(%d, 1fr)", c.Rows))
 
 	if len(c.SparseCells) > 0 {
 		for _, cell := range c.SparseCells {
@@ -80,7 +80,8 @@ func (c *CellGrid) renderCell(r, col int) *dom.Element {
 	el := html.Div().
 		Set(clsCell.AsAttr()).
 		BindStateFunc(widget.Selected, func() bool { return active }).
-		Attr("style", fmt.Sprintf("grid-row: %d; grid-column: %d;", r+1, col+1)).
+		StyleProp("grid-row", fmt.Sprint(r+1)).
+		StyleProp("grid-column", fmt.Sprint(col+1)).
 		OnClick(func(dom.Event) {
 			if c.OnCellClick != nil {
 				c.OnCellClick(r, col)
