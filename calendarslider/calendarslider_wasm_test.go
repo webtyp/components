@@ -38,7 +38,7 @@ func exists(sel string) bool {
 func TestDayClickSelects(t *testing.T) {
 	var got string
 	var gotFilter string
-	c := &CalendarSlider{Zone: time.MachineZone(),
+	c := &CalendarSlider{zone: time.MachineZone(),
 		Start:      "2026-08",
 		Holidays:   []Holiday{{Date: "2026-08-15", Name: "Asunción"}},
 		Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 60}},
@@ -86,7 +86,7 @@ func TestDayClickSelects(t *testing.T) {
 // deslizador infinito: los NumMonths meses son hijos estáticos, ninguno se
 // desmonta ni se recicla — el slide es puramente visual (scroll-snap).
 func TestAllMonthsAlwaysInDOM(t *testing.T) {
-	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
+	c := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	Render("app", c.Render())
 
@@ -109,7 +109,7 @@ func TestAllMonthsAlwaysInDOM(t *testing.T) {
 // enrutado por hash (platformd) lo leería como cambio de ruta, no como
 // scroll.
 func TestNavButtonsSlideToNeighbor(t *testing.T) {
-	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
+	c := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	Render("app", c.Render())
 
@@ -155,7 +155,7 @@ func TestNavButtonsSlideToNeighbor(t *testing.T) {
 // TestExternalSelectedHighlights cubre el enlace inverso: el host escribe la
 // señal y el DOM se pinta sin tocar el calendario.
 func TestExternalSelectedHighlights(t *testing.T) {
-	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 60}}}
+	c := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08", Occupation: []OccupationDay{{Date: "2026-08-11", Percent: 60}}}
 	c.Init(nil)
 	Render("app", c.Render())
 
@@ -182,7 +182,7 @@ func TestExternalSelectedHighlights(t *testing.T) {
 // contraria a través de todos los meses intermedios, lo que se lee como un
 // reinicio. La navegación entre meses vecinos sigue siendo suave.
 func TestWrapNavigationJumpsInstantly(t *testing.T) {
-	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
+	c := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
 	c.Init(nil)
 	Render("app", c.Render())
 
@@ -223,7 +223,7 @@ func TestWrapNavigationJumpsInstantly(t *testing.T) {
 // atributo data-current de la tira — sin leer viewport, porque el mecanismo
 // es idéntico en desktop y mobile.
 func TestCollapsedChipTogglesEverywhere(t *testing.T) {
-	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
+	c := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08"}
 	c.Init(nil)
 	Render("app", c.Render())
 
@@ -252,7 +252,7 @@ func TestCollapsedChipTogglesEverywhere(t *testing.T) {
 // casilla en blanco) con sus callbacks, y la tira se oculta igual.
 func TestChipCollapseDefaultsToToday(t *testing.T) {
 	var gotSelect, gotFilter string
-	c := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08"}
+	c := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08"}
 	c.OnSelect = func(date string) { gotSelect = date }
 	c.OnFilterChange(func(term string) { gotFilter = term })
 	c.Init(nil)
@@ -278,8 +278,8 @@ func TestChipCollapseDefaultsToToday(t *testing.T) {
 // the duplicate. Now neither invents an id, so both mount, and each ‹ ›
 // scrolls its OWN strip.
 func TestTwoInstancesShareAPage(t *testing.T) {
-	cA := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
-	cB := &CalendarSlider{Zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
+	cA := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
+	cB := &CalendarSlider{zone: time.MachineZone(), Start: "2026-08", NumMonths: 3}
 
 	// Mounted as sibling COMPONENTS under one parent — dom gives each its own
 	// instance id and Init — exactly how app-demo composes them.

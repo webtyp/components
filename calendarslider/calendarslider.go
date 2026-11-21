@@ -133,12 +133,44 @@ type OccupationDay struct {
 // hacia los meses vecinos. Los días con ocupación son los únicos
 // seleccionables — el resto se muestra como día inactivo, igual que el
 // calendario "normal" original.
+// Options configures a CalendarSlider built with New.
+type Options struct {
+	Start        string
+	NumMonths    int
+	Holidays     []Holiday
+	Occupation   []OccupationDay
+	Meter        MeterKind
+	Selected     *SignalString
+	SelectedMany *SignalString
+	Expanded     *SignalBool
+	OnSelect     func(date string)
+	OnToggle     func(date string, selected bool)
+}
+
+// New builds a CalendarSlider bound to zone (required: a zero Zone panics on Init).
+func New(zone time.Zone, opts ...Options) *CalendarSlider {
+	c := &CalendarSlider{zone: zone}
+	if len(opts) > 0 {
+		o := opts[0]
+		c.Start = o.Start
+		c.NumMonths = o.NumMonths
+		c.Holidays = o.Holidays
+		c.Occupation = o.Occupation
+		c.Meter = o.Meter
+		c.Selected = o.Selected
+		c.SelectedMany = o.SelectedMany
+		c.Expanded = o.Expanded
+		c.OnSelect = o.OnSelect
+		c.OnToggle = o.OnToggle
+	}
+	return c
+}
+
 type CalendarSlider struct {
 	Element // value embed — NEVER pointer (TinyGo heap constraint)
 
-	// Zone is the installation's time zone (appkit.BrowserDeps.Zone): dates and hours are shown on its clock.
-	// Required: a zero Zone panics.
-	Zone time.Zone
+	// zone is the installation's time zone (set via New): dates and hours are shown on its clock.
+	zone time.Zone
 
 	// Start es el primer mes de la tira, formato "YYYY-MM"; vacío = el mes
 	// actual (zona local).
@@ -271,7 +303,7 @@ func (c *CalendarSlider) Init(_ Ctx) {
 	if c.Expanded == nil {
 		c.Expanded = NewBool(true)
 	}
-	c.today = c.Zone.Date(time.NowUnix())
+	c.today = c.zone.Date(time.NowUnix())
 }
 
 func (c *CalendarSlider) numMonths() int {

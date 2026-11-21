@@ -566,8 +566,7 @@ func (e *ScheduleEditor) buildExceptions() *Element {
 		Child(Div().Set(clsHintText.AsAttr()).
 			Text(lang.Translate("Dates that differ from the weekly pattern").String())).
 		Child(e.buildExceptionList()).
-		Child(&calendarslider.CalendarSlider{
-			Zone:       e.Zone, // the editor's zone: its calendar shows the same days
+		Child(calendarslider.New(e.Zone, calendarslider.Options{ // the editor's zone: its calendar shows the same days
 			NumMonths:  e.horizonMonths(),
 			Holidays:   toCalHolidays(e.Holidays),
 			Occupation: e.effectiveOccupation(),
@@ -587,7 +586,7 @@ func (e *ScheduleEditor) buildExceptions() *Element {
 				// reabrirlo a mano para comprobar si el día quedó marcado.
 				e.calOpen.Set(true)
 			},
-		}).
+		})).
 		Child(e.buildExceptionForm())
 }
 

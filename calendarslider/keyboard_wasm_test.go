@@ -47,7 +47,7 @@ func zeroTabsInMonth(month string) int {
 // because dom.Event could not read a key press at all. The handler now goes
 // through dom.OnKeyDown and dom.Key.
 func TestArrowKeysMoveFocus(t *testing.T) {
-	c := &CalendarSlider{Zone: time.MachineZone(),
+	c := &CalendarSlider{zone: time.MachineZone(),
 		Start: "2026-08",
 		Occupation: []OccupationDay{
 			{Date: "2026-08-11", Percent: 60},

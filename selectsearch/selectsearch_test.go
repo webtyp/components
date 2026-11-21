@@ -332,3 +332,51 @@ func TestSelectSearch_OnSelect_StillFiresAlongsideFilterable(t *testing.T) {
 	}
 }
 
+// TestDisabledOptionIsShownButNotChosen: the doctor's agenda lists a pending
+// reservation so the doctor knows it exists, but only a confirmed one opens a
+// record — a disabled row renders and carries the disabled state (buildRows
+// attaches no click to it).
+func TestDisabledOptionIsShownButNotChosen(t *testing.T) {
+	c := &SelectSearch{Options: []SsOption{
+		{ID: "r1", Label: "Ana Pérez, 40 años", Description: "09:15 · Pendiente", Disabled: true},
+		{ID: "r2", Label: "Luis Soto, 52 años", Description: "09:30 · Confirmada"},
+	}}
+	c.Init(nil)
+
+	rows := c.buildRows("")
+	if len(rows) != 2 {
+		t.Fatalf("rows = %d, want 2 (a disabled option is still listed)", len(rows))
+	}
+	disabled, enabled := rows[0].String(), rows[1].String()
+	if !fmt.Contains(disabled, "Ana Pérez") || !fmt.Contains(disabled, `aria-disabled`) {
+		t.Errorf("disabled row must render with aria-disabled: %s", disabled)
+	}
+	if fmt.Contains(enabled, `aria-disabled`) {
+		t.Errorf("enabled row must not be disabled: %s", enabled)
+	}
+}
+
+// StartOpen: a picker that scopes a list is the only thing to do on an empty screen, so it opens by itself when
+// its options first arrive and nothing is chosen. It never reopens later (a refresh of the options) or after a pick.
+func TestStartOpenOpensOnceWhenOptionsFirstArrive(t *testing.T) {
+	c := &SelectSearch{StartOpen: true}
+	c.Init(nil)
+	if c.isOpen.Get() {
+		t.Fatal("no options yet: must stay closed")
+	}
+	c.SetOptions([]SsOption{{ID: "1", Label: "Apple"}})
+	if !c.isOpen.Get() {
+		t.Fatal("first options arrived with nothing chosen: must open")
+	}
+	c.selectOption(c.Options[0])
+	c.SetOptions([]SsOption{{ID: "1", Label: "Apple"}, {ID: "2", Label: "Pear"}})
+	if c.isOpen.Get() {
+		t.Fatal("options refreshed after a pick: must not reopen")
+	}
+
+	static := &SelectSearch{StartOpen: true, Options: []SsOption{{ID: "1", Label: "Apple"}}}
+	static.Init(nil)
+	if !static.isOpen.Get() {
+		t.Fatal("static options with StartOpen: must start open")
+	}
+}

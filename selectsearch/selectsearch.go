@@ -87,12 +87,20 @@ const (
 // than one screenful is one the user cannot take in at a glance.
 const searchThreshold = 10
 
+// labelChars is the label's budget on one line of the header or an option row: a
+// longer label ends in an ellipsis and keeps its whole text in the title.
+const labelChars = 30
+
+// shortLabel is the label as one line shows it.
+func shortLabel(label string) string { return fmt.Convert(label).Truncate(labelChars).String() }
+
 // SsOption represents a selectable item.
 type SsOption struct {
 	ID          string // unique identifier, returned in OnSelect
 	Label       string // visible text
 	Sublabel    string // optional second line under Label — position only, no assumed content
 	Description string // optional badge shown on the right
+	Disabled    bool   // shown dimmed and never chosen: the user sees it exists but cannot pick it
 }
 
 type SelectSearch struct {
@@ -103,6 +111,7 @@ type SelectSearch struct {
 	Search      SearchMode                   // whether the search field appears; zero value is SearchAuto
 	OnSelect    func(id, description string) // called when user picks an option
 	OnSearch    func(term string) []SsOption // called when ALL local options are filtered out
+	StartOpen   bool                         // opens by itself the first time it has options and nothing is chosen
 
 	// Internal state signals
 	selectedLabel *SignalString
@@ -117,6 +126,7 @@ type SelectSearch struct {
 	isOpen           *SignalBool
 	rows             *SignalNodes
 	searchShown      *SignalBool
+	startedOpen      bool // StartOpen already fired: it opens once, never again on a later SetOptions
 
 	onFilter func(term string) // set via OnFilterChange — satisfies widget.Filterable
 }
@@ -148,6 +158,16 @@ func (c *SelectSearch) Init(_ Ctx) {
 	c.isOpen = NewBool(false)
 	c.rows = NewNodes(c.buildRows("")...)
 	c.searchShown = NewBool(c.searchVisible())
+	c.openAtStart()
+}
+
+// openAtStart opens the list the first time it has options while nothing is chosen, when StartOpen asks for it.
+func (c *SelectSearch) openAtStart() {
+	if !c.StartOpen || c.startedOpen || len(c.Options) == 0 || c.selectedID.Get() != "" {
+		return
+	}
+	c.startedOpen = true
+	c.isOpen.Set(true)
 }
 
 // searchVisible resolves SearchMode against the list as it stands right now.
@@ -176,6 +196,7 @@ func (c *SelectSearch) SetOptions(options []SsOption) {
 	// async source has to be able to move that decision. Without this line a
 	// picker rendered empty and filled later would never grow its field.
 	c.searchShown.Set(c.searchVisible())
+	c.openAtStart()
 }
 
 func (c *SelectSearch) Render() *Element {
@@ -239,7 +260,8 @@ func (c *SelectSearch) Render() *Element {
 	// PartLabel / PartSublabel used inside an option row (see buildRows), so
 	// the header cannot drift from the row it echoes.
 	pickedText := Div().Set(ClsSsText.AsAttr()).
-		Child(Span().Set(ClsSsLabel.AsAttr()).BindText(c.selectedLabel)).
+		Child(Span().Set(ClsSsLabel.AsAttr()).BindAttr("title", c.selectedLabel).
+			BindText(DeriveString(func() string { return shortLabel(c.selectedLabel.Get()) }))).
 		Child(Show(hasSublabel, func() *Element { return Span().Set(ClsSsSublabel.AsAttr()).BindText(c.selectedSublabel) }))
 
 	headerBody := Div().Set(ClsSsHeaderBody.AsAttr()).
@@ -345,7 +367,7 @@ func (c *SelectSearch) buildRows(term string) []*Element {
 		// the name, not a sibling beside it, which is why it is its own Grow()
 		// column instead of two more spans loose in the row's own Row().
 		text := Div().Set(ClsSsText.AsAttr()).
-			Child(Span().Set(ClsSsLabel.AsAttr()).Text(opt.Label))
+			Child(Span().Set(ClsSsLabel.AsAttr()).Attr("title", opt.Label).Text(shortLabel(opt.Label)))
 		if opt.Sublabel != "" {
 			text.Child(Span().Set(ClsSsSublabel.AsAttr()).Text(opt.Sublabel))
 		}
@@ -354,8 +376,12 @@ func (c *SelectSearch) buildRows(term string) []*Element {
 			Key(opt.ID).
 			Attr("role", "option").
 			BindStateFunc(widget.Selected, func() bool { return c.selectedID.Get() == o.ID }).
-			Child(text).
-			OnClick(func(e Event) { c.selectOption(o) })
+			Child(text)
+		if opt.Disabled {
+			item.Attr("aria-disabled", "true").BindState(widget.Disabled, NewBool(true))
+		} else {
+			item.OnClick(func(e Event) { c.selectOption(o) })
+		}
 
 		if opt.Description != "" {
 			item.Child(Span().Set(ClsSsDesc.AsAttr()).Text(opt.Description))

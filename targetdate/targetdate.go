@@ -23,8 +23,9 @@ var (
 )
 
 // leadLines turns the row badge into the three lines of the date badge: a stored
-// date (seconds since 1970, as text) → weekday / day / month; any other text → the
-// text alone in the middle line; "" → three empty lines.
+// date (seconds since 1970, as text) → weekday / day / month and two-digit year
+// ("Ago 97": a clinical history spans decades); any other text → the text alone in
+// the middle line; "" → three empty lines.
 func leadLines(zone time.Zone, badge string) (top, main, bottom string) {
 	if badge == "" {
 		return "", "", ""
@@ -39,11 +40,15 @@ func leadLines(zone time.Zone, badge string) (top, main, bottom string) {
 	day, _ := fmt.Convert(date[8:10]).Int()
 	return lang.Translate(weekdayAbbr[zone.Weekday(u)]).String(),
 		fmt.Convert(day).String(),
-		lang.Translate(monthAbbr[month-1]).String()
+		lang.Translate(monthAbbr[month-1]).String() + " " + date[2:4]
 }
 
 // badgeChars mirrors targetlist's own budget — see that package's comment.
 const badgeChars = 16
+
+// labelChars is the label's budget: one line of the row's content column. A
+// longer label ends in an ellipsis and keeps its whole text in the title.
+const labelChars = 44
 
 // NameTargetDate is the widget identity.
 const NameTargetDate = widget.Name("targetdate")
@@ -222,6 +227,8 @@ func (t *TargetDate) Items() []Item { return t.items }
 func (t *TargetDate) Count() int    { return len(t.items) }
 
 func (t *TargetDate) Render() *Element {
+	t.ensure()
+	t.sel.Selected = t.Selected
 	list := Ul().Set(clsList.AsAttr()).Attr("role", "listbox").BindChildren(t.rows)
 	return Div().Set(clsListWrap.AsAttr()).
 		BindStateFunc(widget.Open, func() bool { return t.sel.On().Get() }).
@@ -285,7 +292,9 @@ func (t *TargetDate) buildRowEl(st *rowState) *Element {
 	// mode by RowOf. Nothing here hangs off the ROW's state.
 	content := Div().Set(clsContent.AsAttr()).
 		Child(r.Check).
-		Child(Span().Set(clsLabel.AsAttr()).BindText(st.label))
+		Child(Span().Set(clsLabel.AsAttr()).
+			BindAttr("title", st.label).
+			BindText(DeriveString(func() string { return fmt.Convert(st.label.Get()).Truncate(labelChars).String() })))
 	// The badge mounts once and hides on empty, instead of existing
 	// conditionally: a conditional would need a new node exactly when the
 	// description flips empty↔set (a reservation confirming), which is the

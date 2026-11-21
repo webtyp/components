@@ -10,13 +10,12 @@ import (
 )
 
 func TestComponents_NoInlineStyleAttr(t *testing.T) {
-	cal := &calendarslider.CalendarSlider{
-		Zone:  time.MachineZone(),
+	cal := calendarslider.New(time.MachineZone(), calendarslider.Options{
 		Start: "2026-08",
 		Occupation: []calendarslider.OccupationDay{
 			{Date: "2026-08-15", Percent: 50},
 		},
-	}
+	})
 	cal.Init(nil)
 	calHTML := cal.Render().String()
 	if strings.Contains(calHTML, "style=") {

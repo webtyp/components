@@ -147,12 +147,14 @@ func ageFromBirth(date, today string) (age string, ok bool) {
 // keystroke; the age is not a value of the record, so a bad age is explained
 // right under it and nothing is sent.
 func (a *AgeDate) RenderInput(value *dom.SignalString, onInput func(string)) *dom.Element {
-	ageVal := ""
-	if v := value.Get(); v != "" {
-		if age, ok := ageFromBirth(v, today()); ok {
-			ageVal = age
+	ageSignal := dom.DeriveString(func() string {
+		v := value.Get()
+		if v == "" {
+			return ""
 		}
-	}
+		age, _ := ageFromBirth(v, today())
+		return age
+	})
 	problem := dom.NewString("")
 	commit := func(v string) {
 		if onInput != nil {
@@ -162,7 +164,8 @@ func (a *AgeDate) RenderInput(value *dom.SignalString, onInput func(string)) *do
 
 	ageInput := Input("number").
 		Attr("min", "1").Attr("max", "130").Attr("step", "1").
-		Attr("value", ageVal).
+		Attr("value", ageSignal.Get()).
+		Bind(ageSignal).
 		Class(NameAgeDate.Class(PartAge).String()).
 		OnChange(func(e dom.Event) {
 			text := e.TargetValue()

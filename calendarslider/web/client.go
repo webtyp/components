@@ -12,14 +12,13 @@ import (
 
 type App struct {
 	Element
-	cal      calendarslider.CalendarSlider
+	cal      *calendarslider.CalendarSlider
 	selected *SignalString
 }
 
 func (a *App) Init(_ Ctx) {
 	a.selected = NewString("")
-	a.cal = calendarslider.CalendarSlider{
-		Zone:      time.MachineZone(), // demo: the visitor's clock; an app passes appkit.BrowserDeps.Zone
+	a.cal = calendarslider.New(time.MachineZone(), calendarslider.Options{ // demo: the visitor's clock; an app passes appkit.BrowserDeps.Zone
 		Start:     "2026-08",
 		NumMonths: 3,
 		Holidays: []calendarslider.Holiday{

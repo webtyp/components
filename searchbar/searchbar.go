@@ -44,6 +44,11 @@ type SearchBar struct {
 	// English; translated in Render.
 	Placeholder lang.Text
 
+	// Live fires OnFilterChange on every keystroke instead of waiting for Enter.
+	// Set to true when the host already holds the full list in memory; false
+	// (the default) keeps Enter-to-search for server-side / search-first lists.
+	Live bool
+
 	onFilter func(term string)
 	onTyping func()
 }
@@ -99,7 +104,13 @@ func (s *SearchBar) Render() *Element {
 		Attr("aria-label", lang.Translate(placeholder).String()).
 		Attr("autocomplete", "off").
 		Attr("size", "1")
-	input.OnInput(func(Event) {
+	input.OnInput(func(e Event) {
+		if s.Live {
+			if s.onFilter != nil {
+				s.onFilter(e.TargetValue())
+			}
+			return
+		}
 		if s.onTyping != nil {
 			s.onTyping()
 		}

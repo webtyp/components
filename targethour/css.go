@@ -73,7 +73,7 @@ func (t *TargetHour) sheet() *style.Sheet {
 			style.Grow(),
 		).
 		Part(PartBadge,
-			style.As(style.Primary),
+			style.As(style.Inset), // data is neutral, never the brand colour (ui-consistency)
 			style.Round(style.RadiusSm),
 			style.FontSize(style.TextXs),
 			style.ChipBox(),

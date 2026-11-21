@@ -142,6 +142,7 @@ func (c *SelectSearch) sheet() *style.Sheet {
 		// and that is fine.
 		Part(PartHeader,
 			style.Row(style.SpaceNone),
+			style.OneLine(), // icon and picked text stay on one line at any width
 			style.Round(style.RadiusMd),
 			style.HideOverflow(),
 			style.ControlBox(),
@@ -162,6 +163,7 @@ func (c *SelectSearch) sheet() *style.Sheet {
 		Part(PartHeaderBody,
 			style.Grow(),
 			style.Row(style.Space2),
+			style.OneLine(), // name/RUT column gives way, the time chip keeps its size
 			style.PadInline(style.Space2),
 		).
 		// The empty-state line: shown only until a choice is made. Subtle so it
@@ -262,6 +264,7 @@ func (c *SelectSearch) sheet() *style.Sheet {
 		Part(PartText,
 			style.Stack(style.SpaceNone),
 			style.Grow(),
+			style.HideOverflow(),
 		).
 		Part(PartLabel,
 			style.FontWeight(style.WeightBold),
@@ -327,6 +330,7 @@ func (c *SelectSearch) sheet() *style.Sheet {
 		// was hovered or selected, leaving a wedge of sheet showing at each
 		// corner of the fill the hairlines were supposed to bound.
 		When(widget.Selected, PartOption, style.As(style.Accent), style.Round(style.RadiusNone)).
+		When(widget.Disabled, PartOption, style.As(style.Inactive)).
 		Cue(widget.Hover, PartOption, style.As(style.AccentWash), style.Round(style.RadiusNone)).
 		Cue(widget.Focus, PartOption, style.As(style.AccentWash), style.Round(style.RadiusNone)).
 		Cue(widget.Press, PartOption, style.As(style.Accent), style.Round(style.RadiusNone))

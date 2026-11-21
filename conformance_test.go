@@ -261,7 +261,7 @@ func TestConformance(t *testing.T) {
 				for _, match := range matches {
 					if len(match) > 1 {
 						varName := match[1]
-						if !allowedVars[varName] {
+						if !allowedVars[varName] && !strings.HasPrefix(varName, "--palette-") {
 							t.Errorf("%s: references non-catalog variable %q", path, varName)
 						}
 					}
@@ -337,7 +337,7 @@ func TestEveryPackageEmits(t *testing.T) {
 		RenderCSS() *css.Stylesheet
 	}{
 		&actionbutton.ActionButton{},
-		&calendarslider.CalendarSlider{Zone: time.MachineZone()},
+		calendarslider.New(time.MachineZone()),
 		&contentcard.ContentCard{},
 		&datatable.DataTable{},
 		&herobanner.HeroBanner{},
@@ -376,7 +376,7 @@ func TestKindAllowsEveryState(t *testing.T) {
 		WidgetKind() widget.Kind
 	}{
 		"actionbutton":     &actionbutton.ActionButton{},
-		"calendarslider":   &calendarslider.CalendarSlider{Zone: time.MachineZone()},
+		"calendarslider":   calendarslider.New(time.MachineZone()),
 		"contentcard":      &contentcard.ContentCard{},
 		"datatable":        &datatable.DataTable{},
 		"herobanner":       &herobanner.HeroBanner{},

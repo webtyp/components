@@ -226,6 +226,8 @@ func (t *TargetHour) Items() []Item { return t.items }
 func (t *TargetHour) Count() int    { return len(t.items) }
 
 func (t *TargetHour) Render() *Element {
+	t.ensure()
+	t.sel.Selected = t.Selected
 	list := Ul().Set(clsList.AsAttr()).Attr("role", "listbox").BindChildren(t.rows)
 	return Div().Set(clsListWrap.AsAttr()).
 		BindStateFunc(widget.Open, func() bool { return t.sel.On().Get() }).

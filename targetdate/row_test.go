@@ -46,8 +46,8 @@ func TestLeadLines_StoredDate(t *testing.T) {
 	if main != "27" {
 		t.Errorf("got main %q, want %q", main, "27")
 	}
-	if bottom != "Oct" {
-		t.Errorf("got bottom %q, want %q", bottom, "Oct")
+	if bottom != "Oct 26" { // month and two-digit year: a clinical history spans decades
+		t.Errorf("got bottom %q, want %q", bottom, "Oct 26")
 	}
 }
 
@@ -76,7 +76,7 @@ func santiago(t *testing.T) time.Zone {
 // A winter night booking: 2019-07-16 01:30 UTC is Monday the 15th, 21:30, in Santiago (UTC is Tuesday the 16th).
 func TestLeadLines_ZoneNotUTC(t *testing.T) {
 	top, main, bottom := leadLines(santiago(t), "1563240600")
-	if top != "Mon" || main != "15" || bottom != "Jul" {
-		t.Errorf("got %q %q %q, want Mon 15 Jul", top, main, bottom)
+	if top != "Mon" || main != "15" || bottom != "Jul 19" {
+		t.Errorf("got %q %q %q, want Mon 15 Jul 19", top, main, bottom)
 	}
 }

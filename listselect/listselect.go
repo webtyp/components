@@ -45,6 +45,11 @@ type Mode struct {
 	// never arms it keeps the single Accent selection language it always had.
 	danger *SignalBool
 
+	// Selected optionally links the host's single-row selection signal so the
+	// header count reads "1 / N" when one record is open in normal mode, "0 / N"
+	// when none is selected, and "k / N" while multi-selection mode is active.
+	Selected *SignalString
+
 	// OnChange fires after every toggle with the current count, so a host can
 	// label its commit button ("🗑 3") and disable it at zero.
 	OnChange func(n int)
@@ -101,6 +106,7 @@ func (m *Mode) SetOn(on bool) {
 	m.ensure()
 	if !on && len(m.checked) > 0 {
 		m.checked = nil
+		m.Changed().Toggle()
 		if m.OnChange != nil {
 			m.OnChange(0)
 		}
@@ -308,7 +314,22 @@ func Header(m *Mode, ids func() []string, name widget.Name) *Element {
 	count := html.Span().Set(name.Class(partAllCount).AsAttr()).
 		BindTextFunc(func() string {
 			_ = m.Changed().Get()
-			return fmt.Sprintf("%d / %d", m.Count(), len(ids()))
+			on := m.On().Get()
+			sel := ""
+			if m.Selected != nil {
+				sel = m.Selected.Get()
+			}
+			all := ids()
+			n := m.Count()
+			if !on && sel != "" {
+				for _, id := range all {
+					if id == sel {
+						n = 1
+						break
+					}
+				}
+			}
+			return fmt.Sprintf("%d / %d", n, len(all))
 		})
 
 	// Balances the box's footprint on the leading edge — no click handler,

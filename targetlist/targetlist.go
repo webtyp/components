@@ -46,8 +46,8 @@ type Item = model.Item
 // node — and its listeners — survives. The id never changes for a node, so
 // selection derives and the click path stay keyed on it, not on the words.
 type rowState struct {
-	id          string
-	label, desc *SignalString
+	id                string
+	label, desc, tone *SignalString
 }
 
 func newRowState(it Item) *rowState {
@@ -55,6 +55,7 @@ func newRowState(it Item) *rowState {
 		id:    it.ID,
 		label: NewString(it.Label),
 		desc:  NewString(it.Description),
+		tone:  NewString(it.Tone),
 	}
 }
 
@@ -62,6 +63,7 @@ func newRowState(it Item) *rowState {
 func (r *rowState) set(it Item) {
 	r.label.Set(it.Label)
 	r.desc.Set(it.Description)
+	r.tone.Set(it.Tone)
 }
 
 // TargetList is a selectable list of records with a multi-selection mode.
@@ -173,6 +175,8 @@ func (t *TargetList) Items() []Item { return t.items }
 func (t *TargetList) Count() int { return len(t.items) }
 
 func (t *TargetList) Render() *Element {
+	t.ensure()
+	t.sel.Selected = t.Selected
 	list := Ul().Set(clsList.AsAttr()).Attr("role", "listbox").BindChildren(t.rows)
 
 	return Div().Set(clsListWrap.AsAttr()).
@@ -233,6 +237,22 @@ func (t *TargetList) buildRowEl(st *rowState) *Element {
 		func() *Element {
 			return Span().Set(clsBadge.AsAttr()).
 				BindAttr("title", st.desc).
+				BindAttr("data-toned", DeriveString(func() string {
+					if st.tone.Get() != "" {
+						return "1"
+					}
+					return ""
+				})).
+				BindStyleProp("--tone-color", DeriveString(func() string {
+					t := st.tone.Get()
+					if t == "" {
+						return ""
+					}
+					if t[0] == '#' {
+						return t
+					}
+					return "var(--palette-" + t + ")"
+				})).
 				BindText(DeriveString(func() string {
 					return fmt.Convert(st.desc.Get()).Truncate(badgeChars).String()
 				}))
