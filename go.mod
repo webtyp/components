@@ -14,7 +14,7 @@ require (
 	webtyp.com/lang v0.1.22
 	webtyp.com/svg v0.3.43
 	webtyp.com/time v0.6.7
-	webtyp.com/widget v0.6.51
+	webtyp.com/widget v0.6.52
 )
 
 require (
